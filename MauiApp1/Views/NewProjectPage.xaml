@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp1.Views.NewProjectPage"
+             xmlns:local="clr-namespace:MauiApp1.ViewModels"
+             xmlns:conv="clr-namespace:MauiApp1.Models"
+             Title="New Project"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+
+    <ContentPage.Resources>
+        <conv:AgentToStringConverter x:Key="agentToString" />
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </ContentPage.Resources>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Save New Project" Command="{Binding SaveNewProjectCommand}" IconImageSource="{FontImage Glyph='✔', Color=Green, Size=22}" />
+        <ToolbarItem Text="Cancel" Command="{Binding CancelCommand}" IconImageSource="{FontImage Glyph='x', Color=Red, Size=22}" x:Name="DeleteButton" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <Grid>
+            <Grid.RowDefinitions>
+                <!-- The first row is twice the size of the second row -->
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <Grid Margin="10" Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Text="Client" FontSize="Title" Grid.Row="0" Grid.Column="0" VerticalOptions="CenterAndExpand" Margin="20" />
+                <Entry 
+                        Text="{Binding Client}" 
+                        Placeholder="Enter Client" 
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalOptions="CenterAndExpand"
+                        Margin="10"/>
+
+                <Label Text="Type" FontSize="Title" Grid.Row="0" Grid.Column="1" VerticalOptions="CenterAndExpand" Margin="20" />
+                <Picker 
+                        ItemsSource="{Binding TypesList}" 
+                        SelectedItem="{Binding Type}" 
+                        Grid.Row="1" 
+                        Grid.Column="1"
+                        VerticalOptions="CenterAndExpand" 
+                        HorizontalOptions="StartAndExpand"
+                        MaximumWidthRequest="250"
+                        Margin="10"/>
+
+
+                <Label Text="Description" FontSize="Title" Grid.Row="0" Grid.Column="2" VerticalOptions="CenterAndExpand" Margin="20" />
+                <Entry 
+                        Text="{Binding Description}" 
+                        Placeholder="Enter Description" 
+                        Grid.Row="1" 
+                        Grid.Column="2"
+                        VerticalOptions="CenterAndExpand"
+                        Margin="10"/>
+
+                <Label Text="Date" FontSize="Title" Grid.Row="0" Grid.Column="3" VerticalOptions="CenterAndExpand" Margin="20" />
+                <Entry 
+                        Text="{Binding Date, StringFormat='{0:dd/MM/yyyy}'}" 
+                        Grid.Row="1" 
+                        Grid.Column="3"
+                        VerticalOptions="CenterAndExpand"
+                        Margin="10"/>
+
+                <Label Text="Currency" FontSize="Title" Grid.Row="2" Grid.Column="0" VerticalOptions="CenterAndExpand" Margin="20" />
+                <Picker 
+                        ItemsSource="{Binding CurrencyList}" 
+                        SelectedItem="{Binding Currency}" 
+                        Grid.Row="3" 
+                        Grid.Column="0"
+                        VerticalOptions="CenterAndExpand"
+                        Margin="10"/>
+
+                <Label Text="Fee" FontSize="Title" Grid.Row="2" Grid.Column="1" VerticalOptions="CenterAndExpand" Margin="20" />
+                <Entry 
+                        Text="{Binding Fee, StringFormat='{0:N0}'}" 
+                        Placeholder="Enter Fee" 
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        VerticalOptions="CenterAndExpand"
+                        Margin="10"/>
+
+                <Label Text="Agent + Fee" FontSize="Title" Grid.Row="2" Grid.Column="2" VerticalOptions="CenterAndExpand" Margin="20" />
+                <Picker 
+                        ItemsSource="{Binding AgentList}" 
+                        ItemDisplayBinding="{Binding ., Converter={StaticResource agentToString}}" 
+                        SelectedItem="{Binding Agent}"  
+                        Grid.Row="3" 
+                        Grid.Column="2"
+                        VerticalOptions="CenterAndExpand"
+                        Margin="10"/>
+
+                <Label Text="Client Paid" FontSize="Title" Grid.Row="2" Grid.Column="3" VerticalOptions="CenterAndExpand" Margin="20" />
+                <CheckBox 
+                        IsChecked="{Binding Paid}"  
+                        IsEnabled="True" 
+                        Grid.Row="3" 
+                        Grid.Column="3"
+                        VerticalOptions="CenterAndExpand"
+                        Margin="10"
+                        />
+
+                <!-- Add more labels for other properties -->
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <Label Text="Expenses" FontSize="Title" Grid.Row="0" VerticalOptions="StartAndExpand" Margin="20" />
+                <CollectionView 
+                    Grid.Column="0"
+                    Grid.Row="1"
+                    ItemsSource="{Binding Expenses}"
+                    SelectedItem="{Binding SelectedExpense}"
+                    SelectionMode="Single"
+                    Margin="10"
+                    MaximumHeightRequest="250">
+                    
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="25" />
+                                </Grid.ColumnDefinitions>
+
+                                <Label Text="{Binding Name}" Grid.Column="0" Margin="10" />
+                                <Label Text="{Binding Amount}" 
+                                       Grid.Column="1" 
+                                       IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}" 
+                                       Margin="10" />
+                                <Label Text="{Binding RelativeFeeDecimal, StringFormat='{0:P0}'}" 
+                                       Grid.Column="1"
+                                       IsVisible="{Binding IsRelative}" Margin="10" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Grid>
+    </ScrollView>
+
+</ContentPage>

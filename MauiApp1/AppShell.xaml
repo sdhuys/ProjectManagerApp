@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:MauiApp1.Views"
+    x:Class="MauiApp1.AppShell"
+    Shell.FlyoutBehavior="Locked"
+    Shell.FlyoutWidth="200">
+
+    <FlyoutItem Title="Projects">
+        <ShellContent
+            Title="Projects"
+            ContentTemplate="{DataTemplate views:ProjectsPage}"
+            x:Name="projects"/>
+    </FlyoutItem>
+
+    <FlyoutItem Title="Configuration">
+        <ShellContent
+            Title="Settings"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            x:Name="settings"/>
+    </FlyoutItem>
+</Shell>
