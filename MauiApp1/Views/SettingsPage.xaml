@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiApp1.Views.SettingsPage"
              xmlns:local="clr-namespace:MauiApp1.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              Title="Configuration">
 
     <ScrollView>
@@ -141,7 +142,7 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Label Text="{Binding Name}" Grid.Column="0"/>
-                                    <Label Text="{Binding FeeDecimal, StringFormat='{0:P0}'}" Grid.Column="1"/>
+                                    <Label Text="{Binding FeeDecimal, StringFormat='{0:P2}'}" Grid.Column="1"/>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -162,7 +163,7 @@
                         <Entry
                             Grid.Column="1"
                             x:Name="NewAgentFeeEntry"
-                            Placeholder="Agent Percentage Fee"
+                            Placeholder="Percentage Fee"
                             Text="{Binding AgentFeeEntry}" />
 
                     </Grid>

@@ -2,80 +2,152 @@
 using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace MauiApp1.ViewModels
 {
     [QueryProperty("projects", "projects")]
     public partial class NewProjectViewModel : ObservableObject, IQueryAttributable
     {
+        ObservableCollection<Project> Projects { get; set; }
+
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveNewProjectCommand))]
         string client;
 
         [ObservableProperty]
         string type;
 
         [ObservableProperty]
-        List<string> typesList = Settings.ProjectTypes;
+        List<string> typesList;
 
         [ObservableProperty]
         string description;
 
         [ObservableProperty]
-        DateTime date;
+        DateTime date = DateTime.Now;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveNewProjectCommand))]
         string currency;
 
         [ObservableProperty]
-        List<string> currencyList = Settings.Currencies;
+        List<string> currencyList;
 
         [ObservableProperty]
-        decimal fee;
+        [NotifyCanExecuteChangedFor(nameof(SaveNewProjectCommand))]
+        string fee;
 
         [ObservableProperty]
-        ObservableCollection<Expense> expenses = new();
+        ObservableCollection<Expense> expenses;
 
         [ObservableProperty]
-        bool paid;
-
-        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(AgentIsSelected))]
         Agent agent;
 
         [ObservableProperty]
-        List<Agent> agentList = Settings.Agents;
+        List<Agent> agentList;
 
         [ObservableProperty]
         bool hasCustomAgencyFee;
 
         [ObservableProperty]
-        decimal customAgencyFeePercent;
+        string customAgencyFeePercent;
 
         [ObservableProperty]
-        private string expenseNameEntry;
+        [NotifyCanExecuteChangedFor(nameof(AddExpenseCommand))]
+        string newExpenseName;
 
         [ObservableProperty]
-        private string expenseValueEntry;
+        [NotifyCanExecuteChangedFor(nameof(AddExpenseCommand))]
+        string newExpenseValue;
 
         [ObservableProperty]
-        private bool expenseIsRelative;
+        bool newExpenseIsRelative;
 
-        ObservableCollection<Project> Projects { get; set; }
+        [ObservableProperty]
+        bool paid;
+
+        [ObservableProperty]
+        ObservableCollection<Payment> payments;
+
+        public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
+
 
         public NewProjectViewModel()
         {
-            Expenses = new ObservableCollection<Expense> { new("Stijn", true, 25), new Expense("brush", false, 10m) };
+            AgentList = new(Settings.Agents);
+            //Add null to display "None" as first picker option
+            AgentList.Insert(0, null);
+            TypesList = Settings.ProjectTypes;
+            CurrencyList = Settings.Currencies;
+            Expenses = new();
+            Payments = new();
+        }
+
+        public bool AgentIsSelected
+        {
+            get
+            {
+                if (Agent == null) HasCustomAgencyFee = false;
+                return Agent != null;
+            }
+        }
+
+        partial void OnFeeChanged(string oldValue, string newValue)
+        {
+            if (string.IsNullOrEmpty(newValue)) 
+                return;
+
+            if (!decimal.TryParse(newValue, out decimal result))
+                Fee = oldValue; 
+        }
+        partial void OnNewExpenseValueChanged(string oldValue, string newValue)
+        {
+            if (string.IsNullOrEmpty(newValue)) 
+                return;
+
+            if (!decimal.TryParse(newValue, out decimal result) || (NewExpenseIsRelative && ( result < 0 || result > 100)))
+                NewExpenseValue = oldValue;
+            
+        }
+
+        partial void OnNewExpenseIsRelativeChanged(bool value)
+        {
+            if (value && decimal.TryParse(NewExpenseValue, out decimal result) && result > 100)
+            {
+                NewExpenseValue = null;
+            }
+        }
+
+        partial void OnCustomAgencyFeePercentChanged(string oldValue, string newValue)
+        {
+            if (string.IsNullOrWhiteSpace(newValue)) return;
+
+            if (!decimal.TryParse(newValue, out decimal result) || result < 0 || result > 100)
+            {
+                CustomAgencyFeePercent = oldValue;
+            }
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             Projects = query["projects"] as ObservableCollection<Project>;
-            OnPropertyChanged(nameof(Projects));
+        }
+
+        [RelayCommand(CanExecute = nameof(CanAddExpense))]
+        void AddExpense()
+        {
+            Expenses.Add(new(NewExpenseName, NewExpenseIsRelative, Convert.ToDecimal(NewExpenseValue)));
+            NewExpenseIsRelative = false;
+            NewExpenseName = null;
+            NewExpenseValue = null;
         }
 
         [RelayCommand]
-        void AddExpense()
+        void DeleteExpense(Expense expense)
         {
-            Expenses.Add(new(ExpenseNameEntry, ExpenseIsRelative, Convert.ToDecimal(ExpenseValueEntry)));
+            Expenses.Remove(expense);
         }
 
         [RelayCommand]
@@ -84,16 +156,26 @@ namespace MauiApp1.ViewModels
             await Shell.Current.GoToAsync("..");
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanSaveProject))]
         async Task SaveNewProject()
         {
-            var agencyFeeDecimal = Agent == null ? 0 : HasCustomAgencyFee ? CustomAgencyFeePercent / 100m : Agent.FeeDecimal;
-            RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, Fee, agencyFeeDecimal);
+            var agencyFeeDecimal = Agent == null ? 0 : HasCustomAgencyFee ? decimal.Parse(CustomAgencyFeePercent) / 100m : Agent.FeeDecimal;
+            RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, decimal.Parse(Fee), agencyFeeDecimal);
 
-            Project project = new(Client, Type, Description, Currency, Fee, Agent, agencyFeeDecimal, Expenses.ToList(), Paid);
+            Project project = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Paid);
             Projects.Add(project);
             ProjectManager.SaveProjects(Projects);
             await Shell.Current.GoToAsync("..");
+        }
+
+        private bool CanAddExpense()
+        {
+            return (!(NewExpenseName  == null || NewExpenseValue == null));
+        }
+
+        private bool CanSaveProject()
+        {
+            return (!(Client == null || Fee == null || Currency == null));
         }
     }
 }

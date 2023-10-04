@@ -11,9 +11,9 @@ public class Agent
     public string Name { get; set; }
     public decimal FeeDecimal { get; set; }
 
-    public Agent(string name, decimal feePercent)
+    public Agent(string name, decimal feeDecimal)
     {
         Name = name;
-        FeeDecimal = feePercent / 100m;
+        FeeDecimal = feeDecimal;
     }
 }

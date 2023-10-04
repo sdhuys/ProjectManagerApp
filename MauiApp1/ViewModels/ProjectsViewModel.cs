@@ -1,43 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using MauiApp1.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Views;
+using System.Globalization;
 
 namespace MauiApp1.ViewModels;
 
 public partial class ProjectsViewModel : ObservableObject
 {
-    public ICommand DeleteProjectCommand { get; }
-    public ICommand EditProjectCommand { get; }
-
     [ObservableProperty]
     ObservableCollection<Project> projects;
 
-    private Project _selectedProject;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DeleteProjectCommand))]
+    [NotifyCanExecuteChangedFor(nameof(EditProjectCommand))]
+    private Project selectedProject;
 
     public ProjectsViewModel()
     {
         Projects = new(ProjectManager.LoadProjects());
-        DeleteProjectCommand = new Command(DeleteProject, CanDeleteOrEditProject);
-        EditProjectCommand = new Command(EditProject, CanDeleteOrEditProject);
     }
 
-    public Project SelectedProject
-    {
-        get => _selectedProject;
-        set
-        {
-            _selectedProject = value;
-            ((Command)DeleteProjectCommand).ChangeCanExecute();
-            ((Command)EditProjectCommand).ChangeCanExecute();
-        }
-    }
-
-    //Function called on page resize
+    //Method called on page resize
     //Dirty fix to make projects collectionview grid correctly scale with window downsizing
     //Without this the grid only correctly scales when upsizing window (.NET MAUI bug?)
     public async Task ReloadProjects()
@@ -59,7 +45,8 @@ public partial class ProjectsViewModel : ObservableObject
             });
     }
 
-    public async void DeleteProject()
+    [RelayCommand(CanExecute = nameof(CanDeleteOrEditProject))]
+    public async Task DeleteProject()
     {
         bool confirmed = await DisplayConfirmationDialog("Confirm Deletion", "Are you sure you want to delete this project?");
         if (confirmed)
@@ -69,18 +56,19 @@ public partial class ProjectsViewModel : ObservableObject
         }
     }
 
-    private async Task<bool> DisplayConfirmationDialog(string title, string message)
-    {
-        return await Application.Current.MainPage.DisplayAlert(title, message, "Yes", "No");
-    }
-
+    [RelayCommand(CanExecute = nameof(CanDeleteOrEditProject))]
     public void EditProject()
     {
 
     }
 
+    private async Task<bool> DisplayConfirmationDialog(string title, string message)
+    {
+        return await Application.Current.MainPage.DisplayAlert(title, message, "Yes", "No");
+    }
+
     private bool CanDeleteOrEditProject()
     {
-        return _selectedProject != null;
+        return SelectedProject != null;
     }
 }

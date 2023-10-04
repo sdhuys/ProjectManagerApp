@@ -3,12 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiApp1.Views.NewProjectPage"
              xmlns:local="clr-namespace:MauiApp1.ViewModels"
-             xmlns:conv="clr-namespace:MauiApp1.Models"
+             xmlns:conv="clr-namespace:MauiApp1.Converters"
              Title="New Project"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
 
     <ContentPage.Resources>
-        <conv:AgentToStringConverter x:Key="agentToString" />
+        <conv:AgentToStringConverter x:Key="AgentToString" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
 
@@ -23,28 +23,16 @@
                 <!-- The first row is twice the size of the second row -->
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             
             <Grid Margin="10" Grid.Row="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -85,8 +73,9 @@
                         Margin="10"/>
 
                 <Label Text="Date" FontSize="Title" Grid.Row="0" Grid.Column="3" VerticalOptions="CenterAndExpand" Margin="20" />
-                <Entry 
-                        Text="{Binding Date, StringFormat='{0:dd/MM/yyyy}'}" 
+                <DatePicker 
+                        Date="{Binding Date}"
+                        Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
                         Grid.Row="1" 
                         Grid.Column="3"
                         VerticalOptions="CenterAndExpand"
@@ -103,27 +92,58 @@
 
                 <Label Text="Fee" FontSize="Title" Grid.Row="2" Grid.Column="1" VerticalOptions="CenterAndExpand" Margin="20" />
                 <Entry 
-                        Text="{Binding Fee, StringFormat='{0:N0}'}" 
+                        Text="{Binding Fee}" 
                         Placeholder="Enter Fee" 
                         Grid.Row="3"
                         Grid.Column="1"
                         VerticalOptions="CenterAndExpand"
-                        Margin="10"/>
+                        Margin="10" />
 
                 <Label Text="Agent + Fee" FontSize="Title" Grid.Row="2" Grid.Column="2" VerticalOptions="CenterAndExpand" Margin="20" />
+
                 <Picker 
-                        ItemsSource="{Binding AgentList}" 
-                        ItemDisplayBinding="{Binding ., Converter={StaticResource agentToString}}" 
-                        SelectedItem="{Binding Agent}"  
-                        Grid.Row="3" 
+                    ItemsSource="{Binding AgentList}" 
+                    ItemDisplayBinding="{Binding ., Converter={StaticResource AgentToString}}" 
+                    SelectedItem="{Binding Agent}"  
+                    Grid.Row="3" 
+                    Grid.Column="2"
+                    VerticalOptions="CenterAndExpand"
+                    Margin="10"/>
+
+                <HorizontalStackLayout Grid.Row="4" Grid.Column="2" Margin="20,0,0,0">
+
+                    <CheckBox
+                        IsChecked="{Binding HasCustomAgencyFee}"
+                        IsVisible="{Binding AgentIsSelected}"
+                        Grid.Row="3"
                         Grid.Column="2"
                         VerticalOptions="CenterAndExpand"
-                        Margin="10"/>
+                        HorizontalOptions="EndAndExpand"
+                        />
+
+                    <Label
+                        VerticalOptions="CenterAndExpand"
+                        Text="Custom %"
+                        IsVisible="{Binding AgentIsSelected}"
+                        Margin="-10, 0, 0, 0"
+                        />
+
+                    <Entry
+                        Placeholder="Fee"
+                                                VerticalTextAlignment="Center"
+                        IsVisible="{Binding HasCustomAgencyFee}"
+                        Text="{Binding CustomAgencyFeePercent}"
+                        Grid.Row="5"
+                        Grid.Column="2"
+                        MaximumWidthRequest="100"
+                        Margin="10" />
+
+                </HorizontalStackLayout>
+
 
                 <Label Text="Client Paid" FontSize="Title" Grid.Row="2" Grid.Column="3" VerticalOptions="CenterAndExpand" Margin="20" />
                 <CheckBox 
                         IsChecked="{Binding Paid}"  
-                        IsEnabled="True" 
                         Grid.Row="3" 
                         Grid.Column="3"
                         VerticalOptions="CenterAndExpand"
@@ -141,40 +161,99 @@
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                
-                <Label Text="Expenses" FontSize="Title" Grid.Row="0" VerticalOptions="StartAndExpand" Margin="20" />
+
+                <Label Text="Expenses" FontSize="Title" 
+                       Grid.Row="0" 
+                       Grid.Column="0"
+                       VerticalOptions="StartAndExpand" 
+                       Margin="20" />
+
                 <CollectionView 
+                    x:Name="expenseCollection"
                     Grid.Column="0"
                     Grid.Row="1"
                     ItemsSource="{Binding Expenses}"
-                    SelectedItem="{Binding SelectedExpense}"
-                    SelectionMode="Single"
                     Margin="10"
                     MaximumHeightRequest="250">
-                    
+
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="25" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
                                 <Label Text="{Binding Name}" Grid.Column="0" Margin="10" />
-                                <Label Text="{Binding Amount}" 
+                                <Label Text="{Binding Amount, StringFormat='{0:N2}'}" 
                                        Grid.Column="1" 
                                        IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}" 
                                        Margin="10" />
                                 <Label Text="{Binding RelativeFeeDecimal, StringFormat='{0:P0}'}" 
                                        Grid.Column="1"
                                        IsVisible="{Binding IsRelative}" Margin="10" />
+
+                                <Button Text="X" 
+                                    Grid.Column="2" 
+                                    BackgroundColor="Red" 
+                                    TextColor="White" 
+
+                                    Command="{Binding BindingContext.DeleteExpenseCommand, Source={x:Reference expenseCollection}}"
+                                    CommandParameter="{Binding .}" >
+                                </Button>
+
                             </Grid>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+
+                <Grid
+                    Grid.Row="2">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                        
+
+                    <Entry 
+                        Grid.Column="0"
+                        Placeholder="Description"
+                        Text="{Binding NewExpenseName}" 
+                        />
+
+                    <Entry
+                        Grid.Column="1"
+                        Placeholder="Amount"
+                        Text="{Binding NewExpenseValue}" />
+                    
+                    <Button
+                        Grid.Column="2"
+                        Text="Add Expense" 
+                        Command="{Binding AddExpenseCommand}"/>
+
+
+                    <Label Text="Profit Sharing Percentage" Margin="50,20,10,10" 
+                           Grid.Row="3"
+                           Grid.Column="1"/>
+                    <CheckBox
+                        IsChecked="{Binding NewExpenseIsRelative}"
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        Margin="10" />
+                </Grid>
+
             </Grid>
         </Grid>
     </ScrollView>

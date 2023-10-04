@@ -29,8 +29,6 @@ namespace MauiApp1
             builder.Services.AddTransient<NewProjectPage>();
             builder.Services.AddTransient<NewProjectViewModel>();
 
-
-
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif

@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MauiApp1.ViewModels"
+             xmlns:conv="clr-namespace:MauiApp1.Converters"
              x:Class="MauiApp1.Views.ProjectsPage"
              Title="Projects">
     <ContentPage.ToolbarItems>
@@ -9,6 +10,10 @@
         <ToolbarItem Text="Edit Project" Command="{Binding EditProjectCommand}" IconImageSource="{FontImage Glyph='e', Color=Yellow, Size=22}" x:Name="EditButton" />
         <ToolbarItem Text="Delete Project" Command="{Binding DeleteProjectCommand}" IconImageSource="{FontImage Glyph='x', Color=Red, Size=22}" x:Name="DeleteButton" />
     </ContentPage.ToolbarItems>
+
+    <ContentPage.Resources>
+        <conv:DateFormatConverter x:Key="DateFormat" />
+    </ContentPage.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -80,7 +85,7 @@
                         <Label Text="{Binding Client}" Grid.Column="0" VerticalOptions="CenterAndExpand" />
                         <Label Text="{Binding Type}" Grid.Column="1" VerticalOptions="CenterAndExpand" />
                         <Label Text="{Binding Description}" Grid.Column="2" VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding Date, StringFormat='{0:dd/MM/yyyy}'}" Grid.Column="3" VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding Date, Converter={StaticResource DateFormat}}" Grid.Column="3" VerticalOptions="CenterAndExpand" />
                         <Label Text="{Binding Currency}" Grid.Column="4" VerticalOptions="CenterAndExpand" />
                         <Label Text="{Binding Fee, StringFormat='{0:N0}'}" Grid.Column="5" VerticalOptions="CenterAndExpand" />
                         <Label Text="{Binding TotalExpenses, StringFormat='{0:N}'}" Grid.Column="6" VerticalOptions="CenterAndExpand" />
@@ -89,7 +94,7 @@
                                 <FormattedString>
                                     <Span Text="{Binding Agent.Name}" />
                                     <Span Text=" " />
-                                    <Span Text="{Binding Agent.FeeDecimal, StringFormat='{0:P1}'}" />
+                                    <Span Text="{Binding AgencyFeeDecimal, StringFormat='{0:P1}'}" />
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>

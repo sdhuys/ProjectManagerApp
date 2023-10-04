@@ -1,10 +1,12 @@
 using MauiApp1.ViewModels;
+using CommunityToolkit.Maui.Markup;
 
 namespace MauiApp1.Views;
 
 public partial class SettingsPage : ContentPage
 {
     private SettingsViewModel viewModel;
+
     //Constructor called on app startup if settings.json file is not found
     public SettingsPage(SettingsViewModel vm, bool welcomeTextVisible)
     {

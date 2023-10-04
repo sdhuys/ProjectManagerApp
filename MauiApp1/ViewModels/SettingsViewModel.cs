@@ -1,17 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
-using MauiApp1.Views;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Windows.Input;
 
 namespace MauiApp1.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
-    public ICommand SaveSettingsCommand { get; private set; }
-
     [ObservableProperty]
     ObservableCollection<string> projectTypes;
 
@@ -25,46 +19,29 @@ public partial class SettingsViewModel : ObservableObject
     bool welcomeTextVisible;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddTypeCommand))]
     string typeEntry;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCurrencyCommand))]
     string currencyEntry;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddAgentCommand))]
     string agentNameEntry;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddAgentCommand))]
     string agentFeeEntry;
 
+    [ObservableProperty]
     private ObservableCollection<object> selectedTypes = new();
+
+    [ObservableProperty]
     private ObservableCollection<object> selectedAgents = new();
+
+    [ObservableProperty]
     private ObservableCollection<object> selectedCurrencies = new();
-
-    public SettingsViewModel()
-    {
-        SaveSettingsCommand = new AsyncRelayCommand(SaveSettings);
-    }
-
-    public ObservableCollection<object> SelectedTypes
-    {
-        get => selectedTypes;
-
-        set => selectedTypes = value;
-    }
-
-    public ObservableCollection<object> SelectedAgents
-    {
-        get => selectedAgents;
-
-        set => selectedAgents = value;
-    }
-
-    public ObservableCollection<object> SelectedCurrencies
-    {
-        get => selectedCurrencies;
-
-        set => selectedCurrencies = value;
-    }
 
     public void CopySettingsFromModel()
     {
@@ -76,7 +53,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     public void DeleteTypes()
     {
-        var typesToRemove = selectedTypes.Select(x => x.ToString()).ToList();
+        var typesToRemove = SelectedTypes.Select(x => x.ToString()).ToList();
         foreach (var t in typesToRemove)
         {
             ProjectTypes.Remove(t);
@@ -86,7 +63,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     public void DeleteCurrencies()
     {
-        var currenciesToRemove = selectedCurrencies.Select(x => x.ToString()).ToList();
+        var currenciesToRemove = SelectedCurrencies.Select(x => x.ToString()).ToList();
         foreach (var c in currenciesToRemove)
         {
             Currencies.Remove(c);
@@ -96,18 +73,16 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     public void DeleteAgents()
     {
-        ObservableCollection<Agent> agentsToRemove = new();
-        for (int i = 0; i < selectedAgents.Count; i++)
+        for (int i = 0; i < SelectedAgents.Count; i++)
         {
-            if (selectedAgents[i] is Agent agent)
+            if (SelectedAgents[i] is Agent agent)
             {
-                agentsToRemove.Add(agent);
+                Agents.Remove(agent);
             }
         }
-        Agents = new(Agents.Except(agentsToRemove));
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanAddType))]
     public void AddType()
     {
         bool containsIgnoreCase = ProjectTypes.Any(s => s.Equals(TypeEntry, StringComparison.OrdinalIgnoreCase));
@@ -124,37 +99,40 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    public void AddAgent()
+    partial void OnAgentFeeEntryChanged(string oldValue, string newValue)
     {
-        //Check if fee entry is valid %
-        if (decimal.TryParse(AgentFeeEntry, out decimal result) && (result > 0 && result < 100))
+        if (string.IsNullOrWhiteSpace(newValue)) return;
+
+        if (!decimal.TryParse(newValue, out decimal result) || result < 0 || result > 100)
         {
-            bool containsIgnoreCase = Agents.Any(s => s.Name.Equals(AgentNameEntry, StringComparison.OrdinalIgnoreCase) && s.FeeDecimal == result / 100);
-
-            if (!string.IsNullOrWhiteSpace(AgentNameEntry) && !containsIgnoreCase)
-            {
-                Agents.Add(new(AgentNameEntry, result));
-                AgentNameEntry = null;
-                AgentFeeEntry = null;
-            }
-
-            else if (containsIgnoreCase)
-            {
-                Application.Current.MainPage.DisplayAlert("Duplicate Entry!", $"{AgentNameEntry} with {AgentFeeEntry}% already added!", "Ok");
-                AgentNameEntry = null;
-                AgentFeeEntry = null;
-            }
-        }
-
-        else
-        {
-            Application.Current.MainPage.DisplayAlert("Invalid Fee Input!", "Values between 0 and 100 only.", "Ok");
-            AgentFeeEntry = null;
+            AgentFeeEntry = oldValue;
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanAddAgent))]
+    public void AddAgent()
+    {
+        var agentFeeDecimal = decimal.Parse(AgentFeeEntry) / 100;
+
+        bool containsIgnoreCase = Agents.Any(s => s.Name.Equals(AgentNameEntry, StringComparison.OrdinalIgnoreCase) && s.FeeDecimal == agentFeeDecimal);
+
+        if (!containsIgnoreCase)
+        {
+            Agents.Add(new(AgentNameEntry, agentFeeDecimal));
+            AgentNameEntry = null;
+            AgentFeeEntry = null;
+        }
+
+        else if (containsIgnoreCase)
+        {
+            Application.Current.MainPage.DisplayAlert("Duplicate Entry!", $"{AgentNameEntry} with {AgentFeeEntry}% already added!", "Ok");
+            AgentNameEntry = null;
+            AgentFeeEntry = null;
+        }
+    }
+ 
+
+    [RelayCommand(CanExecute = nameof(CanAddCurrency))]
     public void AddCurrency()
     {
         bool containsIgnoreCase = Currencies.Any(s => s.Equals(CurrencyEntry, StringComparison.OrdinalIgnoreCase));
@@ -170,6 +148,23 @@ public partial class SettingsViewModel : ObservableObject
             Application.Current.MainPage.DisplayAlert("Duplicate entry!", $"{CurrencyEntry} already added!", "Ok");
         }
     }
+
+    private bool CanAddAgent()
+    {
+        return !(String.IsNullOrWhiteSpace(AgentNameEntry) || String.IsNullOrWhiteSpace(AgentFeeEntry));
+    }
+
+    private bool CanAddCurrency()
+    {
+        return !(String.IsNullOrWhiteSpace(CurrencyEntry));
+    }
+
+    private bool CanAddType()
+    {
+        return !(String.IsNullOrWhiteSpace(TypeEntry));
+    }
+
+    [RelayCommand]
     private async Task SaveSettings()
     {
         if (ProjectTypes?.Any() != true || Currencies?.Any() != true)
@@ -189,6 +184,7 @@ public partial class SettingsViewModel : ObservableObject
             {
                 Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(0);
             }
+
 
             Settings.Save(new(ProjectTypes), new(Currencies), new(Agents));
         }
