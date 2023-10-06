@@ -117,6 +117,12 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         Payments = new(selectedProject.Payments);
     }
 
+    partial void OnAgentChanged(Agent value)
+    {
+        HasCustomAgencyFee = false;
+        CustomAgencyFeePercent = null;
+    }
+
     partial void OnFeeChanged(string oldValue, string newValue)
     {
         if (string.IsNullOrEmpty(newValue)) 
@@ -221,6 +227,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             selectedProject.Date = Date;
             selectedProject.Currency = Currency;
             selectedProject.Fee = decimal.Parse(Fee);
+            selectedProject.Agent = Agent;
             selectedProject.AgencyFeeDecimal = agencyFeeDecimal;
             selectedProject.Expenses = Expenses.ToList();
             selectedProject.Payments = Payments.ToList();
