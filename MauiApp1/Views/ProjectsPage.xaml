@@ -6,9 +6,17 @@
              x:Class="MauiApp1.Views.ProjectsPage"
              Title="Projects">
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Add Project" Command="{Binding GoToNewProjectPageCommand}" IconImageSource="{FontImage Glyph='+', Color=Green, Size=22}" />
-        <ToolbarItem Text="Edit Project" Command="{Binding EditProjectCommand}" IconImageSource="{FontImage Glyph='e', Color=Yellow, Size=22}" x:Name="EditButton" />
-        <ToolbarItem Text="Delete Project" Command="{Binding DeleteProjectCommand}" IconImageSource="{FontImage Glyph='x', Color=Red, Size=22}" x:Name="DeleteButton" />
+        <ToolbarItem Text="Add Project"
+                     Command="{Binding GoToNewProjectPageCommand}"
+                     IconImageSource="{FontImage Glyph='+', Color=Green, Size=22}" />
+        <ToolbarItem Text="Edit Project"
+                     Command="{Binding EditProjectCommand}"
+                     IconImageSource="{FontImage Glyph='e', Color=Yellow, Size=22}"
+                     x:Name="EditButton" />
+        <ToolbarItem Text="Delete Project"
+                     Command="{Binding DeleteProjectCommand}"
+                     IconImageSource="{FontImage Glyph='x', Color=Red, Size=22}"
+                     x:Name="DeleteButton" />
     </ContentPage.ToolbarItems>
 
     <ContentPage.Resources>
@@ -22,11 +30,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <!-- Header Row -->
-        <Grid x:Name="headerGrid" 
-              BackgroundColor="DarkGray" 
+        <Grid x:Name="headerGrid"
+              BackgroundColor="DarkGray"
               Grid.Row="0"
               Margin="10">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -40,16 +49,39 @@
                 <!-- Add more columns for other properties -->
             </Grid.ColumnDefinitions>
 
-            <Label Text="Client" Grid.Column="0" VerticalOptions="CenterAndExpand" />
-            <Label Text="Type" Grid.Column="1" VerticalOptions="CenterAndExpand" />
-            <Label Text="Description" Grid.Column="2" VerticalOptions="CenterAndExpand" />
-            <Label Text="Date" Grid.Column="3" VerticalOptions="CenterAndExpand" />
-            <Label Text="Currency" Grid.Column="4" VerticalOptions="CenterAndExpand" />
-            <Label Text="Fee" Grid.Column="5" VerticalOptions="CenterAndExpand" />
-            <Label Text="Total Expenses" Grid.Column="6" VerticalOptions="CenterAndExpand" />
-            <Label Text="Agent + Fee" Grid.Column="7" VerticalOptions="CenterAndExpand" />
-            <Label Text="Profit" Grid.Column="8" VerticalOptions="CenterAndExpand" />
-            <Label Text="Is Paid" Grid.Column="9" VerticalOptions="CenterAndExpand" />
+            <Label Text="Client"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Type"
+                   Grid.Column="1"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Description"
+                   Grid.Column="2"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Date"
+                   Grid.Column="3"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Currency"
+                   Grid.Column="4"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Fee"
+                   Grid.Column="5"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Total Expenses"
+                   Grid.Column="6"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Agent + Fee"
+                   Grid.Column="7"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Profit"
+                   Grid.Column="8"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Paid"
+                   Grid.Column="9"
+                   VerticalOptions="CenterAndExpand" />
+            <Label Text="Status"
+                   Grid.Column="10"
+                   VerticalOptions="CenterAndExpand" />
             <!-- Add more labels for other headers -->
         </Grid>
 
@@ -78,18 +110,34 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="75" />
                             <!-- Add more columns for other properties -->
                         </Grid.ColumnDefinitions>
 
-                        <Label Text="{Binding Client}" Grid.Column="0" VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding Type}" Grid.Column="1" VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding Description}" Grid.Column="2" VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding Date, Converter={StaticResource DateFormat}}" Grid.Column="3" VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding Currency}" Grid.Column="4" VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding Fee, StringFormat='{0:N0}'}" Grid.Column="5" VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding TotalExpenses, StringFormat='{0:N}'}" Grid.Column="6" VerticalOptions="CenterAndExpand" />
-                        <Label Grid.Column="7" VerticalOptions="CenterAndExpand">
+                        <Label Text="{Binding Client}"
+                               Grid.Column="0"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding Type}"
+                               Grid.Column="1"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding Description}"
+                               Grid.Column="2"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
+                               Grid.Column="3"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding Currency}"
+                               Grid.Column="4"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding Fee, StringFormat='{0:N0}'}"
+                               Grid.Column="5"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding TotalExpenses, StringFormat='{0:N}'}"
+                               Grid.Column="6"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Grid.Column="7"
+                               VerticalOptions="CenterAndExpand">
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="{Binding Agent.Name}" />
@@ -98,8 +146,22 @@
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
-                        <Label Text="{Binding Profit, StringFormat='{0:N}'}" Grid.Column="8" VerticalOptions="CenterAndExpand" />
-                        <CheckBox IsChecked="{Binding IsPaid}"  IsEnabled="False" Grid.Column="9" VerticalOptions="CenterAndExpand" />
+                        <Label Text="{Binding Profit, StringFormat='{0:N}'}"
+                               Grid.Column="8"
+                               VerticalOptions="CenterAndExpand" />
+                        <Label Grid.Column="9"
+                               VerticalOptions="CenterAndExpand">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding PaidPercentage, StringFormat='{0:N0}'}" />
+                                    <Span Text=" %" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+
+                        <Label Text="{Binding Status}"
+                                  Grid.Column="10"
+                                  VerticalOptions="CenterAndExpand" />
 
                         <!-- Add more labels for other properties -->
                     </Grid>
@@ -111,7 +173,7 @@
                VerticalTextAlignment="End"
                HorizontalOptions="EndAndExpand"
                Margin="10">
-               
+
             <Label.FormattedText>
                 <FormattedString>
                     <Span Text="Total Projects: " />

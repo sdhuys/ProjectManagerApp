@@ -19,20 +19,14 @@ namespace MauiApp1.ViewModels
         string type;
 
         [ObservableProperty]
-        List<string> typesList;
-
-        [ObservableProperty]
         string description;
 
         [ObservableProperty]
-        DateTime date = DateTime.Now;
+        DateTime date;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveNewProjectCommand))]
         string currency;
-
-        [ObservableProperty]
-        List<string> currencyList;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveNewProjectCommand))]
@@ -44,9 +38,6 @@ namespace MauiApp1.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(AgentIsSelected))]
         Agent agent;
-
-        [ObservableProperty]
-        List<Agent> agentList;
 
         [ObservableProperty]
         bool hasCustomAgencyFee;
@@ -66,32 +57,49 @@ namespace MauiApp1.ViewModels
         bool newExpenseIsRelative;
 
         [ObservableProperty]
-        bool paid;
-
-        [ObservableProperty]
         ObservableCollection<Payment> payments;
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(AddPaymentCommand))]
+        string newPaymentAmount;
+
+        [ObservableProperty]
+        DateTime newPaymentDate;
+
+        [ObservableProperty]
+        Project.ProjectStatus status;
+
+        public List<Agent> AgentList { get; set; }
+        public List<string> TypesList { get; set; }
+        public List<string> CurrencyList { get; set; }
+        public List<Project.ProjectStatus> StatusList { get; set; }
         public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
-
-
-        public NewProjectViewModel()
-        {
-            AgentList = new(Settings.Agents);
-            //Add null to display "None" as first picker option
-            AgentList.Insert(0, null);
-            TypesList = Settings.ProjectTypes;
-            CurrencyList = Settings.Currencies;
-            Expenses = new();
-            Payments = new();
-        }
-
         public bool AgentIsSelected
         {
             get
             {
-                if (Agent == null) HasCustomAgencyFee = false;
+                if (Agent == null)
+                {
+                    HasCustomAgencyFee = false;
+                    CustomAgencyFeePercent = null;
+                }
+
                 return Agent != null;
             }
+        }
+        public NewProjectViewModel()
+        {
+            //Create new list and insert null to display "None" as first picker option
+            AgentList = new(Settings.Agents);
+            AgentList.Insert(0, null);
+
+            TypesList = Settings.ProjectTypes;
+            CurrencyList = Settings.Currencies;
+            StatusList = Enum.GetValues(typeof(Project.ProjectStatus)).OfType<Project.ProjectStatus>().ToList();
+            Expenses = new();
+            Payments = new();
+            Date = DateTime.Now;
+            NewPaymentDate = DateTime.Now;
         }
 
         partial void OnFeeChanged(string oldValue, string newValue)
@@ -102,6 +110,7 @@ namespace MauiApp1.ViewModels
             if (!decimal.TryParse(newValue, out decimal result))
                 Fee = oldValue; 
         }
+
         partial void OnNewExpenseValueChanged(string oldValue, string newValue)
         {
             if (string.IsNullOrEmpty(newValue)) 
@@ -130,6 +139,15 @@ namespace MauiApp1.ViewModels
             }
         }
 
+        partial void OnNewPaymentAmountChanged(string oldValue, string newValue)
+        {
+            if (string.IsNullOrWhiteSpace(newValue)) return;
+
+            if (!decimal.TryParse(newValue, out decimal result))
+            {
+                NewPaymentAmount = oldValue;
+            }
+        }
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             Projects = query["projects"] as ObservableCollection<Project>;
@@ -150,6 +168,20 @@ namespace MauiApp1.ViewModels
             Expenses.Remove(expense);
         }
 
+        [RelayCommand(CanExecute = nameof(CanAddPayment))]
+        void AddPayment()
+        {
+            Payments.Add(new(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate));
+            NewPaymentAmount = null;
+            NewPaymentDate = DateTime.Now;
+        }
+
+        [RelayCommand]
+        void DeletePayment(Payment payment)
+        {
+            Payments.Remove(payment);
+        }
+
         [RelayCommand]
         async Task Cancel()
         {
@@ -162,7 +194,7 @@ namespace MauiApp1.ViewModels
             var agencyFeeDecimal = Agent == null ? 0 : HasCustomAgencyFee ? decimal.Parse(CustomAgencyFeePercent) / 100m : Agent.FeeDecimal;
             RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, decimal.Parse(Fee), agencyFeeDecimal);
 
-            Project project = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Paid);
+            Project project = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
             Projects.Add(project);
             ProjectManager.SaveProjects(Projects);
             await Shell.Current.GoToAsync("..");
@@ -171,6 +203,10 @@ namespace MauiApp1.ViewModels
         private bool CanAddExpense()
         {
             return (!(NewExpenseName  == null || NewExpenseValue == null));
+        }
+        private bool CanAddPayment()
+        {
+            return NewPaymentAmount != null;
         }
 
         private bool CanSaveProject()

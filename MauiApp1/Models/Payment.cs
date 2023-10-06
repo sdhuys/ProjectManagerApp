@@ -10,6 +10,11 @@ namespace MauiApp1.Models
     {
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
-        public bool IsFinal { get; set; }
+
+        public Payment(decimal amount, DateTime date)
+        {
+            Amount = amount;
+            Date = date;
+        }
     }
 }
