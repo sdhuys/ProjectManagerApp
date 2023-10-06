@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using MauiApp1.Converters;
 
 namespace MauiApp1.Models;
 
@@ -30,6 +31,13 @@ internal static class ProjectManager
         if (String.IsNullOrWhiteSpace(json)) 
             return Enumerable.Empty<Project>();
 
-        return JsonConvert.DeserializeObject<List<Project>>(json);
+        // Use custom converter that returns existing Agent if found
+        // Prevents mismatch between Agent property of Project and List<Agent> of Settings
+        var settings = new JsonSerializerSettings
+        {
+            Converters = new List<JsonConverter> { new AgentJsonConverter() }
+        };
+
+        return JsonConvert.DeserializeObject<List<Project>>(json, settings);
     }
 }

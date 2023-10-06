@@ -30,7 +30,7 @@ internal class AgentToStringConverter : IValueConverter
             {
                 var name = parts[0].Trim();
                 var feeDecimal = percentage / 100.0m;
-                var agent = Settings.Agents.FirstOrDefault(a => a.Name == name && a.FeeDecimal == feeDecimal);
+                var agent = Settings.Agents.First(a => a.Name == name && a.FeeDecimal == feeDecimal);
                 return agent;
             }
         }

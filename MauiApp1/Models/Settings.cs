@@ -1,6 +1,7 @@
 ﻿using System;
 namespace MauiApp1.Models;
 
+using MauiApp1.Converters;
 using MauiApp1.Views;
 using Newtonsoft.Json;
 public static class Settings
@@ -28,8 +29,15 @@ public static class Settings
     {
         if (File.Exists(filePath))
         {
+            // Use custom converter that returns existing Agent if found
+            // Prevents mismatch between Agent property of Project and List<Agent> of Settings
+            var jsonSettings = new JsonSerializerSettings
+            {
+                Converters = new List<JsonConverter> { new AgentJsonConverter() }
+            };
+
             string json = File.ReadAllText(filePath);
-            var settings = JsonConvert.DeserializeObject<(List<string>, List<string>, List<Agent>)>(json);
+            var settings = JsonConvert.DeserializeObject<(List<string>, List<string>, List<Agent>)>(json, jsonSettings);
             ProjectTypes = settings.Item1;
             Currencies = settings.Item2;
             Agents = settings.Item3;
