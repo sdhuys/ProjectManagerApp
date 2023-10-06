@@ -7,7 +7,6 @@ using MauiApp1.Views;
 using System.Globalization;
 
 namespace MauiApp1.ViewModels;
-
 public partial class ProjectsViewModel : ObservableObject
 {
     [ObservableProperty]
@@ -29,7 +28,6 @@ public partial class ProjectsViewModel : ObservableObject
     public async Task ReloadProjects()
     {
         Projects.Clear();
-        OnPropertyChanged(nameof(Projects));
         await Task.Delay(1);
 
         Projects = new(ProjectManager.LoadProjects());
@@ -38,7 +36,7 @@ public partial class ProjectsViewModel : ObservableObject
     [RelayCommand]
     async Task GoToNewProjectPage()
     {
-        await Shell.Current.GoToAsync($"{nameof(NewProjectPage)}?",
+        await Shell.Current.GoToAsync($"{nameof(ProjectDetailsPage)}?",
             new Dictionary<string, object>
             {
                 ["projects"] = Projects
@@ -57,9 +55,14 @@ public partial class ProjectsViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteOrEditProject))]
-    public void EditProject()
+    public async Task EditProject()
     {
-
+        await Shell.Current.GoToAsync($"{nameof(ProjectDetailsPage)}?",
+            new Dictionary<string, object>
+            {
+                ["selectedProject"] = SelectedProject,
+                ["projects"] = Projects
+            });
     }
 
     private async Task<bool> DisplayConfirmationDialog(string title, string message)

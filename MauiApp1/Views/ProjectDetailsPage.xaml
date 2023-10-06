@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiApp1.Views.NewProjectPage"
+             x:Class="MauiApp1.Views.ProjectDetailsPage"
              xmlns:local="clr-namespace:MauiApp1.ViewModels"
              xmlns:conv="clr-namespace:MauiApp1.Converters"
-             Title="New Project"
+             Title="{Binding PageTitle}"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
 
     <ContentPage.Resources>
@@ -15,7 +15,7 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Save New Project"
-                     Command="{Binding SaveNewProjectCommand}"
+                     Command="{Binding SaveNewOrEditProjectCommand}"
                      IconImageSource="{FontImage Glyph='✔', Color=Green, Size=22}" />
 
         <ToolbarItem Text="Cancel"
@@ -327,10 +327,6 @@
                                        Grid.Column="1"
                                        Margin="10" />
 
-                                <Label Text="FINAL"
-                                       Grid.Column="1"
-                                       IsVisible="{Binding IsFinal}"
-                                       Margin="10" />
 
                                 <Button Text="X"
                                         Grid.Column="2"

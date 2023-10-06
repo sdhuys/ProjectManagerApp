@@ -133,7 +133,7 @@
                         <Label Text="{Binding Fee, StringFormat='{0:N0}'}"
                                Grid.Column="5"
                                VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding TotalExpenses, StringFormat='{0:N}'}"
+                        <Label Text="{Binding TotalExpenses, StringFormat='{0:N0}'}"
                                Grid.Column="6"
                                VerticalOptions="CenterAndExpand" />
                         <Label Grid.Column="7"
@@ -146,7 +146,7 @@
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
-                        <Label Text="{Binding Profit, StringFormat='{0:N}'}"
+                        <Label Text="{Binding Profit, StringFormat='{0:N0}'}"
                                Grid.Column="8"
                                VerticalOptions="CenterAndExpand" />
                         <Label Grid.Column="9"
@@ -154,7 +154,7 @@
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="{Binding PaidPercentage, StringFormat='{0:N0}'}" />
-                                    <Span Text=" %" />
+                                    <Span Text="%" />
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>

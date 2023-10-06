@@ -2,9 +2,9 @@ using MauiApp1.ViewModels;
 using CommunityToolkit.Maui.Markup;
 
 namespace MauiApp1.Views;
-public partial class NewProjectPage : ContentPage
+public partial class ProjectDetailsPage : ContentPage
 {
-    public NewProjectPage(NewProjectViewModel vm)
+    public ProjectDetailsPage(ProjectDetailsViewModel vm)
     {
         BindingContext = vm;
         InitializeComponent();

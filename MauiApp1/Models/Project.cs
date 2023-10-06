@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using CommunityToolkit.Mvvm;
-
-namespace MauiApp1.Models;
+﻿namespace MauiApp1.Models;
 
 public class Project
 {
@@ -24,7 +16,7 @@ public class Project
     public decimal Profit => Fee - TotalExpenses - (AgencyFeeDecimal * Fee);
     public List<Payment> Payments { get; set; }
     public decimal PaidAmount => Payments.Sum(x => x.Amount);
-    public decimal PaidPercentage => PaidAmount / ((Fee - (AgencyFeeDecimal * Fee)) * 100m);
+    public decimal PaidPercentage => (PaidAmount / (Fee - (AgencyFeeDecimal * Fee))) * 100m;
     public ProjectStatus Status { get; set; }
 
 

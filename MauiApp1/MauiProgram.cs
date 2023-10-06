@@ -26,8 +26,8 @@ namespace MauiApp1
             builder.Services.AddSingleton<SettingsPage>();
             builder.Services.AddSingleton<SettingsViewModel>();
 
-            builder.Services.AddTransient<NewProjectPage>();
-            builder.Services.AddTransient<NewProjectViewModel>();
+            builder.Services.AddTransient<ProjectDetailsPage>();
+            builder.Services.AddTransient<ProjectDetailsViewModel>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

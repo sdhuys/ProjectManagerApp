@@ -46,7 +46,7 @@ public partial class SettingsViewModel : ObservableObject
     public void CopySettingsFromModel()
     {
         ProjectTypes = new(Settings.ProjectTypes);
-        Agents = new(Settings.Agents);
+        Agents = new(Settings.Agents.Where(x => x != null));
         Currencies = new(Settings.Currencies);
     }
 
@@ -185,6 +185,8 @@ public partial class SettingsViewModel : ObservableObject
                 Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(0);
             }
 
+            //Insert null to displey "None" as picker option on ProjectDetailsPage
+            Agents.Insert(0, null);
 
             Settings.Save(new(ProjectTypes), new(Currencies), new(Agents));
         }
