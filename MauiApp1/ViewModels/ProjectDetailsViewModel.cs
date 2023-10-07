@@ -7,11 +7,11 @@ using System.Globalization;
 namespace MauiApp1.ViewModels;
 public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributable
 {
-    private ObservableCollection<Project> Projects { get; set; }
+    private ObservableCollection<ProjectViewModel> Projects { get; set; }
 
-    private Project selectedProject;
+    private ProjectViewModel selectedProjectVM;
 
-    public bool EditMode => selectedProject != null;
+    public bool EditMode => selectedProjectVM != null;
     public string PageTitle => EditMode ? "Edit Project" : "New Project";
     public string CommandTitle => EditMode ? "Save Changes" : "Save New Project";
 
@@ -101,20 +101,20 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         NewPaymentDate = DateTime.Now;
     }
 
-    private void LoadSelectedProjectDetails()
+    private void LoadselectedProjectVMDetails()
     {
-        Client = selectedProject.Client;
-        Type = selectedProject.Type;
-        Description = selectedProject.Description;
-        Date = selectedProject.Date;
-        Currency = selectedProject.Currency;
-        Fee = selectedProject.Fee.ToString();
-        Agent = selectedProject.Agent;
-        HasCustomAgencyFee = Agent != null && selectedProject.AgencyFeeDecimal != Agent.FeeDecimal;
-        CustomAgencyFeePercent = HasCustomAgencyFee ? (selectedProject.AgencyFeeDecimal * 100m).ToString() : "0";
-        Status = selectedProject.Status;
-        Expenses = new(selectedProject.Expenses);
-        Payments = new(selectedProject.Payments);
+        Client = selectedProjectVM.Client;
+        Type = selectedProjectVM.Type;
+        Description = selectedProjectVM.Description;
+        Date = selectedProjectVM.Date;
+        Currency = selectedProjectVM.Currency;
+        Fee = selectedProjectVM.Fee.ToString();
+        Agent = selectedProjectVM.Agent;
+        HasCustomAgencyFee = Agent != null && selectedProjectVM.AgencyFeeDecimal != Agent.FeeDecimal;
+        CustomAgencyFeePercent = HasCustomAgencyFee ? (selectedProjectVM.AgencyFeeDecimal * 100m).ToString() : "0";
+        Status = selectedProjectVM.Status;
+        Expenses = new(selectedProjectVM.Expenses);
+        Payments = new(selectedProjectVM.Payments);
     }
 
     partial void OnAgentChanged(Agent value)
@@ -211,30 +211,30 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         var agencyFeeDecimal = Agent == null ? 0 : HasCustomAgencyFee ? decimal.Parse(CustomAgencyFeePercent) / 100m : Agent.FeeDecimal;
         RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, decimal.Parse(Fee), agencyFeeDecimal);
 
-        //Save new project
+        //Create new projectviewmodel and add to the collection
         if (!EditMode)
         {
-            Project project = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
-            Projects.Add(project);
+            ProjectViewModel projectVM = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
+            Projects.Add(projectVM);
         }
 
         //Save edits
         else
         {
-            selectedProject.Client = Client;
-            selectedProject.Type = Type;
-            selectedProject.Description = Description;
-            selectedProject.Date = Date;
-            selectedProject.Currency = Currency;
-            selectedProject.Fee = decimal.Parse(Fee);
-            selectedProject.Agent = Agent;
-            selectedProject.AgencyFeeDecimal = agencyFeeDecimal;
-            selectedProject.Expenses = Expenses.ToList();
-            selectedProject.Payments = Payments.ToList();
-            selectedProject.Status = Status;
+            selectedProjectVM.Client = Client;
+            selectedProjectVM.Type = Type;
+            selectedProjectVM.Description = Description;
+            selectedProjectVM.Date = Date;
+            selectedProjectVM.Currency = Currency;
+            selectedProjectVM.Fee = decimal.Parse(Fee);
+            selectedProjectVM.Agent = Agent;
+            selectedProjectVM.AgencyFeeDecimal = agencyFeeDecimal;
+            selectedProjectVM.Expenses = Expenses.ToList();
+            selectedProjectVM.Payments = Payments.ToList();
+            selectedProjectVM.Status = Status;
         }
 
-        ProjectManager.SaveProjects(Projects);
+        ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         await Shell.Current.GoToAsync("..");
     }
 
@@ -256,15 +256,15 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     {
         if (query.ContainsKey("projects"))
         {
-            Projects = query["projects"] as ObservableCollection<Project>;
+            Projects = query["projects"] as ObservableCollection<ProjectViewModel>;
             Expenses = new();
             Payments = new();
         }
 
-        if (query.ContainsKey("selectedProject"))
+        if (query.ContainsKey("selectedProjectVM"))
         {
-            selectedProject = query["selectedProject"] as Project;
-            LoadSelectedProjectDetails();
+            selectedProjectVM = query["selectedProjectVM"] as ProjectViewModel;
+            LoadselectedProjectVMDetails();
         }
     }
 }

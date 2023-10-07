@@ -18,5 +18,4 @@ public partial class ProjectsPage : ContentPage
     {
         await viewModel.ReloadProjects();
     }
-
 }

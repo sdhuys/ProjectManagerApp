@@ -1,9 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Models;
 
+
 namespace MauiApp1.ViewModels;
 
-//Class that wraps Project class to represent on ProjectsPage
+//Class that wraps Project class to represent projects dynamically on ProjectsPage
 public class ProjectViewModel : ObservableObject
 {
     public Project Project;
@@ -121,6 +122,11 @@ public class ProjectViewModel : ObservableObject
 
     public ProjectViewModel(Project Project)
     {
-        this.Project = Project; 
+        this.Project = Project;
+    }
+
+    public ProjectViewModel(string client, string type, string description, DateTime date, string currency, decimal fee, Agent agent, decimal agencyFeeDecimal, List<Expense> expenses, List<Payment> payments, Project.ProjectStatus status)
+    {
+        Project = new Project(client, type, description, date, currency, fee, agent, agencyFeeDecimal, expenses, payments, status);
     }
 }
