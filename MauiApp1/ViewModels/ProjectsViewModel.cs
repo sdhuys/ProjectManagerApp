@@ -10,16 +10,17 @@ namespace MauiApp1.ViewModels;
 public partial class ProjectsViewModel : ObservableObject
 {
     [ObservableProperty]
-    ObservableCollection<Project> projects;
+    ObservableCollection<ProjectViewModel> projects;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteProjectCommand))]
     [NotifyCanExecuteChangedFor(nameof(EditProjectCommand))]
-    private Project selectedProject;
+    private ProjectViewModel selectedProject;
 
     public ProjectsViewModel()
     {
-        Projects = new(ProjectManager.LoadProjects());
+        var pr = ProjectManager.LoadProjects();
+        Projects = new(pr.Select(x => new ProjectViewModel(x)));
     }
 
     //Method called on page resize
@@ -30,7 +31,7 @@ public partial class ProjectsViewModel : ObservableObject
         Projects.Clear();
         await Task.Delay(1);
 
-        Projects = new(ProjectManager.LoadProjects());
+        Projects = new(ProjectManager.LoadProjects().Select(x => new ProjectViewModel(x)));
     }
 
     [RelayCommand]
@@ -50,7 +51,7 @@ public partial class ProjectsViewModel : ObservableObject
         if (confirmed)
         {
             Projects.Remove(SelectedProject);
-            ProjectManager.SaveProjects(Projects);
+            ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         }
     }
 

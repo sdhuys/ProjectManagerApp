@@ -10,13 +10,9 @@ public class Project
     public string Currency { get; set; }
     public decimal Fee { get; set; }
     public List<Expense> Expenses { get; set; }
-    public decimal TotalExpenses => Expenses == null ? 0 : Expenses.Sum(x => x.Amount);
     public Agent Agent { get; set; }
     public decimal AgencyFeeDecimal { get; set; }
-    public decimal Profit => Fee - TotalExpenses - (AgencyFeeDecimal * Fee);
     public List<Payment> Payments { get; set; }
-    public decimal PaidAmount => Payments.Sum(x => x.Amount);
-    public decimal PaidPercentage => (PaidAmount / (Fee - (AgencyFeeDecimal * Fee))) * 100m;
     public ProjectStatus Status { get; set; }
 
 
@@ -35,7 +31,6 @@ public class Project
         Payments = payments;
         Status = status;
     }
-
     public enum ProjectStatus
     {
         Active,
