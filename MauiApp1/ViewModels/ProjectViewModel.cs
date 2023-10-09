@@ -7,7 +7,7 @@ namespace MauiApp1.ViewModels;
 //Class that wraps Project class to represent projects dynamically on ProjectsPage
 public class ProjectViewModel : ObservableObject
 {
-    public Project Project;
+    public Project Project { get; }
     public string Client
     {
         get => Project.Client;

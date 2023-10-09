@@ -15,7 +15,7 @@ public partial class ProjectsViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteProjectCommand))]
     [NotifyCanExecuteChangedFor(nameof(EditProjectCommand))]
-    private ProjectViewModel selectedProject;
+    private ProjectViewModel selectedProjectVM;
 
     public ProjectsViewModel()
     {
@@ -50,7 +50,7 @@ public partial class ProjectsViewModel : ObservableObject
         bool confirmed = await DisplayConfirmationDialog("Confirm Deletion", "Are you sure you want to delete this project?");
         if (confirmed)
         {
-            Projects.Remove(SelectedProject);
+            Projects.Remove(SelectedProjectVM);
             ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         }
     }
@@ -61,7 +61,7 @@ public partial class ProjectsViewModel : ObservableObject
         await Shell.Current.GoToAsync($"{nameof(ProjectDetailsPage)}?",
             new Dictionary<string, object>
             {
-                ["selectedProject"] = SelectedProject,
+                ["selectedProjectVM"] = SelectedProjectVM,
                 ["projects"] = Projects
             });
     }
@@ -73,6 +73,6 @@ public partial class ProjectsViewModel : ObservableObject
 
     private bool CanDeleteOrEditProject()
     {
-        return SelectedProject != null;
+        return SelectedProjectVM != null;
     }
 }

@@ -89,7 +89,7 @@
         <CollectionView x:Name="projectsList"
                         ItemsSource="{Binding Projects}"
                         SelectionMode="Single"
-                        SelectedItem="{Binding SelectedProject}"
+                        SelectedItem="{Binding SelectedProjectVM}"
                         Margin="10"
                         Grid.Row="1">
 
