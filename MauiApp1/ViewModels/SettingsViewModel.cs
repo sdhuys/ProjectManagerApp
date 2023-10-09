@@ -51,35 +51,21 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void DeleteTypes()
+    public void DeleteType(string type)
     {
-        var typesToRemove = SelectedTypes.Select(x => x.ToString()).ToList();
-        foreach (var t in typesToRemove)
-        {
-            ProjectTypes.Remove(t);
-        }
+        ProjectTypes.Remove(type);
     }
 
     [RelayCommand]
-    public void DeleteCurrencies()
+    public void DeleteCurrency(string currency)
     {
-        var currenciesToRemove = SelectedCurrencies.Select(x => x.ToString()).ToList();
-        foreach (var c in currenciesToRemove)
-        {
-            Currencies.Remove(c);
-        }
+        Currencies.Remove(currency);
     }
 
     [RelayCommand]
-    public void DeleteAgents()
+    public void DeleteAgent(Agent agent)
     {
-        for (int i = 0; i < SelectedAgents.Count; i++)
-        {
-            if (SelectedAgents[i] is Agent agent)
-            {
-                Agents.Remove(agent);
-            }
-        }
+        Agents.Remove(agent);
     }
 
     [RelayCommand(CanExecute = nameof(CanAddType))]
