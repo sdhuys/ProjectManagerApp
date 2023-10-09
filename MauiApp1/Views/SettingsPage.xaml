@@ -9,84 +9,38 @@
     <ScrollView>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            
-            <Label 
-                Grid.Row="0"
-                Text="Welcome to Protject Management"
-                IsVisible="{Binding WelcomeTextVisible}"
-                FontSize="55"
-                VerticalOptions="Center" 
-                HorizontalOptions="Center"
-                />
 
-            <Label 
-                Grid.Row="1"
-                Text="Please fill out the types of projects you work on, the currencies you earn in, and your agents (if any)."
-                IsVisible="{Binding WelcomeTextVisible}"
-                VerticalOptions="Start" 
-                HorizontalOptions="Center"
-                Margin="10"/>
+            <Label Grid.Row="0"
+                   Text="Welcome to Protject Management"
+                   IsVisible="{Binding WelcomeTextVisible}"
+                   FontSize="55"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center" />
+
+            <Label Grid.Row="1"
+                   Text="Please fill out the types of projects you work on, the currencies you earn in, and your agents (if any)."
+                   IsVisible="{Binding WelcomeTextVisible}"
+                   VerticalOptions="Start"
+                   HorizontalOptions="Center"
+                   Margin="10" />
 
             <Grid Grid.Row="2"
-                Margin="70">
+                  Margin="70">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <VerticalStackLayout Grid.Column="0" >
-                    <Label 
-                        Text="Project Types"
-                        FontSize="20"/>
+                <VerticalStackLayout Grid.Column="0">
+                    <Label Text="Project Types"
+                           FontSize="20" />
 
                     <CollectionView x:Name="projectTypeList"
-                                ItemsSource="{Binding ProjectTypes}"
-                                SelectionMode="Multiple"
-                                SelectedItems="{Binding SelectedTypes}"
-                                Margin="10"
-                                HeightRequest="250">
-
-                        <CollectionView.ItemsLayout>
-                            <GridItemsLayout Orientation="Vertical" />
-                        </CollectionView.ItemsLayout>
-
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Label Text="{Binding}"/>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-
-                    <Entry
-                        x:Name="NewTypeEntry"
-                        Placeholder="New Project Type"
-                        Text="{Binding TypeEntry}"/>
-
-                    <HorizontalStackLayout>
-                        <Button 
-                            Text="Add Project Type" 
-                            Command="{Binding AddTypeCommand}"/>
-
-                        <Button
-                            Text="Delete Selected"
-                            Command="{Binding DeleteTypesCommand}"/>
-                    </HorizontalStackLayout>
-
-                </VerticalStackLayout>
-
-                <VerticalStackLayout Grid.Column="1">
-                    <Label 
-                        Text="Currencies"
-                        FontSize="20"/>
-
-                    <CollectionView x:Name="currencyList"
-                                    ItemsSource="{Binding Currencies}"
-                                    SelectionMode="Multiple"
-                                    SelectedItems="{Binding SelectedCurrencies}"
+                                    ItemsSource="{Binding ProjectTypes}"
                                     Margin="10"
                                     HeightRequest="250">
 
@@ -96,37 +50,92 @@
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Label Text="{Binding}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Label Text="{Binding}" 
+                                           VerticalTextAlignment="Center"/>
+
+                                    <Button Text="X"
+                                            Grid.Column="2"
+                                            BackgroundColor="Red"
+                                            TextColor="White"
+                                            Command="{Binding BindingContext.DeleteTypeCommand, Source={x:Reference projectTypeList}}"
+                                            CommandParameter="{Binding .}"
+                                            HorizontalOptions="StartAndExpand"
+                                            Margin="0, 0, 10, 0">
+                                    </Button>
+                                </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
-                    <Entry
-                        x:Name="NewCurrencyEntry"
-                        Placeholder="New Currency"
-                        Text="{Binding CurrencyEntry}"/>
+                    <Entry x:Name="NewTypeEntry"
+                           Placeholder="New Project Type"
+                           Text="{Binding TypeEntry}" />
 
-                    <HorizontalStackLayout>
-                        <Button 
-                            Text="Add Currency" 
-                            Command="{Binding AddCurrencyCommand}"/>
+                    <Button Text="Add Project Type"
+                            Command="{Binding AddTypeCommand}" />
 
-                        <Button
-                            Text="Delete Selected"
-                            Command="{Binding DeleteCurrenciesCommand}"/>
-                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="Currencies"
+                           FontSize="20" />
+
+                    <CollectionView x:Name="currencyList"
+                                    ItemsSource="{Binding Currencies}"
+                                    Margin="10"
+                                    HeightRequest="250">
+
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout Orientation="Vertical" />
+                        </CollectionView.ItemsLayout>
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Text="{Binding}" 
+                                           VerticalTextAlignment="Center"/>
+
+                                    <Button Text="X"
+                                            Grid.Column="2"
+                                            BackgroundColor="Red"
+                                            TextColor="White"
+                                            Command="{Binding BindingContext.DeleteCurrencyCommand, Source={x:Reference currencyList}}"
+                                            CommandParameter="{Binding .}"
+                                            HorizontalOptions="StartAndExpand"
+                                            Margin="0, 0, 10, 0">
+                                    </Button>
+                                </Grid>
+
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <Entry x:Name="NewCurrencyEntry"
+                           Placeholder="New Currency"
+                           Text="{Binding CurrencyEntry}" />
+
+                    <Button Text="Add Currency"
+                            Command="{Binding AddCurrencyCommand}" />
+
 
                 </VerticalStackLayout>
 
                 <VerticalStackLayout Grid.Column="2">
-                    <Label 
-                        Text="Agents"
-                        FontSize="20"/>
+                    <Label Text="Agents"
+                           FontSize="20" />
 
                     <CollectionView x:Name="agentsList"
                                     ItemsSource="{Binding Agents}"
-                                    SelectionMode="Multiple"
-                                    SelectedItems="{Binding SelectedAgents}"
                                     Margin="10"
                                     HeightRequest="250">
 
@@ -140,9 +149,23 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <Label Text="{Binding Name}" Grid.Column="0"/>
-                                    <Label Text="{Binding FeeDecimal, StringFormat='{0:P2}'}" Grid.Column="1"/>
+                                    <Label Text="{Binding Name}"
+                                           VerticalTextAlignment="Center"
+                                           Grid.Column="0" />
+                                    <Label Text="{Binding FeeDecimal, StringFormat='{0:P2}'}"
+                                           VerticalTextAlignment="Center"
+                                           Grid.Column="1" />
+                                    <Button Text="X"
+                                            Grid.Column="2"
+                                            BackgroundColor="Red"
+                                            TextColor="White"
+                                            Command="{Binding BindingContext.DeleteAgentCommand, Source={x:Reference agentsList}}"
+                                            CommandParameter="{Binding .}"
+                                            HorizontalOptions="StartAndExpand"
+                                            Margin="0, 0, 10, 0">
+                                    </Button>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -153,41 +176,32 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        
-                        <Entry
-                            Grid.Column="0"
-                            x:Name="NewAgentNameEntry"
-                            Placeholder="New Agent Name"
-                            Text="{Binding AgentNameEntry}" />
 
-                        <Entry
-                            Grid.Column="1"
-                            x:Name="NewAgentFeeEntry"
-                            Placeholder="Percentage Fee"
-                            Text="{Binding AgentFeeEntry}" />
+                        <Entry Grid.Column="0"
+                               x:Name="NewAgentNameEntry"
+                               Placeholder="New Agent Name"
+                               Text="{Binding AgentNameEntry}" />
+
+                        <Entry Grid.Column="1"
+                               x:Name="NewAgentFeeEntry"
+                               Placeholder="Percentage Fee"
+                               Text="{Binding AgentFeeEntry}" />
 
                     </Grid>
 
-                    <HorizontalStackLayout>
-                        <Button 
-                            Text="Add Agent" 
+                    <Button Text="Add Agent"
                             Command="{Binding AddAgentCommand}"
-                            VerticalOptions="End"/>
+                            VerticalOptions="End" />
 
-                        <Button
-                            Text="Delete Selected"
-                            Command="{Binding DeleteAgentsCommand}"
-                            VerticalOptions="End"/>
-                    </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Grid>
 
             <Button Grid.Row="3"
-                Text="Save Settings" 
-                Command="{Binding SaveSettingsCommand}"
-                VerticalOptions="End"
-                Margin="25"/>
-        
+                    Text="Save Settings"
+                    Command="{Binding SaveSettingsCommand}"
+                    VerticalOptions="End"
+                    Margin="25" />
+
         </Grid>
     </ScrollView>
 
