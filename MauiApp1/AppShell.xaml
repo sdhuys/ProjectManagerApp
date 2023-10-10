@@ -7,9 +7,9 @@
     Shell.FlyoutBehavior="Locked"
     Shell.FlyoutWidth="200">
 
-    <FlyoutItem Title="Projects">
+    <FlyoutItem Title="Projects Overview">
         <ShellContent
-            Title="Projects"
+            Title="Projects Overview"
             ContentTemplate="{DataTemplate views:ProjectsPage}"
             x:Name="projects"/>
     </FlyoutItem>

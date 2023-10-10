@@ -160,8 +160,8 @@
                         </Label>
 
                         <Label Text="{Binding Status}"
-                                  Grid.Column="10"
-                                  VerticalOptions="CenterAndExpand" />
+                               Grid.Column="10"
+                               VerticalOptions="CenterAndExpand" />
 
                         <!-- Add more labels for other properties -->
                     </Grid>
@@ -169,18 +169,59 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Label Grid.Row="2"
-               VerticalTextAlignment="End"
-               HorizontalOptions="EndAndExpand"
-               Margin="10">
+        <HorizontalStackLayout Grid.Row="2"
+                               HorizontalOptions="EndAndExpand"
+                               Margin="10">
 
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span Text="Total Projects: " />
-                    <Span Text="{Binding Path=Projects.Count}" />
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
+            <Label Margin="10">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Active Projects: " />
+                        <Span Text="{Binding Path=ActiveProjects.Count}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            
+
+            <Label Margin="10">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Projects Awaiting Payment: " />
+                        <Span Text="{Binding Path=InvoicedProjects.Count}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <Label Margin="10">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Finished Projects: " />
+                        <Span Text="{Binding Path=FinishedProjects.Count}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <Label Margin="10">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Cancelled Projects: " />
+                        <Span Text="{Binding Path=CancelledProjects.Count}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            
+
+            <Label Margin="10">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Total Projects: " />
+                        <Span Text="{Binding Path=Projects.Count}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+        </HorizontalStackLayout>
+
     </Grid>
 
 

@@ -10,12 +10,23 @@ namespace MauiApp1.ViewModels;
 public partial class ProjectsViewModel : ObservableObject
 {
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FinishedProjects))]
+    [NotifyPropertyChangedFor(nameof(InvoicedProjects))]
+    [NotifyPropertyChangedFor(nameof(CancelledProjects))]
+    [NotifyPropertyChangedFor(nameof(ActiveProjects))]
+    [NotifyPropertyChangedFor(nameof(AwaitedPaymentsTotal))]
     ObservableCollection<ProjectViewModel> projects;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteProjectCommand))]
     [NotifyCanExecuteChangedFor(nameof(EditProjectCommand))]
-    private ProjectViewModel selectedProjectVM;
+    ProjectViewModel selectedProjectVM;
+
+    public List<ProjectViewModel> FinishedProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Finished).ToList();
+    public List<ProjectViewModel> InvoicedProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Invoiced).ToList();
+    public List<ProjectViewModel> CancelledProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Cancelled).ToList();
+    public List<ProjectViewModel> ActiveProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Active).ToList();
+    public decimal AwaitedPaymentsTotal => InvoicedProjects.Select(x => x.Fee).Sum() - (InvoicedProjects.Select(x => x.Payments.Select(x => x.Amount).Sum()).Sum());
 
     public ProjectsViewModel()
     {
