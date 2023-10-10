@@ -83,8 +83,11 @@ public class ProjectViewModel : ObservableObject
         {
             Project.Agent = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(ManagedByAgent));
         }
     }
+
+    public bool ManagedByAgent => Agent != null;
     public decimal AgencyFeeDecimal
     {
         get => Project.AgencyFeeDecimal;

@@ -3,8 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MauiApp1.ViewModels"
              xmlns:conv="clr-namespace:MauiApp1.Converters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="MauiApp1.Views.ProjectsPage"
              Title="Projects">
+
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Add Project"
                      Command="{Binding GoToNewProjectPageCommand}"
@@ -21,6 +23,7 @@
 
     <ContentPage.Resources>
         <conv:DateFormatConverter x:Key="DateFormat" />
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
 
     <Grid>
@@ -136,8 +139,10 @@
                         <Label Text="{Binding TotalExpenses, StringFormat='{0:N0}'}"
                                Grid.Column="6"
                                VerticalOptions="CenterAndExpand" />
+
                         <Label Grid.Column="7"
-                               VerticalOptions="CenterAndExpand">
+                               VerticalOptions="CenterAndExpand"
+                               IsVisible="{Binding ManagedByAgent}">
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="{Binding Agent.Name}" />
@@ -146,24 +151,29 @@
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
+                        <Label Grid.Column="7"
+                               VerticalOptions="CenterAndExpand"
+                               IsVisible="{Binding ManagedByAgent, Converter={StaticResource InvertedBoolConverter}}"
+                               Text="None" />
+                        
                         <Label Text="{Binding Profit, StringFormat='{0:N0}'}"
                                Grid.Column="8"
                                VerticalOptions="CenterAndExpand" />
-                        <Label Grid.Column="9"
-                               VerticalOptions="CenterAndExpand">
-                            <Label.FormattedText>
-                                <FormattedString>
-                                    <Span Text="{Binding PaidPercentage, StringFormat='{0:N0}'}" />
-                                    <Span Text="%" />
-                                </FormattedString>
-                            </Label.FormattedText>
-                        </Label>
+                            <Label Grid.Column="9"
+                                   VerticalOptions="CenterAndExpand">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding PaidPercentage, StringFormat='{0:N0}'}" />
+                                        <Span Text="%" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
 
-                        <Label Text="{Binding Status}"
-                               Grid.Column="10"
-                               VerticalOptions="CenterAndExpand" />
+                            <Label Text="{Binding Status}"
+                                   Grid.Column="10"
+                                   VerticalOptions="CenterAndExpand" />
 
-                        <!-- Add more labels for other properties -->
+                            <!-- Add more labels for other properties -->
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
@@ -181,7 +191,7 @@
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
-            
+
 
             <Label Margin="10">
                 <Label.FormattedText>
@@ -209,7 +219,7 @@
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
-            
+
 
             <Label Margin="10">
                 <Label.FormattedText>
