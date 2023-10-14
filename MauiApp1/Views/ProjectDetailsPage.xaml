@@ -120,19 +120,41 @@
                         VerticalOptions="CenterAndExpand"
                         Margin="10" />
 
-                <Label Text="Fee"
+                <Label Text="Fee + VAT Rate"
                        FontSize="Title"
                        Grid.Row="2"
                        Grid.Column="1"
                        VerticalOptions="CenterAndExpand"
                        Margin="20" />
 
-                <Entry Text="{Binding Fee}"
-                       Placeholder="Enter Fee"
-                       Grid.Row="3"
-                       Grid.Column="1"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="10" />
+                <Grid Grid.Row="3"
+                      Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <Entry Text="{Binding Fee}"
+                           Placeholder="Enter Fee"
+                           Grid.Column="0"
+                           WidthRequest="75"
+                           VerticalOptions="CenterAndExpand"
+                           Margin="10" />
+                    <CheckBox IsChecked="{Binding IsVAT_Included}"
+                              VerticalOptions="CenterAndExpand"
+                              Grid.Column="1" />
+                    <Label Text="VAT Included"
+                           VerticalOptions="CenterAndExpand"
+                           Grid.Column="1"
+                           Margin="50,0,0,0" />
+                    
+                    <Entry Placeholder="Rate %"
+                           Text="{Binding VatRatePercent}"
+                           Margin="10"
+                           Grid.Column="2"/>
+                </Grid>
+
 
                 <Label Text="Agent + Fee"
                        FontSize="Title"

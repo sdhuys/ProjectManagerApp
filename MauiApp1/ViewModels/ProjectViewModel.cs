@@ -26,8 +26,8 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    public string Description 
-    { 
+    public string Description
+    {
         get => Project.Description;
         set
         {
@@ -35,7 +35,7 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    public DateTime Date 
+    public DateTime Date
     {
         get => Project.Date;
         set
@@ -44,7 +44,7 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    public string Currency 
+    public string Currency
     {
         get => Project.Currency;
         set
@@ -53,7 +53,7 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    public decimal Fee 
+    public decimal Fee
     {
         get => Project.Fee;
         set
@@ -64,7 +64,35 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
-    public List<Expense> Expenses 
+
+    public bool IsVatIncluded
+    {
+        get => Project.IsVatIncluded;
+        set
+        {
+            Project.IsVatIncluded = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(VatStatus));
+        }
+    }
+    public decimal VatRateDecimal
+    {
+        get => Project.VatRateDecimal;
+        set
+        {
+            Project.VatRateDecimal = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string VatStatus
+    {
+        get
+        {
+            return IsVatIncluded ? "Incl." : "Excl.";
+        }
+    }
+    public List<Expense> Expenses
     {
         get => Project.Expenses;
         set
@@ -76,7 +104,7 @@ public class ProjectViewModel : ObservableObject
         }
     }
     public decimal TotalExpenses => Expenses == null ? 0 : Expenses.Sum(x => x.Amount);
-    public Agent Agent 
+    public Agent Agent
     {
         get => Project.Agent;
         set
@@ -99,8 +127,17 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
-    public decimal Profit => Fee - TotalExpenses - (AgencyFeeDecimal * Fee);
-    public List<Payment> Payments 
+
+    //ASSUMING AGENCY FEE IS CALCULATED ON FEE AFTER VAT DEDUCTION
+    public decimal Profit
+    {
+        get
+        {
+            var feeExclVAT = IsVatIncluded ? Fee / (1 + VatRateDecimal) : Fee;
+            return feeExclVAT - TotalExpenses - (feeExclVAT * AgencyFeeDecimal);
+        }
+    }
+    public List<Payment> Payments
     {
         get => Project.Payments;
         set
@@ -112,9 +149,20 @@ public class ProjectViewModel : ObservableObject
         }
     }
     public decimal PaidAmount => Payments.Sum(x => x.Amount);
-    public decimal PaidPercentage => (PaidAmount / (Fee - (AgencyFeeDecimal * Fee))) * 100m;
-    public Project.ProjectStatus Status 
-    { 
+
+    //ASSUMING AGENCYFEE IS CALCULATED ON FEE AFTER VAT DEDUCTION
+    public decimal PaidPercentage
+    {
+        get
+        {
+            var feeInclVAT = IsVatIncluded ? Fee : Fee + (Fee * VatRateDecimal);
+            var feeExclVAT = IsVatIncluded ? Fee / (1 + VatRateDecimal) : Fee;
+
+            return (PaidAmount / (feeInclVAT - (AgencyFeeDecimal * feeExclVAT))) * 100m;
+        }
+    }
+    public Project.ProjectStatus Status
+    {
         get => Project.Status;
         set
         {
@@ -128,8 +176,8 @@ public class ProjectViewModel : ObservableObject
         this.Project = Project;
     }
 
-    public ProjectViewModel(string client, string type, string description, DateTime date, string currency, decimal fee, Agent agent, decimal agencyFeeDecimal, List<Expense> expenses, List<Payment> payments, Project.ProjectStatus status)
+    public ProjectViewModel(string client, string type, string description, DateTime date, string currency, decimal fee, bool isVAT_Included, decimal vAT_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<Expense> expenses, List<Payment> payments, Project.ProjectStatus status)
     {
-        Project = new Project(client, type, description, date, currency, fee, agent, agencyFeeDecimal, expenses, payments, status);
+        Project = new Project(client, type, description, date, currency, fee, isVAT_Included, vAT_RateDecimal, agent, agencyFeeDecimal, expenses, payments, status);
     }
 }

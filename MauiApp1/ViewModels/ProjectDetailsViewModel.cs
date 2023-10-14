@@ -37,6 +37,12 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     string fee;
 
     [ObservableProperty]
+    bool isVAT_Included;
+
+    [ObservableProperty]
+    string vatRatePercent;
+
+    [ObservableProperty]
     ObservableCollection<Expense> expenses;
 
     [ObservableProperty]
@@ -109,6 +115,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         Date = selectedProjectVM.Date;
         Currency = selectedProjectVM.Currency;
         Fee = selectedProjectVM.Fee.ToString();
+        IsVAT_Included = selectedProjectVM.IsVatIncluded;
+        VatRatePercent = (selectedProjectVM.VatRateDecimal * 100m).ToString();
         Agent = selectedProjectVM.Agent;
         HasCustomAgencyFee = Agent != null && selectedProjectVM.AgencyFeeDecimal != Agent.FeeDecimal;
         CustomAgencyFeePercent = HasCustomAgencyFee ? (selectedProjectVM.AgencyFeeDecimal * 100m).ToString() : "0";
@@ -125,11 +133,20 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
     partial void OnFeeChanged(string oldValue, string newValue)
     {
-        if (string.IsNullOrEmpty(newValue)) 
+        if (string.IsNullOrEmpty(newValue))
             return;
 
         if (!decimal.TryParse(newValue, out decimal result))
-            Fee = oldValue; 
+            Fee = oldValue;
+    }
+
+    partial void OnVatRatePercentChanged(string oldValue, string newValue)
+    {
+        if (string.IsNullOrEmpty(newValue))
+            return;
+
+        if (!decimal.TryParse(newValue, out decimal result) || result < 0 || result > 100)
+            VatRatePercent = oldValue;
     }
 
     partial void OnNewExpenseValueChanged(string oldValue, string newValue)
@@ -155,9 +172,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         if (string.IsNullOrWhiteSpace(newValue)) return;
 
         if (!decimal.TryParse(newValue, out decimal result) || result < 0 || result > 100)
-        {
             CustomAgencyFeePercent = oldValue;
-        }
     }
 
     partial void OnNewPaymentAmountChanged(string oldValue, string newValue)
@@ -208,13 +223,14 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand(CanExecute = nameof(CanSaveProject))]
     async Task SaveNewOrEditProject()
     {
+        var vatRateDecimal = VatRatePercent == null ? 0 : decimal.Parse(VatRatePercent) / 100m;
         var agencyFeeDecimal = Agent == null ? 0 : HasCustomAgencyFee ? decimal.Parse(CustomAgencyFeePercent) / 100m : Agent.FeeDecimal;
         RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, decimal.Parse(Fee), agencyFeeDecimal);
 
         //Create new projectviewmodel and add to the collection
         if (!EditMode)
         {
-            ProjectViewModel projectVM = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
+            ProjectViewModel projectVM = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), IsVAT_Included, vatRateDecimal, Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
             Projects.Add(projectVM);
         }
 
@@ -227,6 +243,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             selectedProjectVM.Date = Date;
             selectedProjectVM.Currency = Currency;
             selectedProjectVM.Fee = decimal.Parse(Fee);
+            selectedProjectVM.IsVatIncluded = IsVAT_Included;
+            selectedProjectVM.VatRateDecimal = vatRateDecimal;
             selectedProjectVM.Agent = Agent;
             selectedProjectVM.AgencyFeeDecimal = agencyFeeDecimal;
             selectedProjectVM.Expenses = Expenses.ToList();
