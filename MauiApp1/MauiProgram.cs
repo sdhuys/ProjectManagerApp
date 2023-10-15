@@ -3,6 +3,7 @@ using MauiApp1.Views;
 using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui.Markup;
 using CommunityToolkit.Maui;
+using Microcharts.Maui;
 
 namespace MauiApp1
 {
@@ -15,6 +16,7 @@ namespace MauiApp1
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitMarkup()
+                .UseMicrocharts()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -25,6 +27,8 @@ namespace MauiApp1
             builder.Services.AddSingleton<ProjectsViewModel>();
             builder.Services.AddSingleton<SettingsPage>();
             builder.Services.AddSingleton<SettingsViewModel>();
+            builder.Services.AddSingleton<IncomeViewModel>();
+            builder.Services.AddSingleton<IncomePage>();
 
             builder.Services.AddTransient<ProjectDetailsPage>();
             builder.Services.AddTransient<ProjectDetailsViewModel>();

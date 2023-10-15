@@ -1,8 +1,10 @@
-﻿namespace MauiApp1.Models;
+﻿using System.Diagnostics;
+
+namespace MauiApp1.Models;
 
 public class Project
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; }
     public string Client { get; set; }
     public string Type { get; set; }
     public string Description { get; set; }
@@ -33,6 +35,13 @@ public class Project
         Expenses = expenses;
         AgencyFeeDecimal = agencyFeeDecimal;
         Payments = payments;
+        foreach (var payment in Payments)
+        {
+            payment.AssociatedProjectID = Id;
+            Debug.WriteLine($"ID: {Id}");
+            Debug.WriteLine($"ASSID: {payment.AssociatedProjectID}");
+
+        }
         Status = status;
     }
     public enum ProjectStatus

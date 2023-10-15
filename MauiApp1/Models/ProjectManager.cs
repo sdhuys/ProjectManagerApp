@@ -15,6 +15,8 @@ internal static class ProjectManager
     private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "projects.json");
     //private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "projects.json");
 
+    public static List<Project> AllProjects = new List<Project>();
+
     public static void SaveProjects(ICollection<Project> projects)
     {
         string json = JsonConvert.SerializeObject(projects);
@@ -38,6 +40,7 @@ internal static class ProjectManager
             Converters = new List<JsonConverter> { new AgentJsonConverter() }
         };
 
-        return JsonConvert.DeserializeObject<List<Project>>(json, settings);
+        AllProjects = JsonConvert.DeserializeObject<List<Project>>(json, settings);
+        return AllProjects;
     }
 }

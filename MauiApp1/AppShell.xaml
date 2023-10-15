@@ -14,6 +14,12 @@
             x:Name="projects"/>
     </FlyoutItem>
 
+    <FlyoutItem Title="Income Overview">
+        <ShellContent Title="Income Overview"
+                      ContentTemplate="{DataTemplate views:IncomePage}"
+                      x:Name="income" />
+    </FlyoutItem>
+
     <FlyoutItem Title="Configuration">
         <ShellContent
             Title="Settings"

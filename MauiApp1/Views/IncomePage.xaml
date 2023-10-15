@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:micro="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             x:Class="MauiApp1.Views.IncomePage"
+             Title="Income">
+    
+    <ScrollView>
+        <CollectionView ItemsSource="{Binding FilteredPaymentsGroupedByCurrencyAndType}"
+                        IsGrouped="True">
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <VerticalStackLayout>
+                        <Label Text="{Binding Currency}"
+                               FontSize="18"
+                               FontAttributes="Bold" />
+
+                        <Label Text="{Binding ProjectType}" />
+
+                        <Label Text="{Binding TotalAmount}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical"
+                                 Span="2" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <!-- <Label Text="{Binding Amount}" /> -->
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </ScrollView>
+
+
+</ContentPage>

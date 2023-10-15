@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace MauiApp1.ViewModels;
@@ -103,8 +104,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         TypesList = Settings.ProjectTypes;
         CurrencyList = Settings.Currencies;
         StatusList = Enum.GetValues(typeof(Project.ProjectStatus)).OfType<Project.ProjectStatus>().ToList();
-        Date = DateTime.Now;
-        NewPaymentDate = DateTime.Now;
+        Date = DateTime.Today;
+        NewPaymentDate = DateTime.Today;
     }
 
     private void LoadselectedProjectVMDetails()
@@ -112,7 +113,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         Client = selectedProjectVM.Client;
         Type = selectedProjectVM.Type;
         Description = selectedProjectVM.Description;
-        Date = selectedProjectVM.Date;
+        Date = selectedProjectVM.Date.Date;
         Currency = selectedProjectVM.Currency;
         Fee = selectedProjectVM.Fee.ToString();
         IsVAT_Included = selectedProjectVM.IsVatIncluded;
@@ -203,15 +204,25 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand(CanExecute = nameof(CanAddPayment))]
     void AddPayment()
     {
-        Payments.Add(new(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate));
+        Payment newPayment;
+        if (EditMode)
+        {
+            newPayment = new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date, selectedProjectVM.Id);
+        }
+        else
+        {
+            newPayment = new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date);
+        }
+        Payments.Add(newPayment);
         NewPaymentAmount = null;
-        NewPaymentDate = DateTime.Now;
+        NewPaymentDate = DateTime.Today;
     }
 
     [RelayCommand]
     void DeletePayment(Payment payment)
     {
         Payments.Remove(payment);
+        PaymentManager.RemovePayment(payment);
     }
 
     [RelayCommand]

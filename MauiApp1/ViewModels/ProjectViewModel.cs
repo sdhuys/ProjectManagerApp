@@ -8,6 +8,8 @@ namespace MauiApp1.ViewModels;
 public class ProjectViewModel : ObservableObject
 {
     public Project Project { get; }
+
+    public Guid Id => Project.Id;
     public string Client
     {
         get => Project.Client;
@@ -89,6 +91,7 @@ public class ProjectViewModel : ObservableObject
     {
         get
         {
+            if (VatRateDecimal == 0m) return null;
             return IsVatIncluded ? "Incl." : "Excl.";
         }
     }
@@ -128,7 +131,7 @@ public class ProjectViewModel : ObservableObject
         }
     }
 
-    //ASSUMING AGENCY FEE IS CALCULATED ON FEE AFTER VAT DEDUCTION
+    //ASSUMING AGENCY FEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
     public decimal Profit
     {
         get
@@ -150,7 +153,7 @@ public class ProjectViewModel : ObservableObject
     }
     public decimal PaidAmount => Payments.Sum(x => x.Amount);
 
-    //ASSUMING AGENCYFEE IS CALCULATED ON FEE AFTER VAT DEDUCTION
+    //ASSUMING AGENCYFEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
     public decimal PaidPercentage
     {
         get

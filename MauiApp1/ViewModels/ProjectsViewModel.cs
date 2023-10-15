@@ -42,6 +42,7 @@ public partial class ProjectsViewModel : ObservableObject
         Projects.Clear();
         await Task.Delay(1);
 
+        PaymentManager.AllPayments.Clear();
         Projects = new(ProjectManager.LoadProjects().Select(x => new ProjectViewModel(x)));
     }
 
@@ -61,6 +62,7 @@ public partial class ProjectsViewModel : ObservableObject
         bool confirmed = await DisplayConfirmationDialog("Confirm Deletion", "Are you sure you want to delete this project?");
         if (confirmed)
         {
+            ProjectManager.AllProjects.Remove(SelectedProjectVM.Project);
             Projects.Remove(SelectedProjectVM);
             ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         }

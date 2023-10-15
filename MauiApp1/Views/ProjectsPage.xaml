@@ -153,9 +153,8 @@
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="{Binding VatStatus}" />
-                                    <Span Text=" (" />
+                                    <Span Text=" " />
                                     <Span Text="{Binding VatRateDecimal, StringFormat='{0:P1}'}" />
-                                    <Span Text=")" />
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
