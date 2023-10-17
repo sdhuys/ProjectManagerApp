@@ -1,95 +1,138 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
+using Microcharts;
+using Microcharts.Maui;
+using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 
-namespace MauiApp1.ViewModels
+namespace MauiApp1.ViewModels;
+
+public partial class IncomeViewModel : ObservableObject
 {
-    public partial class IncomeViewModel : ObservableObject
+    [ObservableProperty]
+    DateTime queryStartDate = DateTime.MinValue;
+
+    [ObservableProperty]
+    DateTime queryEndDate = DateTime.Today;
+
+    [ObservableProperty]
+    ObservableCollection<object> queryCurrencies;
+
+    [ObservableProperty]
+    ObservableCollection<string> currencyList;
+
+    [ObservableProperty]
+    ObservableCollection<object> queryTypes;
+
+    [ObservableProperty]
+    ObservableCollection<string> typeList;
+
+    [ObservableProperty]
+    Chart chart;
+
+    [ObservableProperty]
+    ObservableCollection<ChartWithHeader> charts = new();
+    public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
+
+    public IncomeViewModel()
     {
-        [ObservableProperty]
-        DateTime queryStartDate = DateTime.MinValue;
-
-        [ObservableProperty]
-        DateTime queryEndDate = DateTime.Today;
-
-        [ObservableProperty]
-        List<string> queryCurrencies = new List<string> { "EUR", "USD" };
-
-        [ObservableProperty]
-        List<string> queryTypes = new List<string> { "Mural", "Illustration" };
-
-        [ObservableProperty]
-        List<PaymentsGroupedByCurrency> filteredPaymentsGroupedByCurrency = new();
-
-        [ObservableProperty]
-        List<PaymentsGroupedByCurrencyAndType> filteredPaymentsGroupedByCurrencyAndType = new();
-
-        [ObservableProperty]
-        List<PaymentsGroupedByCurrencyAndClient> filteredPaymentsGroupedByCurrencyAndClient = new();
-        
-        public decimal TotalQueriedIncome => FilteredPaymentsGroupedByCurrency.Select(x => x.TotalAmount).Sum();
-
-        //Called inside IncomePage.OnAppearing
-        public void FilterAndSetGroupings()
-        {
-            var paymentViewModels = PaymentManager.Query(QueryCurrencies, QueryTypes, QueryStartDate, QueryEndDate)
-                                                                       .Select(x => new PaymentViewModel(x));
-
-            FilteredPaymentsGroupedByCurrency = paymentViewModels.GroupBy(x => x.Currency)
-                                                                 .Select(x => new PaymentsGroupedByCurrency(x.Key, x.ToList()))
-                                                                 .ToList();
-
-            FilteredPaymentsGroupedByCurrencyAndType = paymentViewModels.GroupBy(x => new { x.Currency, x.Project.Type })
-                                                                        .Select(x => new PaymentsGroupedByCurrencyAndType(x.Key.Currency, x.Key.Type, x.ToList()))
-                                                                        .ToList();
-
-            FilteredPaymentsGroupedByCurrencyAndClient = paymentViewModels.GroupBy(x => new { x.Currency, x.Project.Client })
-                                                                          .Select(x => new PaymentsGroupedByCurrencyAndClient(x.Key.Currency, x.Key.Client, x.ToList()))
-                                                                          .ToList();
-        }
+        CurrencyList = new (Settings.Currencies);
+        QueryCurrencies = new();
+        TypeList = new(Settings.ProjectTypes);
+        QueryTypes = new();
     }
 
-    public class PaymentsGroupedByCurrency : List<PaymentViewModel>
+    //Called inside IncomePage.OnAppearing to make sure changes in projects are accounted for
+    [RelayCommand]
+    public void ApplyFilters()
     {
-        public string Currency { get; }
-        public decimal TotalAmount { get; }
+        var currencies = QueryCurrencies.OfType<string>();
+        var types = QueryTypes.OfType<string>();
 
-        public PaymentsGroupedByCurrency(string currency,List<PaymentViewModel> payments)
+        var queriedPayments = PaymentManager.Query(currencies, types, QueryStartDate, QueryEndDate)
+                                                                   .Select(x => new PaymentViewModel(x))
+                                                                   .ToList();
+        Debug.WriteLine($"Payments after filter: {queriedPayments.Count}");
+
+        var uniqueCurrencies = queriedPayments.Select(payment => payment.Currency).Distinct();
+
+        // Group by Currency, Type, and Client
+        var groupedData = queriedPayments
+            .GroupBy(payment => new { payment.Currency, payment.Type, payment.Client })
+            .Select(group => new
+            {
+                Currency = group.Key.Currency,
+                Type = group.Key.Type,
+                Client = group.Key.Client,
+                TotalAmount = group.Sum(payment => payment.Amount)
+            });
+
+        // Prepare data for each graph (total payments per type and per client for each currency)
+        var dataForCharts = new Dictionary<string, Dictionary<string, decimal>>();
+        foreach (var currency in uniqueCurrencies)
         {
-            Currency = currency;
-            AddRange(payments);
-            TotalAmount = payments.Sum(p => p.Amount);
+            var typeData = groupedData
+                .Where(item => item.Currency == currency)
+                .GroupBy(item => item.Type)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Sum(item => item.TotalAmount));
+
+            var clientData = groupedData
+                .Where(item => item.Currency == currency)
+                .GroupBy(item => item.Client)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Sum(item => item.TotalAmount));
+
+            dataForCharts.Add($"{currency} Earnings Per Project Type", typeData);
+            dataForCharts.Add($"{currency} Earnings Per Client", clientData);
+        }
+
+        CreateCharts(dataForCharts);
+    }
+    private void CreateCharts(Dictionary<string, Dictionary<string, decimal>> dataForCharts)
+    {
+        Charts.Clear();
+
+        foreach (var chartData in dataForCharts)
+        {
+            var chartEntries = new List<ChartEntry>();
+            chartEntries.AddRange(ConvertToChartEntries(chartData.Value));
+            Charts.Add(new ChartWithHeader
+            {
+                Chart = new DonutChart
+                {
+                    Entries = chartEntries,
+                    BackgroundColor = SKColors.Beige
+                },
+                Name = chartData.Key
+            }
+            );
         }
     }
-
-    public class PaymentsGroupedByCurrencyAndType : List<PaymentViewModel>
+    private static List<ChartEntry> ConvertToChartEntries(Dictionary<string, decimal> data)
     {
-        public string Currency { get; }
-        public string ProjectType { get; }
-        public decimal TotalAmount { get; }
-
-        public PaymentsGroupedByCurrencyAndType(string currency, string projectType, List<PaymentViewModel> payments)
+        var chartEntries = new List<ChartEntry>();
+        Random rnd = new Random();
+        foreach (var kvp in data)
         {
-            Currency = currency;
-            ProjectType = projectType;
-            AddRange(payments);
-            TotalAmount = payments.Sum(p => p.Amount);
+            chartEntries.Add(new ChartEntry((float)kvp.Value)
+            {
+                Label = kvp.Key,
+                ValueLabel = kvp.Value.ToString("N0"),
+                Color = SkiaSharp.SKColor.Parse(String.Format("#{0:X6}", rnd.Next(0x1000000)))
+            });
         }
+
+        return chartEntries;
     }
-
-    public class PaymentsGroupedByCurrencyAndClient : List<PaymentViewModel>
+    public class ChartWithHeader
     {
-        public string Currency { get; }
-        public string Client { get; }
-        public decimal TotalAmount { get; }
-
-        public PaymentsGroupedByCurrencyAndClient(string currency, string client, List<PaymentViewModel> payments)
-        {
-            Currency = currency;
-            Client = client;
-            AddRange(payments);
-            TotalAmount = payments.Sum(p => p.Amount);
-        }
+        public Chart Chart { get; set; }
+        public string Name { get; set; }
     }
 }

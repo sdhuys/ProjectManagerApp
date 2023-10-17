@@ -30,6 +30,7 @@ namespace MauiApp1.Models
         {
             Amount = amount;
             Date = date;
+            Debug.WriteLine("PAYMENT CREATING");
             PaymentManager.AddPayment(this);
         }
     }

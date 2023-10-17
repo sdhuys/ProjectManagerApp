@@ -87,6 +87,14 @@ public class ProjectViewModel : ObservableObject
         }
     }
 
+    public decimal VatAmount
+    {
+        get
+        {
+            return IsVatIncluded ? Fee - (Fee / (1 + VatRateDecimal)) : Fee * VatRateDecimal;
+        }
+    }
+
     public string VatStatus
     {
         get

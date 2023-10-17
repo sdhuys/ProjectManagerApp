@@ -17,6 +17,6 @@ public partial class IncomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-		viewModel.FilterAndSetGroupings();
+		viewModel.ApplyFilters();
     }
 }

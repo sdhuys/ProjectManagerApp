@@ -6,7 +6,14 @@
              xmlns:conv="clr-namespace:MauiApp1.Converters"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              Title="{Binding PageTitle}"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             NavigationPage.HasBackButton="false"
+             >
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False"
+                            IsEnabled="False" />
+    </Shell.BackButtonBehavior>
 
     <ContentPage.Resources>
         <conv:AgentToStringConverter x:Key="AgentToString" />
@@ -17,7 +24,9 @@
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Save New Project"
                      Command="{Binding SaveNewOrEditProjectCommand}"
-                     IconImageSource="{FontImage Glyph='✔', Color=Green, Size=22}" />
+                     IconImageSource="{FontImage Glyph='✔', Color=Green, Size=22}"
+                     Order="Primary"
+                     Priority="0" />
 
         <ToolbarItem Text="Cancel"
                      Command="{Binding CancelCommand}"

@@ -80,6 +80,9 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty]
     Project.ProjectStatus status;
 
+    private List<Payment> paymentsToRemoveFromManagerOnCancel = new();
+    private List<Payment> paymentsToRemoveFromManagerOnSave = new();
+
     public List<Agent> AgentList { get; set; }
     public List<string> TypesList { get; set; }
     public List<string> CurrencyList { get; set; }
@@ -157,7 +160,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
         if (!decimal.TryParse(newValue, out decimal result) || (NewExpenseIsRelative && ( result < 0 || result > 100)))
             NewExpenseValue = oldValue;
-        
     }
 
     partial void OnNewExpenseIsRelativeChanged(bool value)
@@ -214,6 +216,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             newPayment = new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date);
         }
         Payments.Add(newPayment);
+        paymentsToRemoveFromManagerOnCancel.Add(newPayment);
+
         NewPaymentAmount = null;
         NewPaymentDate = DateTime.Today;
     }
@@ -221,13 +225,14 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand]
     void DeletePayment(Payment payment)
     {
+        paymentsToRemoveFromManagerOnSave.Add(payment);
         Payments.Remove(payment);
-        PaymentManager.RemovePayment(payment);
     }
 
     [RelayCommand]
     async Task Cancel()
     {
+        PaymentManager.AllPayments.RemoveAll(paymentsToRemoveFromManagerOnCancel.Contains);
         await Shell.Current.GoToAsync("..");
     }
 
@@ -262,7 +267,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             selectedProjectVM.Payments = Payments.ToList();
             selectedProjectVM.Status = Status;
         }
-
+        PaymentManager.AllPayments.RemoveAll(paymentsToRemoveFromManagerOnSave.Contains);
         ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         await Shell.Current.GoToAsync("..");
     }

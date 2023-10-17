@@ -40,7 +40,6 @@ internal static class ProjectManager
             Converters = new List<JsonConverter> { new AgentJsonConverter() }
         };
 
-        AllProjects = JsonConvert.DeserializeObject<List<Project>>(json, settings);
-        return AllProjects;
+        return JsonConvert.DeserializeObject<List<Project>>(json, settings);
     }
 }

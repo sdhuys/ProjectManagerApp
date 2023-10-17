@@ -43,6 +43,7 @@ public class Project
 
         }
         Status = status;
+        ProjectManager.AllProjects.Add(this);
     }
     public enum ProjectStatus
     {
