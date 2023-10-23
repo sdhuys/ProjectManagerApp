@@ -27,8 +27,8 @@ namespace MauiApp1
             builder.Services.AddSingleton<ProjectsViewModel>();
             builder.Services.AddSingleton<SettingsPage>();
             builder.Services.AddSingleton<SettingsViewModel>();
-            builder.Services.AddSingleton<IncomeViewModel>();
-            builder.Services.AddSingleton<IncomePage>();
+            builder.Services.AddSingleton<EarningsViewModel>();
+            builder.Services.AddSingleton<EarningsPage>();
 
             builder.Services.AddTransient<ProjectDetailsPage>();
             builder.Services.AddTransient<ProjectDetailsViewModel>();

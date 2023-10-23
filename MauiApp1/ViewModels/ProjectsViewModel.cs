@@ -1,10 +1,8 @@
 ﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
 using MauiApp1.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Views;
-using System.Globalization;
 
 namespace MauiApp1.ViewModels;
 public partial class ProjectsViewModel : ObservableObject

@@ -4,10 +4,10 @@ using System.Runtime.Intrinsics.X86;
 
 namespace MauiApp1.Views;
 
-public partial class IncomePage : ContentPage
+public partial class EarningsPage : ContentPage
 {
-	IncomeViewModel viewModel;
-	public IncomePage(IncomeViewModel vm)
+	EarningsViewModel viewModel;
+	public EarningsPage(EarningsViewModel vm)
 	{
 		BindingContext = vm;
 		viewModel = vm;
@@ -18,5 +18,6 @@ public partial class IncomePage : ContentPage
     {
         base.OnAppearing();
 		viewModel.ApplyFilters();
+		viewModel.CreateCurrencyExpectedEarningsViewModels();
     }
 }

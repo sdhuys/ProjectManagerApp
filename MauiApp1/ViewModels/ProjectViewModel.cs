@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Models;
-
+using System.Diagnostics;
 
 namespace MauiApp1.ViewModels;
 
@@ -67,6 +67,8 @@ public class ProjectViewModel : ObservableObject
         }
     }
 
+    public decimal FeeExcludingVat => IsVatIncluded ? Fee / (1 + VatRateDecimal) : Fee;
+    public decimal FeeIncludingVat => IsVatIncluded ? Fee : Fee + (Fee * VatRateDecimal);
     public bool IsVatIncluded
     {
         get => Project.IsVatIncluded;
@@ -87,13 +89,7 @@ public class ProjectViewModel : ObservableObject
         }
     }
 
-    public decimal VatAmount
-    {
-        get
-        {
-            return IsVatIncluded ? Fee - (Fee / (1 + VatRateDecimal)) : Fee * VatRateDecimal;
-        }
-    }
+    public decimal VatAmount => IsVatIncluded ? Fee - (Fee / (1 + VatRateDecimal)) : Fee * VatRateDecimal;
 
     public string VatStatus
     {
@@ -140,14 +136,8 @@ public class ProjectViewModel : ObservableObject
     }
 
     //ASSUMING AGENCY FEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
-    public decimal Profit
-    {
-        get
-        {
-            var feeExclVAT = IsVatIncluded ? Fee / (1 + VatRateDecimal) : Fee;
-            return feeExclVAT - TotalExpenses - (feeExclVAT * AgencyFeeDecimal);
-        }
-    }
+    public decimal Profit => FeeExcludingVat - TotalExpenses - (FeeExcludingVat * AgencyFeeDecimal);
+
     public List<Payment> Payments
     {
         get => Project.Payments;
@@ -159,19 +149,13 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
+
+    public decimal TotalExpectedPaymentsAmount => FeeIncludingVat - (AgencyFeeDecimal * FeeExcludingVat);
     public decimal PaidAmount => Payments.Sum(x => x.Amount);
 
     //ASSUMING AGENCYFEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
-    public decimal PaidPercentage
-    {
-        get
-        {
-            var feeInclVAT = IsVatIncluded ? Fee : Fee + (Fee * VatRateDecimal);
-            var feeExclVAT = IsVatIncluded ? Fee / (1 + VatRateDecimal) : Fee;
+    public decimal PaidPercentage => (PaidAmount / (FeeIncludingVat - (AgencyFeeDecimal * FeeExcludingVat))) * 100m;
 
-            return (PaidAmount / (feeInclVAT - (AgencyFeeDecimal * feeExclVAT))) * 100m;
-        }
-    }
     public Project.ProjectStatus Status
     {
         get => Project.Status;
