@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
 using Microcharts;
-using Microcharts.Maui;
 using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -10,7 +9,7 @@ using System.Globalization;
 
 namespace MauiApp1.ViewModels;
 
-public partial class EarningsViewModel : ObservableObject
+public partial class PaymentsOverviewViewModel : ObservableObject
 {
     [ObservableProperty]
     DateTime queryStartDate = ProjectManager.AllProjects.Min(x => x.Date);
@@ -36,12 +35,10 @@ public partial class EarningsViewModel : ObservableObject
     [ObservableProperty]
     ObservableCollection<CurrencyIncomeDetails> currencyIncomeDetailsCollection;
 
-    [ObservableProperty]
-    ObservableCollection<ChartWithHeader> charts;
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
 
 
-    public EarningsViewModel()
+    public PaymentsOverviewViewModel()
     {
         CurrencyList = new (Settings.Currencies);
         QueryCurrencies = new();
@@ -49,14 +46,16 @@ public partial class EarningsViewModel : ObservableObject
         QueryTypes = new();
         CurrencyIncomeDetailsCollection = new();
         CurrencyExpectedIncome = new();
-        Charts = new();
     }
 
     //Called inside IncomePage.OnAppearing to make sure changes in projects are accounted for
     [RelayCommand]
     public void ApplyFilters()
     {
-        var queriedPayments = GetQueriedPayments();
+        CurrencyIncomeDetailsCollection.Clear();
+        
+        // If no query currency or type parameters are selected get all payments, otherwise execute query
+        var queriedPayments = (QueryCurrencies.Count == 0 && QueryTypes.Count == 0) ? PaymentManager.AllPayments.Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
 
         // Group by Currency, Type, and Client
         var groupedData = queriedPayments
@@ -66,17 +65,24 @@ public partial class EarningsViewModel : ObservableObject
                 Currency = group.Key.Currency,
                 Type = group.Key.Type,
                 Client = group.Key.Client,
-                TotalAmount = group.Sum(payment => payment.Amount),
+                TotalIncome = group.Sum(payment => payment.Amount),
                 TotalProfit = GetTotalProfit(group),
+                TotalExpenses = GetTotalExpenses(group),
                 TotalVat = group.Sum(payment => payment.VatAmount)
             });
 
         var uniqueCurrencies = queriedPayments.Select(payment => payment.Currency).Distinct();
 
-        // Prepare data for each graph (total payments per type and per client for each currency)
+        // Prepare data for each CurrencyIncomeDetails
         var dataForCharts = new Dictionary<string, Dictionary<string, decimal>>();
         foreach (var currency in uniqueCurrencies)
         {
+            var totalCurrencyData = groupedData.Where(item => item.Currency == currency);
+            var totalIncome = totalCurrencyData.Sum(x => x.TotalIncome);
+            var totalVat = totalCurrencyData.Sum(x => x.TotalVat);
+            var totalProfit = totalCurrencyData.Sum(x => x.TotalProfit);
+            var totalExpenses = totalCurrencyData.Sum(x => x.TotalExpenses);
+
             var typeData = groupedData
                 .Where(item => item.Currency == currency)
                 .GroupBy(item => item.Type)
@@ -91,11 +97,21 @@ public partial class EarningsViewModel : ObservableObject
                     group => group.Key,
                     group => group.Sum(item => item.TotalProfit));
 
-            dataForCharts.Add($"{currency} Earnings Per Project Type", typeData);
-            dataForCharts.Add($"{currency} Earnings Per Client", clientData);
-        }
+            dataForCharts.Add($"{currency} Profit Per Project Type", typeData);
+            dataForCharts.Add($"{currency} Profit Per Client", clientData);
+            var charts = CreateCharts(dataForCharts);
+            dataForCharts.Clear();
 
-        CreateCharts(dataForCharts);
+            CurrencyIncomeDetailsCollection.Add(new CurrencyIncomeDetails
+            {
+                Currency = currency,
+                IncomeAmount = totalIncome,
+                ProfitAmount = totalProfit,
+                VatAmount = totalVat,
+                ExpensesAmount = totalExpenses,
+                Charts = charts
+            });
+        }
     }
     private List<PaymentViewModel> GetQueriedPayments()
     {
@@ -127,15 +143,32 @@ public partial class EarningsViewModel : ObservableObject
         // If expenses of project are greater than payments so far, return 0
         return totalProfit > 0 ? totalProfit : 0;
     }
-    private void CreateCharts(Dictionary<string, Dictionary<string, decimal>> dataForCharts)
+    private decimal GetTotalExpenses(IGrouping<object, PaymentViewModel> group)
     {
-        Charts.Clear();
+        // Collection of associated projects whose TotalExpenses are already accounted for
+        List<Project> assProjects = new();
+        var totalExpenses = 0m;
+
+        foreach (var payment in group)
+        {
+            var assProject = payment.Project;
+            if (!assProjects.Contains(assProject))
+            {
+                totalExpenses += assProject.Expenses.Sum(e => e.Amount);
+                assProjects.Add(assProject);
+            }
+        }
+        return totalExpenses;
+    }
+    private List<ChartWithHeader> CreateCharts(Dictionary<string, Dictionary<string, decimal>> dataForCharts)
+    {
+        var result = new List<ChartWithHeader>();
 
         foreach (var chartData in dataForCharts)
         {
             var chartEntries = new List<ChartEntry>();
             chartEntries.AddRange(ConvertToChartEntries(chartData.Value));
-            Charts.Add(new ChartWithHeader
+            result.Add(new ChartWithHeader
             {
                 Chart = new DonutChart
                 {
@@ -146,6 +179,7 @@ public partial class EarningsViewModel : ObservableObject
             }
             );
         }
+        return result;
     }
     private static List<ChartEntry> ConvertToChartEntries(Dictionary<string, decimal> data)
     {
@@ -189,11 +223,12 @@ public partial class EarningsViewModel : ObservableObject
     }
     public class CurrencyIncomeDetails
     {
-        string Currency { get; set; }
-        decimal IncomeAmount { get; set; }
-        decimal ProfitAmount { get; set; }
-        decimal VatAmount { get; set; }
-        List<ChartWithHeader> Charts { get; set; }
+        public string Currency { get; set; }
+        public decimal IncomeAmount { get; set; }
+        public decimal ProfitAmount { get; set; }
+        public decimal VatAmount { get; set; }
+        public decimal ExpensesAmount { get; set; }
+        public List<ChartWithHeader> Charts { get; set; }
     }
 
     // Class denoting total expected currency payments [Sum of (Fee - Sum(Payments)) from active and invoiced projects]

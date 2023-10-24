@@ -4,10 +4,10 @@ using System.Runtime.Intrinsics.X86;
 
 namespace MauiApp1.Views;
 
-public partial class EarningsPage : ContentPage
+public partial class PaymentsOverviewPage : ContentPage
 {
-	EarningsViewModel viewModel;
-	public EarningsPage(EarningsViewModel vm)
+	PaymentsOverviewViewModel viewModel;
+	public PaymentsOverviewPage(PaymentsOverviewViewModel vm)
 	{
 		BindingContext = vm;
 		viewModel = vm;

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             x:Class="MauiApp1.Views.PaymentsOverviewPage"
+             Title="Payments">
+    <Grid x:Name="outerGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollView>
+            <Grid x:Name="mainGrid"
+                  Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <HorizontalStackLayout Grid.Row="0"
+                                       Margin="10"
+                                       x:Name="queryPickers">
+
+                    <CollectionView ItemsSource="{Binding CurrencyList}"
+                                    SelectionMode="Multiple"
+                                    SelectedItems="{Binding QueryCurrencies}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Label Text="{Binding}" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <CollectionView ItemsSource="{Binding TypeList}"
+                                    SelectionMode="Multiple"
+                                    SelectedItems="{Binding QueryTypes}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Label Text="{Binding}" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <DatePicker Date="{Binding QueryStartDate}"
+                                Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
+                                Margin="10" />
+
+                    <DatePicker Date="{Binding QueryEndDate}"
+                                Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
+                                Margin="10" />
+
+
+                    <Button Text="Apply Filter"
+                            Margin="10"
+                            IsEnabled="True"
+                            Command="{Binding ApplyFiltersCommand}" />
+
+                </HorizontalStackLayout>
+
+                <CollectionView ItemsSource="{Binding CurrencyIncomeDetailsCollection}"
+                                SelectionMode="None"
+                                Grid.Row="1"
+                                VerticalScrollBarVisibility="Always">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <VerticalStackLayout BackgroundColor="Transparent">
+                                <Label FontSize="18"
+                                       Margin="15, 25, 10, 10">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding Currency}" />
+                                            <Span Text=" Overview:" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Label>
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Total Income Received: " />
+                                            <Span Text="{Binding IncomeAmount, StringFormat='{0:N2}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Label>
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Total VAT Received: " />
+                                            <Span Text="{Binding VatAmount, StringFormat='{0:N2}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Label>
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Total Expenses: " />
+                                            <Span Text="{Binding ExpensesAmount, StringFormat='{0:N2}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Label>
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Total Profit: " />
+                                            <Span Text="{Binding ProfitAmount, StringFormat='{0:N2}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <CollectionView ItemsSource="{Binding Charts}"
+                                                SelectionMode="None">
+                                    <CollectionView.ItemsLayout>
+                                        <GridItemsLayout Orientation="Vertical"
+                                                         Span="2"/>
+                                    </CollectionView.ItemsLayout>
+                                    
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <VerticalStackLayout BackgroundColor="Transparent">
+                                                <Label Text="{Binding Header}"
+                                                       FontSize="15"
+                                                       Margin="20, 20, 20, 20" />
+
+                                                <microcharts:ChartView Chart="{Binding Chart}"
+                                                                       WidthRequest="500"
+                                                                       HeightRequest="300"
+                                                                       HorizontalOptions="StartAndExpand" />
+                                            </VerticalStackLayout>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </ScrollView>
+
+        <HorizontalStackLayout Grid.Row="1"
+                               HorizontalOptions="End"
+                               Margin="10">
+            <Label Text="Active &amp; Invoiced Projects Expected Payments:"
+                   Margin="0,0,10,0" />
+
+            <ListView ItemsSource="{Binding CurrencyExpectedIncome}"
+                      SelectionMode="None">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Label>
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding Currency}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Amount, StringFormat='{0:N2}'}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>
