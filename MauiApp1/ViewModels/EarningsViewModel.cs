@@ -13,7 +13,7 @@ namespace MauiApp1.ViewModels;
 public partial class EarningsViewModel : ObservableObject
 {
     [ObservableProperty]
-    DateTime queryStartDate = DateTime.MinValue;
+    DateTime queryStartDate = ProjectManager.AllProjects.Min(x => x.Date);
 
     [ObservableProperty]
     DateTime queryEndDate = DateTime.Today;
