@@ -151,7 +151,7 @@
                            WidthRequest="75"
                            VerticalOptions="CenterAndExpand"
                            Margin="10" />
-                    <CheckBox IsChecked="{Binding IsVAT_Included}"
+                    <CheckBox IsChecked="{Binding IsVatIncluded}"
                               VerticalOptions="CenterAndExpand"
                               Grid.Column="1" />
                     <Label Text="VAT Included"
@@ -269,10 +269,17 @@
                                        IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}"
                                        Margin="10" />
 
-                                <Label Text="{Binding RelativeFeeDecimal, StringFormat='{0:P0}'}"
-                                       Grid.Column="1"
+                                <Label Grid.Column="1"
                                        IsVisible="{Binding IsRelative}"
-                                       Margin="10" />
+                                       Margin="10">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P0}'}" />
+                                            <Span Text=" = " />
+                                            <Span Text="{Binding Amount, StringFormat='{0:N2}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
 
                                 <Button Text="X"
                                         Grid.Column="2"

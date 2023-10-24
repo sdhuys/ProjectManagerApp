@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace MauiApp1.Models;
 
-public class Expense
+public partial class Expense : ObservableObject
 {
     public string Name { get; set; }
-    public decimal Amount { get; set; }
+
+    [ObservableProperty]
+    decimal amount;
     public bool IsRelative { get; set; }
     public decimal RelativeFeeDecimal { get; set; }
 

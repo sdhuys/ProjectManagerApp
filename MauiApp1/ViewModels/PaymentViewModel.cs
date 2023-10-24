@@ -20,6 +20,5 @@ public partial class PaymentViewModel : ObservableObject
     {
         Project = ProjectManager.AllProjects.FirstOrDefault(p => p.Id == payment.AssociatedProjectID);
         Payment = payment;
-        Debug.WriteLine($"Amount = {Amount}, VAT amount = {VatAmount}");
     }
 }
