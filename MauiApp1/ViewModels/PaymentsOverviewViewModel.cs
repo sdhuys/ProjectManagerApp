@@ -82,6 +82,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             var totalProfit = totalCurrencyData.Sum(x => x.TotalProfit);
             var totalExpenses = totalCurrencyData.Sum(x => x.TotalExpenses);
 
+            // Prepare data for charts
             var typeData = groupedData
                 .Where(item => item.Currency == currency)
                 .GroupBy(item => item.Type)
@@ -139,8 +140,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                 assProjects.Add(assProject);
             }
         }
-        // If expenses of project are greater than payments so far, return 0
-        return totalProfit > 0 ? totalProfit : 0;
+
+        return totalProfit;
     }
     private decimal GetTotalExpenses(IGrouping<object, PaymentViewModel> group)
     {
@@ -186,12 +187,26 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         Random rnd = new Random();
         foreach (var kvp in data)
         {
-            chartEntries.Add(new ChartEntry((float)kvp.Value)
+            if (kvp.Value > 0)
             {
-                Label = kvp.Key,
-                ValueLabel = kvp.Value.ToString("N0"),
-                Color = SkiaSharp.SKColor.Parse(String.Format("#{0:X6}", rnd.Next(0x1000000)))
-            });
+                chartEntries.Add(new ChartEntry((float)kvp.Value)
+                {
+                    Label = kvp.Key,
+                    ValueLabel = kvp.Value.ToString("N0"),
+                    Color = SkiaSharp.SKColor.Parse(String.Format("#{0:X6}", rnd.Next(0x1000000)))
+                });
+            }
+
+            else
+            {
+                // Make losses only show up with label, no piece of chart
+                chartEntries.Add(new ChartEntry(0f)
+                {
+                    Label = kvp.Key,
+                    ValueLabel = kvp.Value.ToString("N0"),
+                    Color = SkiaSharp.SKColors.Black
+                });
+            }
         }
 
         return chartEntries;
