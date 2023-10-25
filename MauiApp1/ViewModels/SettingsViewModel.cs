@@ -34,15 +34,6 @@ public partial class SettingsViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(AddAgentCommand))]
     string agentFeeEntry;
 
-    [ObservableProperty]
-    private ObservableCollection<object> selectedTypes = new();
-
-    [ObservableProperty]
-    private ObservableCollection<object> selectedAgents = new();
-
-    [ObservableProperty]
-    private ObservableCollection<object> selectedCurrencies = new();
-
     public void CopySettingsFromModel()
     {
         ProjectTypes = new(Settings.ProjectTypes);
