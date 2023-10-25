@@ -39,7 +39,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
     public PaymentsOverviewViewModel()
     {
-        CurrencyList = new (Settings.Currencies);
+        CurrencyList = new(Settings.Currencies);
         QueryCurrencies = new();
         TypeList = new(Settings.ProjectTypes);
         QueryTypes = new();
@@ -52,7 +52,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     public void ApplyFilters()
     {
         CurrencyIncomeDetailsCollection.Clear();
-        
+
         // If no query currency or type parameters are selected get all payments, otherwise execute query
         var queriedPayments = (QueryCurrencies.Count == 0 && QueryTypes.Count == 0) ? PaymentManager.AllPayments.Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
 
@@ -129,7 +129,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         var totalProfit = 0m;
 
         foreach (var payment in group)
-        { 
+        {
             var assProject = payment.Project;
             // Account for VAT portion of payment
             totalProfit += payment.Amount / (1 + assProject.VatRateDecimal);
@@ -187,26 +187,16 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         Random rnd = new Random();
         foreach (var kvp in data)
         {
-            if (kvp.Value > 0)
-            {
-                chartEntries.Add(new ChartEntry((float)kvp.Value)
-                {
-                    Label = kvp.Key,
-                    ValueLabel = kvp.Value.ToString("N0"),
-                    Color = SkiaSharp.SKColor.Parse(String.Format("#{0:X6}", rnd.Next(0x1000000)))
-                });
-            }
+            // Show losses without colour label and without piece of chart
+            var entryValue = kvp.Value > 0 ? (float)kvp.Value : 0;
+            var entryColor = kvp.Value > 0 ? SkiaSharp.SKColor.Parse(String.Format("#{0:X6}", rnd.Next(0x1000000))) : SkiaSharp.SKColors.Transparent;
 
-            else
+            chartEntries.Add(new ChartEntry(entryValue)
             {
-                // Make losses only show up with label, no piece of chart
-                chartEntries.Add(new ChartEntry(0f)
-                {
-                    Label = kvp.Key,
-                    ValueLabel = kvp.Value.ToString("N0"),
-                    Color = SkiaSharp.SKColors.Black
-                });
-            }
+                Label = kvp.Key,
+                ValueLabel = kvp.Value.ToString("N0"),
+                Color = entryColor
+            });
         }
 
         return chartEntries;
