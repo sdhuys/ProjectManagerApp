@@ -10,7 +10,11 @@ public partial class SettingsViewModel : ObservableObject
     ObservableCollection<string> projectTypes;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AgentsExcludingNull))]
     ObservableCollection<Agent> agents;
+
+    [ObservableProperty]
+    ObservableCollection<Agent> agentsExcludingNull;
 
     [ObservableProperty]
     ObservableCollection<string> currencies;
@@ -34,11 +38,13 @@ public partial class SettingsViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(AddAgentCommand))]
     string agentFeeEntry;
 
-    public void CopySettingsFromModel()
+    public SettingsViewModel()
     {
-        ProjectTypes = new(Settings.ProjectTypes);
-        Agents = new(Settings.Agents.Where(x => x != null));
-        Currencies = new(Settings.Currencies);
+        var settings = Settings.LoadFromJson();
+        ProjectTypes = new (settings.Item1);
+        Currencies = new (settings.Item2);
+        Agents = new(settings.Item3);
+        AgentsExcludingNull = new (Agents.Where(x => x != null));
     }
 
     [RelayCommand]
@@ -57,6 +63,7 @@ public partial class SettingsViewModel : ObservableObject
     public void DeleteAgent(Agent agent)
     {
         Agents.Remove(agent);
+        AgentsExcludingNull.Remove(agent);
     }
 
     [RelayCommand(CanExecute = nameof(CanAddType))]
@@ -91,11 +98,13 @@ public partial class SettingsViewModel : ObservableObject
     {
         var agentFeeDecimal = decimal.Parse(AgentFeeEntry) / 100;
 
-        bool containsIgnoreCase = Agents.Any(s => s.Name.Equals(AgentNameEntry, StringComparison.OrdinalIgnoreCase) && s.FeeDecimal == agentFeeDecimal);
+        bool containsIgnoreCase = Agents.Any(s => s!= null && s.Name.Equals(AgentNameEntry, StringComparison.OrdinalIgnoreCase) && s.FeeDecimal == agentFeeDecimal);
 
         if (!containsIgnoreCase)
         {
-            Agents.Add(new(AgentNameEntry, agentFeeDecimal));
+            Agent newAgent = new( AgentNameEntry, agentFeeDecimal);
+            Agents.Add(newAgent);
+            AgentsExcludingNull.Add(newAgent);
             AgentNameEntry = null;
             AgentFeeEntry = null;
         }
@@ -108,7 +117,6 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
  
-
     [RelayCommand(CanExecute = nameof(CanAddCurrency))]
     public void AddCurrency()
     {
@@ -163,7 +171,8 @@ public partial class SettingsViewModel : ObservableObject
             }
 
             //Insert null to displey "None" as picker option on ProjectDetailsPage
-            Agents.Insert(0, null);
+            if (!Agents.Contains(null))
+                Agents.Insert(0, null);
 
             Settings.Save(new(ProjectTypes), new(Currencies), new(Agents));
         }

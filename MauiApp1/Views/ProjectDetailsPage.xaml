@@ -16,7 +16,15 @@
     </Shell.BackButtonBehavior>
 
     <ContentPage.Resources>
-        <conv:AgentToStringConverter x:Key="AgentToString" />
+        <local:SettingsViewModel x:Key="SettingsViewModelInstance" />
+
+        <conv:AgentToStringConverter x:Key="AgentToString">
+            <!-- Bind the SettingsViewModel property to the static resource -->
+            <conv:AgentToStringConverter.SettingsViewModel>
+                <x:Reference Name="SettingsViewModelInstance" />
+            </conv:AgentToStringConverter.SettingsViewModel>
+        </conv:AgentToStringConverter>
+        
         <conv:DateFormatConverter x:Key="DateFormat" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>

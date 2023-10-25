@@ -84,9 +84,9 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     private List<Payment> paymentsToRemoveFromManagerOnCancel = new();
     private List<Payment> paymentsToRemoveFromManagerOnSave = new();
 
-    public List<Agent> AgentList { get; set; }
-    public List<string> TypesList { get; set; }
-    public List<string> CurrencyList { get; set; }
+    public ObservableCollection<Agent> AgentList { get; set; }
+    public ObservableCollection<string> TypesList { get; set; }
+    public ObservableCollection<string> CurrencyList { get; set; }
     public List<Project.ProjectStatus> StatusList { get; set; }
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
     public bool AgentIsSelected
@@ -102,11 +102,11 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             return Agent != null;
         }
     }
-    public ProjectDetailsViewModel()
+    public ProjectDetailsViewModel(SettingsViewModel settings)
     {
-        AgentList = Settings.Agents;
-        TypesList = Settings.ProjectTypes;
-        CurrencyList = Settings.Currencies;
+        AgentList = settings.Agents;
+        TypesList = settings.ProjectTypes;
+        CurrencyList = settings.Currencies;
         StatusList = Enum.GetValues(typeof(Project.ProjectStatus)).OfType<Project.ProjectStatus>().ToList();
         Date = DateTime.Today;
         NewPaymentDate = DateTime.Today;

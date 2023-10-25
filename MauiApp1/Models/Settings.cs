@@ -1,5 +1,6 @@
 ﻿using MauiApp1.Converters;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace MauiApp1.Models;
@@ -8,16 +9,13 @@ public static class Settings
     private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
     //private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "settings.json");
 
-    public static List<string> ProjectTypes { get; set; } = new();
-    public static List<string> Currencies { get; set; } = new();
-    public static List<Agent> Agents { get; set; } = new();
     public static bool AreSet => File.Exists(filePath);
 
     static Settings()
     {
         LoadFromJson();
     }
-    public static void LoadFromJson()
+    public static (IEnumerable<string>, IEnumerable<string>, IEnumerable<Agent>) LoadFromJson()
     {
         if (File.Exists(filePath))
         {
@@ -29,20 +27,15 @@ public static class Settings
             };
 
             string json = File.ReadAllText(filePath);
-            var settings = JsonConvert.DeserializeObject<(List<string>, List<string>, List<Agent>)>(json, jsonSettings);
-            ProjectTypes = settings.Item1;
-            Currencies = settings.Item2;
-            Agents = settings.Item3;
+            var settings = JsonConvert.DeserializeObject<(IEnumerable<string>, IEnumerable<string>, IEnumerable<Agent>)>(json, jsonSettings);
+            return settings;
         }
+        return (null, null, null);
     }
 
     public static void Save(List<string> projectTypes, List<string> currencies, List<Agent> agents)
     {
         string json = JsonConvert.SerializeObject((projectTypes, currencies, agents));
         File.WriteAllText(filePath, json);
-
-        ProjectTypes = projectTypes;
-        Currencies = currencies;
-        Agents = agents;
     }
 }

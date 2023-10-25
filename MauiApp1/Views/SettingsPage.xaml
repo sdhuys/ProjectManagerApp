@@ -135,7 +135,7 @@
                            FontSize="20" />
 
                     <CollectionView x:Name="agentsList"
-                                    ItemsSource="{Binding Agents}"
+                                    ItemsSource="{Binding AgentsExcludingNull}"
                                     Margin="10"
                                     HeightRequest="250">
 

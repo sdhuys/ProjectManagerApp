@@ -37,11 +37,11 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
 
-    public PaymentsOverviewViewModel()
+    public PaymentsOverviewViewModel(SettingsViewModel settings)
     {
-        CurrencyList = new(Settings.Currencies);
+        CurrencyList = settings.Currencies;
         QueryCurrencies = new();
-        TypeList = new(Settings.ProjectTypes);
+        TypeList = settings.ProjectTypes;
         QueryTypes = new();
         CurrencyIncomeDetailsCollection = new();
         CurrencyExpectedIncome = new();

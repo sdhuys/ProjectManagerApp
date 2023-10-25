@@ -28,7 +28,6 @@ public partial class SettingsPage : ContentPage
     {
         base.OnAppearing();
 
-        viewModel.CopySettingsFromModel();
         viewModel.TypeEntry = null;
         viewModel.CurrencyEntry = null;
         viewModel.AgentNameEntry = null;

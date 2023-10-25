@@ -1,9 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using MauiApp1.Models;
+using MauiApp1.ViewModels;
+
 namespace MauiApp1.Converters;
 internal class AgentToStringConverter : IValueConverter
 {
+    public SettingsViewModel SettingsViewModel { get; set; }
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is Agent agent)
@@ -30,11 +34,10 @@ internal class AgentToStringConverter : IValueConverter
             {
                 var name = parts[0].Trim();
                 var feeDecimal = percentage / 100.0m;
-                var agent = Settings.Agents.First(a => a.Name == name && a.FeeDecimal == feeDecimal);
+                var agent = SettingsViewModel.Agents.First(a => a.Name == name && a.FeeDecimal == feeDecimal);
                 return agent;
             }
         }
-
         return null;
     }
 }
