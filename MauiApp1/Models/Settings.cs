@@ -1,5 +1,6 @@
 ﻿using MauiApp1.Converters;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace MauiApp1.Models;
 public static class Settings
@@ -10,14 +11,7 @@ public static class Settings
     public static List<string> ProjectTypes { get; set; } = new();
     public static List<string> Currencies { get; set; } = new();
     public static List<Agent> Agents { get; set; } = new();
-
-    public static bool AreSet
-    {
-        get
-        {
-            return File.Exists(filePath);
-        }
-    }
+    public static bool AreSet => File.Exists(filePath);
 
     static Settings()
     {
