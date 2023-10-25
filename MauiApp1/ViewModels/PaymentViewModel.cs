@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Models;
-using System.Diagnostics;
 
 namespace MauiApp1.ViewModels;
 

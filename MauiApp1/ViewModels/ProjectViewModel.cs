@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Models;
-using System.Diagnostics;
 
 namespace MauiApp1.ViewModels;
 
@@ -8,7 +7,6 @@ namespace MauiApp1.ViewModels;
 public class ProjectViewModel : ObservableObject
 {
     public Project Project { get; }
-
     public Guid Id => Project.Id;
     public string Client
     {
@@ -66,7 +64,6 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
-
     public decimal FeeExcludingVat => IsVatIncluded ? Fee / (1 + VatRateDecimal) : Fee;
     public decimal FeeIncludingVat => IsVatIncluded ? Fee : Fee + (Fee * VatRateDecimal);
     public bool IsVatIncluded
@@ -88,9 +85,7 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-
     public decimal VatAmount => IsVatIncluded ? Fee - (Fee / (1 + VatRateDecimal)) : Fee * VatRateDecimal;
-
     public string VatStatus
     {
         get
@@ -121,7 +116,6 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged(nameof(ManagedByAgent));
         }
     }
-
     public bool ManagedByAgent => Agent != null;
     public decimal AgencyFeeDecimal
     {
@@ -137,7 +131,6 @@ public class ProjectViewModel : ObservableObject
 
     //ASSUMING AGENCY FEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
     public decimal Profit => FeeExcludingVat - TotalExpenses - (FeeExcludingVat * AgencyFeeDecimal);
-
     public List<Payment> Payments
     {
         get => Project.Payments;
@@ -149,13 +142,11 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
-
     public decimal TotalExpectedPaymentsAmount => FeeIncludingVat - (AgencyFeeDecimal * FeeExcludingVat);
     public decimal PaidAmount => Payments.Sum(x => x.Amount);
 
     //ASSUMING AGENCYFEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
     public decimal PaidPercentage => (PaidAmount / (FeeIncludingVat - (AgencyFeeDecimal * FeeExcludingVat))) * 100m;
-
     public Project.ProjectStatus Status
     {
         get => Project.Status;
@@ -165,7 +156,6 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-
     public ProjectViewModel(Project Project)
     {
         this.Project = Project;

@@ -37,7 +37,6 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
 
-
     public PaymentsOverviewViewModel()
     {
         CurrencyList = new (Settings.Currencies);

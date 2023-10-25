@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using MauiApp1.Converters;
-
-namespace MauiApp1.Models;
+﻿namespace MauiApp1.Models;
 
 public class Agent
 {

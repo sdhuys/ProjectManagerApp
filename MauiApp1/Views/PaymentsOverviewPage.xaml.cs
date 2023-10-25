@@ -1,6 +1,4 @@
 using MauiApp1.ViewModels;
-using System.Diagnostics;
-using System.Runtime.Intrinsics.X86;
 
 namespace MauiApp1.Views;
 

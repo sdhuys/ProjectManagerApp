@@ -1,10 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MauiApp1.Models
 {
@@ -30,7 +24,6 @@ namespace MauiApp1.Models
         {
             Amount = amount;
             Date = date;
-            Debug.WriteLine("PAYMENT CREATING");
             PaymentManager.AddPayment(this);
         }
     }

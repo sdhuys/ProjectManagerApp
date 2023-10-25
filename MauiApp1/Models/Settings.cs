@@ -1,9 +1,7 @@
-﻿using System;
-namespace MauiApp1.Models;
-
-using MauiApp1.Converters;
-using MauiApp1.Views;
+﻿using MauiApp1.Converters;
 using Newtonsoft.Json;
+
+namespace MauiApp1.Models;
 public static class Settings
 {
     private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
