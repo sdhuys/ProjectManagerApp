@@ -5,7 +5,7 @@ public class Agent
     public string Name { get; set; }
     public decimal FeeDecimal { get; set; }
 
-    private static Dictionary<string, Agent> existingAgents = new Dictionary<string, Agent>();
+    private static Dictionary<string, Agent> existingAgents = new();
 
     public Agent(string name, decimal feeDecimal)
     {

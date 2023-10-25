@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace MauiApp1.Models;
+﻿namespace MauiApp1.Models;
 
 public class Project
 {
@@ -38,9 +36,6 @@ public class Project
         foreach (var payment in Payments)
         {
             payment.AssociatedProjectID = Id;
-            Debug.WriteLine($"ID: {Id}");
-            Debug.WriteLine($"ASSID: {payment.AssociatedProjectID}");
-
         }
         Status = status;
         ProjectManager.AllProjects.Add(this);
