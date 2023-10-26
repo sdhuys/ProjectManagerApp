@@ -1,5 +1,6 @@
 using MauiApp1.ViewModels;
 using CommunityToolkit.Maui.Markup;
+using System.Diagnostics;
 
 namespace MauiApp1.Views;
 
@@ -32,5 +33,12 @@ public partial class SettingsPage : ContentPage
         viewModel.CurrencyEntry = null;
         viewModel.AgentNameEntry = null;
         viewModel.AgentFeeEntry = null;
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        if (!viewModel.WelcomeTextVisible)
+            viewModel.SaveSettingsCommand.Execute(null);
     }
 }

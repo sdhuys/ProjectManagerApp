@@ -9,7 +9,7 @@ public static class Settings
     private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
     //private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "settings.json");
 
-    public static bool AreSet => File.Exists(filePath);
+    public static bool FileExists => File.Exists(filePath);
 
     static Settings()
     {

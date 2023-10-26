@@ -56,8 +56,8 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <Label Text="{Binding}" 
-                                           VerticalTextAlignment="Center"/>
+                                    <Label Text="{Binding}"
+                                           VerticalTextAlignment="Center" />
 
                                     <Button Text="X"
                                             Grid.Column="2"
@@ -102,8 +102,8 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <Label Text="{Binding}" 
-                                           VerticalTextAlignment="Center"/>
+                                    <Label Text="{Binding}"
+                                           VerticalTextAlignment="Center" />
 
                                     <Button Text="X"
                                             Grid.Column="2"
@@ -197,13 +197,12 @@
             </Grid>
 
             <Button Grid.Row="3"
-                    Text="Save Settings"
+                    Text="Get Started!"
                     Command="{Binding SaveSettingsCommand}"
                     VerticalOptions="End"
-                    Margin="25" />
+                    Margin="25"
+                    IsVisible="{Binding WelcomeTextVisible}" />
 
         </Grid>
     </ScrollView>
-
-
 </ContentPage>

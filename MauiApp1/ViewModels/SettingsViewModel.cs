@@ -39,11 +39,22 @@ public partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel()
     {
-        var settings = Settings.LoadFromJson();
-        ProjectTypes = new (settings.Item1);
-        Currencies = new (settings.Item2);
-        AgentsIncludingNull = new(settings.Item3);
-        Agents = new (AgentsIncludingNull.Where(x => x != null));
+        if (Settings.FileExists)
+        {
+            var settings = Settings.LoadFromJson();
+            ProjectTypes = new(settings.Item1);
+            Currencies = new(settings.Item2);
+            AgentsIncludingNull = new(settings.Item3);
+            Agents = new(AgentsIncludingNull.Where(x => x != null));
+        }
+
+        else
+        {
+            ProjectTypes = new();
+            Currencies = new();
+            AgentsIncludingNull = new();
+            Agents = new();
+        }
     }
 
     [RelayCommand]
@@ -148,30 +159,29 @@ public partial class SettingsViewModel : ObservableObject
         return !(String.IsNullOrWhiteSpace(TypeEntry));
     }
 
+    // Called on button press first time app use, and inside OnDisappearing
     [RelayCommand]
     private async Task SaveSettings()
     {
         if (ProjectTypes?.Any() != true || Currencies?.Any() != true)
         {
             await Application.Current.MainPage.DisplayAlert("Alert", "Make sure to set at least one currency and one project type!", "Ok");
+
+            if (Settings.FileExists)
+                Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(2);
         }
 
         else
         {
             // After first time saving settings load appshell
-            if (!Settings.AreSet)
+            if (!Settings.FileExists)
             {
                 ((App)Application.Current).SetMainPageToAppShell();
             }
 
-            else
-            {
-                Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(0);
-            }
-
             //Insert null to displey "None" as picker option on ProjectDetailsPage
-            if (!Agents.Contains(null))
-                Agents.Insert(0, null);
+            if (!AgentsIncludingNull.Contains(null))
+                AgentsIncludingNull.Insert(0, null);
 
             Settings.Save(new(ProjectTypes), new(Currencies), new(Agents));
         }
