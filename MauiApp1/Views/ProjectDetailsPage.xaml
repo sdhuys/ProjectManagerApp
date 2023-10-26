@@ -19,7 +19,7 @@
         <local:SettingsViewModel x:Key="SettingsViewModelInstance" />
 
         <conv:AgentToStringConverter x:Key="AgentToString">
-            <!-- Bind the SettingsViewModel property to the static resource -->
+            <!-- Bind the SettingsViewModel property to the SettingsViewModelInstance resource -->
             <conv:AgentToStringConverter.SettingsViewModel>
                 <x:Reference Name="SettingsViewModelInstance" />
             </conv:AgentToStringConverter.SettingsViewModel>

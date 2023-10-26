@@ -104,7 +104,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     }
     public ProjectDetailsViewModel(SettingsViewModel settings)
     {
-        AgentList = settings.Agents;
+        AgentList = settings.AgentsIncludingNull;
         TypesList = settings.ProjectTypes;
         CurrencyList = settings.Currencies;
         StatusList = Enum.GetValues(typeof(Project.ProjectStatus)).OfType<Project.ProjectStatus>().ToList();

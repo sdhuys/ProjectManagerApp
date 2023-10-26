@@ -10,11 +10,10 @@ public partial class SettingsViewModel : ObservableObject
     ObservableCollection<string> projectTypes;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AgentsExcludingNull))]
     ObservableCollection<Agent> agents;
 
     [ObservableProperty]
-    ObservableCollection<Agent> agentsExcludingNull;
+    ObservableCollection<Agent> agentsIncludingNull;
 
     [ObservableProperty]
     ObservableCollection<string> currencies;
@@ -43,8 +42,8 @@ public partial class SettingsViewModel : ObservableObject
         var settings = Settings.LoadFromJson();
         ProjectTypes = new (settings.Item1);
         Currencies = new (settings.Item2);
-        Agents = new(settings.Item3);
-        AgentsExcludingNull = new (Agents.Where(x => x != null));
+        AgentsIncludingNull = new(settings.Item3);
+        Agents = new (AgentsIncludingNull.Where(x => x != null));
     }
 
     [RelayCommand]
@@ -63,7 +62,7 @@ public partial class SettingsViewModel : ObservableObject
     public void DeleteAgent(Agent agent)
     {
         Agents.Remove(agent);
-        AgentsExcludingNull.Remove(agent);
+        AgentsIncludingNull.Remove(agent);
     }
 
     [RelayCommand(CanExecute = nameof(CanAddType))]
@@ -104,7 +103,7 @@ public partial class SettingsViewModel : ObservableObject
         {
             Agent newAgent = new( AgentNameEntry, agentFeeDecimal);
             Agents.Add(newAgent);
-            AgentsExcludingNull.Add(newAgent);
+            AgentsIncludingNull.Add(newAgent);
             AgentNameEntry = null;
             AgentFeeEntry = null;
         }
