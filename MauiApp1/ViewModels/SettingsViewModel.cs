@@ -159,7 +159,7 @@ public partial class SettingsViewModel : ObservableObject
         return !(String.IsNullOrWhiteSpace(TypeEntry));
     }
 
-    // Called on button press first time app use, and inside OnDisappearing
+    // Called on "get started" button press during setup, and inside OnDisappearing
     [RelayCommand]
     private async Task SaveSettings()
     {
