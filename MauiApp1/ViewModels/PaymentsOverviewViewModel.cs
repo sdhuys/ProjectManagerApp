@@ -4,7 +4,6 @@ using MauiApp1.Models;
 using Microcharts;
 using SkiaSharp;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 
 namespace MauiApp1.ViewModels;
@@ -17,23 +16,27 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     [ObservableProperty]
     DateTime queryEndDate = DateTime.Today;
 
-    [ObservableProperty]
-    ObservableCollection<object> queryCurrencies;
+    public ObservableCollection<object> QueryCurrencies { get; set; }
+    public ObservableCollection<string> CurrencyList { get; set; }
+    public ObservableCollection<object> QueryTypes { get; set; }
+    public ObservableCollection<string> TypeList { get; set; }
+    public ObservableCollection<object> QueryAgents { get; set; }
+    public ObservableCollection<AgentWrapper> AgentList { get; set; }
+    public ObservableCollection<CurrencyExpectedPaymentsViewModel> CurrencyExpectedIncome { get; set; }
+
+    public ObservableCollection<CurrencyIncomeDetails> CurrencyIncomeDetailsCollection { get; set; }
 
     [ObservableProperty]
-    ObservableCollection<string> currencyList;
+    bool enableFilters;
 
     [ObservableProperty]
-    ObservableCollection<object> queryTypes;
+    bool filterCurrencies;
 
     [ObservableProperty]
-    ObservableCollection<string> typeList;
+    bool filterTypes;
 
     [ObservableProperty]
-    ObservableCollection<CurrencyExpectedPaymentsViewModel> currencyExpectedIncome;
-
-    [ObservableProperty]
-    ObservableCollection<CurrencyIncomeDetails> currencyIncomeDetailsCollection;
+    bool filterAgents;
 
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
 
@@ -43,8 +46,15 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         QueryCurrencies = new();
         TypeList = settings.ProjectTypes;
         QueryTypes = new();
+        AgentList = settings.AgentsIncludingNull;
+        QueryAgents = new();
         CurrencyIncomeDetailsCollection = new();
         CurrencyExpectedIncome = new();
+
+        EnableFilters = false;
+        FilterCurrencies = false;
+        FilterTypes = false;
+        FilterAgents = false;
     }
 
     //Called inside IncomePage.OnAppearing to make sure changes in projects are accounted for
@@ -53,8 +63,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     {
         CurrencyIncomeDetailsCollection.Clear();
 
-        // If no query currency or type parameters are selected get all payments, otherwise execute query
-        var queriedPayments = (QueryCurrencies.Count == 0 && QueryTypes.Count == 0) ? PaymentManager.AllPayments.Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
+        var queriedPayments = !EnableFilters ? PaymentManager.AllPayments.Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
 
         // Group by Currency, Type, and Client
         var groupedData = queriedPayments
@@ -212,7 +221,11 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
         foreach (var currency in currencies)
         {
-            var expectedPaymentsAmount = activeAndInvoicedProjects.Where(x => x.Currency == currency).Sum(x => x.TotalExpectedPaymentsAmount - x.PaidAmount);
+            var expectedPaymentsAmount = activeAndInvoicedProjects
+                .Where(x => x.Currency == currency)
+                .Select(x => Math.Max(x.TotalExpectedPaymentsAmount - x.PaidAmount, 0))
+                .Sum();
+
             CurrencyExpectedIncome.Add(new CurrencyExpectedPaymentsViewModel
             {
                 Currency = currency,

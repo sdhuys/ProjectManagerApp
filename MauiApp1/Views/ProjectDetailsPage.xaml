@@ -16,15 +16,7 @@
     </Shell.BackButtonBehavior>
 
     <ContentPage.Resources>
-        <local:SettingsViewModel x:Key="SettingsViewModelInstance" />
-
-        <conv:AgentToStringConverter x:Key="AgentToString">
-            <!-- Bind the SettingsViewModel property to the SettingsViewModelInstance resource -->
-            <conv:AgentToStringConverter.SettingsViewModel>
-                <x:Reference Name="SettingsViewModelInstance" />
-            </conv:AgentToStringConverter.SettingsViewModel>
-        </conv:AgentToStringConverter>
-        
+        <conv:AgentToStringConverter x:Key="AgentToString" />
         <conv:DateFormatConverter x:Key="DateFormat" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
@@ -182,8 +174,8 @@
                        Margin="20" />
 
                 <Picker ItemsSource="{Binding AgentList}"
-                        ItemDisplayBinding="{Binding ., Converter={StaticResource AgentToString}}"
-                        SelectedItem="{Binding Agent}"
+                        ItemDisplayBinding="{Binding Agent, Converter={StaticResource AgentToString}}"
+                        SelectedItem="{Binding AgentWrapper}"
                         Grid.Row="3"
                         Grid.Column="2"
                         VerticalOptions="CenterAndExpand"

@@ -2,11 +2,13 @@
 using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace MauiApp1.ViewModels;
 public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributable
 {
+    private SettingsViewModel settingsViewModel;
     private ObservableCollection<ProjectViewModel> Projects { get; set; }
 
     private ProjectViewModel selectedProjectVM;
@@ -44,7 +46,9 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AgentIsSelected))]
-    Agent agent;
+    AgentWrapper agentWrapper;
+
+    Agent Agent => AgentWrapper.Agent;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveNewOrEditProjectCommand))]
@@ -84,36 +88,85 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     private List<Payment> paymentsToRemoveFromManagerOnCancel = new();
     private List<Payment> paymentsToRemoveFromManagerOnSave = new();
 
-    public ObservableCollection<Agent> AgentList { get; set; }
-    public ObservableCollection<string> TypesList { get; set; }
-    public ObservableCollection<string> CurrencyList { get; set; }
+    [ObservableProperty]
+    public ObservableCollection<AgentWrapper> agentList;
+
+    [ObservableProperty]
+    public ObservableCollection<string> typesList;
+
+    [ObservableProperty]
+    public ObservableCollection<string> currencyList;
     public List<Project.ProjectStatus> StatusList { get; set; }
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
     public bool AgentIsSelected
     {
         get
         {
-            if (Agent == null)
+            if (AgentWrapper == null || AgentWrapper.Agent == null)
             {
                 HasCustomAgencyFee = false;
                 CustomAgencyFeePercent = null;
+                return false;
             }
 
-            return Agent != null;
+            return true;
         }
     }
     public ProjectDetailsViewModel(SettingsViewModel settings)
     {
-        AgentList = settings.AgentsIncludingNull;
-        TypesList = settings.ProjectTypes;
-        CurrencyList = settings.Currencies;
+        Expenses = new();
+        Payments = new();
+
+        settingsViewModel = settings;
+        AgentWrapper = settingsViewModel.AgentsIncludingNull.First(x => x.Agent == null);
+        AgentList = settingsViewModel.AgentsIncludingNull;
+        TypesList = settingsViewModel.ProjectTypes;
+        CurrencyList = settingsViewModel.Currencies;
+
         StatusList = Enum.GetValues(typeof(Project.ProjectStatus)).OfType<Project.ProjectStatus>().ToList();
         Date = DateTime.Today;
         NewPaymentDate = DateTime.Today;
     }
 
+    public void OnPageAppearing()
+    {
+        // Add current project details to picker collections if they've been removed from settings
+        // Makes sure deleted Agents/Types/Currencies aren't lost on project edit page
+        // and sets them as current Agent/Type/Currency
+        if (EditMode)
+        {
+            if (AgentList.Where(x => x.Agent == selectedProjectVM.Agent).Count() == 0)
+            {
+                AgentWrapper wrapper = new(selectedProjectVM.Agent);
+                AgentList = new(AgentList)
+                {
+                    wrapper
+                };
+            }
+
+            if (!TypesList.Contains(selectedProjectVM.Type))
+            {
+                TypesList = new(TypesList)
+                {
+                    selectedProjectVM.Type
+                };
+            }
+
+            if (!CurrencyList.Contains(selectedProjectVM.Currency))
+            {
+                CurrencyList = new(CurrencyList)
+                {
+                    selectedProjectVM.Currency
+                };
+            }
+
+            LoadselectedProjectVMDetails();
+        }
+    }
+
     private void LoadselectedProjectVMDetails()
     {
+        AgentWrapper = AgentList.FirstOrDefault(x => x.Agent == selectedProjectVM.Agent);
         Client = selectedProjectVM.Client;
         Type = selectedProjectVM.Type;
         Description = selectedProjectVM.Description;
@@ -122,8 +175,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         Fee = selectedProjectVM.Fee.ToString();
         IsVatIncluded = selectedProjectVM.IsVatIncluded;
         VatRatePercent = (selectedProjectVM.VatRateDecimal * 100m).ToString();
-        Agent = selectedProjectVM.Agent;
-        HasCustomAgencyFee = Agent != null && selectedProjectVM.AgencyFeeDecimal != Agent.FeeDecimal;
+        HasCustomAgencyFee = AgentWrapper != null && Agent != null && selectedProjectVM.AgencyFeeDecimal != Agent.FeeDecimal;
         CustomAgencyFeePercent = HasCustomAgencyFee ? (selectedProjectVM.AgencyFeeDecimal * 100m).ToString() : "0";
         Status = selectedProjectVM.Status;
         Expenses = new(selectedProjectVM.Expenses);
@@ -135,7 +187,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         CalculateRelativeExpenseAmounts();
     }
 
-    partial void OnAgentChanged(Agent value)
+    partial void OnAgentWrapperChanged(AgentWrapper value)
     {
         HasCustomAgencyFee = false;
         CustomAgencyFeePercent = null;
@@ -176,10 +228,10 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
     partial void OnNewExpenseValueChanged(string oldValue, string newValue)
     {
-        if (string.IsNullOrEmpty(newValue)) 
+        if (string.IsNullOrEmpty(newValue))
             return;
 
-        if (!decimal.TryParse(newValue, out decimal result) || (NewExpenseIsRelative && ( result < 0 || result > 100)))
+        if (!decimal.TryParse(newValue, out decimal result) || (NewExpenseIsRelative && (result < 0 || result > 100)))
             NewExpenseValue = oldValue;
     }
 
@@ -222,9 +274,12 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         }
     }
 
-    // Called on agency/fee/expense changes by user to update UI
+    // Called on agency/fee/expense changes to update UI
     private void CalculateRelativeExpenseAmounts()
     {
+        if (!Expenses.Any(x => x.IsRelative))
+            return;
+
         if (String.IsNullOrEmpty(Fee))
         {
             RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, 0, 0);
@@ -232,7 +287,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         }
 
         decimal agencyFeeDecimal;
-        if (Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
+        if (AgentWrapper.Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
             agencyFeeDecimal = 0;
 
         else if (HasCustomAgencyFee && !String.IsNullOrEmpty(CustomAgencyFeePercent))
@@ -242,6 +297,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             agencyFeeDecimal = Agent.FeeDecimal;
 
         var feeExcludingVat = (IsVatIncluded && !String.IsNullOrEmpty(VatRatePercent)) ? decimal.Parse(Fee) / (1 + decimal.Parse(VatRatePercent) / 100m) : decimal.Parse(Fee);
+
         RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, feeExcludingVat, agencyFeeDecimal);
     }
 
@@ -339,7 +395,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     {
         return !String.IsNullOrWhiteSpace(NewPaymentAmount);
     }
-
     private bool CanSaveProject()
     {
         return !(String.IsNullOrEmpty(Client) || String.IsNullOrEmpty(Fee) || String.IsNullOrEmpty(Currency) || (HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent)));
@@ -350,14 +405,11 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         if (query.ContainsKey("projects"))
         {
             Projects = query["projects"] as ObservableCollection<ProjectViewModel>;
-            Expenses = new();
-            Payments = new();
         }
 
         if (query.ContainsKey("selectedProjectVM"))
         {
             selectedProjectVM = query["selectedProjectVM"] as ProjectViewModel;
-            LoadselectedProjectVMDetails();
         }
     }
 }

@@ -1,13 +1,9 @@
 ﻿using System.Globalization;
 using MauiApp1.Models;
-using MauiApp1.ViewModels;
 
 namespace MauiApp1.Converters;
 internal class AgentToStringConverter : IValueConverter
 {
-    // Property to get Agents collection from, set in Resource declaration of ProjectDetailsPage.xaml
-    public SettingsViewModel SettingsViewModel { get; set; }
-
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is Agent agent)
@@ -17,26 +13,15 @@ internal class AgentToStringConverter : IValueConverter
         }
 
         else if (value == null)
+        {
             return "None";
+        }
 
         return string.Empty;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is string stringValue)
-        {
-            // Split the string into parts assuming it's in the format: "Name: Percentage%"
-            var parts = stringValue.Split(':');
-
-            if (parts.Length == 2 && decimal.TryParse(parts[1].Trim().TrimEnd('%'), out decimal percentage))
-            {
-                var name = parts[0].Trim();
-                var feeDecimal = percentage / 100.0m;
-                var agent = SettingsViewModel.Agents.First(a => a.Name == name && a.FeeDecimal == feeDecimal);
-                return agent;
-            }
-        }
-        return null;
+        throw new NotImplementedException();
     }
 }

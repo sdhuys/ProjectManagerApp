@@ -2,8 +2,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             xmlns:local="clr-namespace:MauiApp1.ViewModels"
+             xmlns:conv="clr-namespace:MauiApp1.Converters"
              x:Class="MauiApp1.Views.PaymentsOverviewPage"
              Title="Payments">
+
+    <ContentPage.Resources>
+        <conv:AgentToStringConverter x:Key="AgentToString" />
+    </ContentPage.Resources>
+
     <Grid x:Name="outerGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -18,47 +25,149 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <HorizontalStackLayout Grid.Row="0"
-                                       Margin="10"
-                                       x:Name="queryPickers">
+                <Grid Grid.Row="0"
+                      Margin="10"
+                      x:Name="filterGrid">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <HorizontalStackLayout Margin="10, 10, 20, 10"
+                                           Grid.Row="0"
+                                           Grid.Column="0">
+
+                        <CheckBox IsChecked="{Binding EnableFilters}" />
+                        <Label Text="Enable Filters"
+                               VerticalOptions="CenterAndExpand" />
+                    </HorizontalStackLayout>
 
                     <CollectionView ItemsSource="{Binding CurrencyList}"
                                     SelectionMode="Multiple"
-                                    SelectedItems="{Binding QueryCurrencies}">
+                                    SelectedItems="{Binding QueryCurrencies}"
+                                    IsVisible="{Binding EnableFilters}"
+                                    Grid.Row="1"
+                                    Grid.Column="1">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Label Text="{Binding}" />
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding}"
+                                           Margin="10, 0, 0, 0" />
+
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup Name="CommonStates">
+                                            <VisualState Name="Normal"></VisualState>
+                                            <VisualState Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="BackgroundColor"
+                                                            Value="Grey"></Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
                     <CollectionView ItemsSource="{Binding TypeList}"
                                     SelectionMode="Multiple"
-                                    SelectedItems="{Binding QueryTypes}">
+                                    SelectedItems="{Binding QueryTypes}"
+                                    IsVisible="{Binding EnableFilters}"
+                                    Grid.Row="1"
+                                    Grid.Column="2">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Label Text="{Binding}" />
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding}"
+                                           Margin="10, 0, 0, 0" />
+
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup Name="CommonStates">
+                                            <VisualState Name="Normal"></VisualState>
+                                            <VisualState Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="BackgroundColor"
+                                                            Value="Grey"></Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
+                    <CollectionView ItemsSource="{Binding AgentList}"
+                                    SelectionMode="Multiple"
+                                    SelectedItems="{Binding QueryAgents}"
+                                    IsVisible="{Binding EnableFilters}"
+                                    Grid.Row="1"
+                                    Grid.Column="3">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Agent, Converter={StaticResource AgentToString}}"
+                                           Margin="10, 0, 0, 0" />
+
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup Name="CommonStates">
+                                            <VisualState Name="Normal"></VisualState>
+                                            <VisualState Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="BackgroundColor"
+                                                            Value="Grey"></Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+
                     <DatePicker Date="{Binding QueryStartDate}"
                                 Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
-                                Margin="10" />
+                                Margin="10"
+                                IsVisible="{Binding EnableFilters}"
+                                Grid.Row="1"
+                                Grid.Column="4" />
 
                     <DatePicker Date="{Binding QueryEndDate}"
                                 Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
-                                Margin="10" />
-
+                                Margin="10"
+                                IsVisible="{Binding EnableFilters}"
+                                Grid.Row="1"
+                                Grid.Column="5" />
 
                     <Button Text="Apply Filter"
                             Margin="10"
                             IsEnabled="True"
-                            Command="{Binding ApplyFiltersCommand}" />
+                            Command="{Binding ApplyFiltersCommand}"
+                            IsVisible="{Binding EnableFilters}"
+                            Grid.Row="1"
+                            Grid.Column="6" />
 
-                </HorizontalStackLayout>
+                </Grid>
 
                 <CollectionView ItemsSource="{Binding CurrencyIncomeDetailsCollection}"
+                                EmptyView="No Payments Match Your Filters"
                                 SelectionMode="None"
                                 Grid.Row="1"
                                 VerticalScrollBarVisibility="Always">
@@ -116,9 +225,9 @@
                                                 SelectionMode="None">
                                     <CollectionView.ItemsLayout>
                                         <GridItemsLayout Orientation="Vertical"
-                                                         Span="2"/>
+                                                         Span="2" />
                                     </CollectionView.ItemsLayout>
-                                    
+
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <VerticalStackLayout BackgroundColor="Transparent">
