@@ -38,6 +38,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     [ObservableProperty]
     bool filterAgents;
 
+    [ObservableProperty]
+    bool filterDates;
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
 
     public PaymentsOverviewViewModel(SettingsViewModel settings)
@@ -52,9 +54,6 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         CurrencyExpectedIncome = new();
 
         EnableFilters = false;
-        FilterCurrencies = false;
-        FilterTypes = false;
-        FilterAgents = false;
     }
 
     //Called inside IncomePage.OnAppearing to make sure changes in projects are accounted for
@@ -231,6 +230,22 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                 Currency = currency,
                 Amount = expectedPaymentsAmount >= 0 ? expectedPaymentsAmount : 0
             });
+        }
+    }
+
+    partial void OnEnableFiltersChanged(bool value)
+    {
+        if (!value)
+        {
+            FilterCurrencies = false;
+            FilterTypes = false;
+            FilterAgents = false;
+            FilterDates = false;
+            QueryAgents.Clear();
+            QueryCurrencies.Clear();
+            QueryTypes.Clear();
+            QueryStartDate = ProjectManager.AllProjects.Min(x => x.Date);
+            QueryEndDate = DateTime.Today;
         }
     }
     public class ChartWithHeader

@@ -45,19 +45,31 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <HorizontalStackLayout Margin="10, 10, 20, 10"
-                                           Grid.Row="0"
-                                           Grid.Column="0">
+                    <HorizontalStackLayout Grid.Row="0"
+                                           Grid.Column="0"
+                                           Margin="10">
 
                         <CheckBox IsChecked="{Binding EnableFilters}" />
-                        <Label Text="Enable Filters"
+                        <Label Text="Filter By:"
                                VerticalOptions="CenterAndExpand" />
                     </HorizontalStackLayout>
+
+                    <HorizontalStackLayout Grid.Row="0"
+                                           Grid.Column="1"
+                                           IsVisible="{Binding EnableFilters}"
+                                           Margin="10">
+                        
+                        <CheckBox IsChecked="{Binding FilterCurrencies}" />
+                        <Label Text="Currencies" 
+                               VerticalOptions="CenterAndExpand"/>
+                        
+                    </HorizontalStackLayout>
+
 
                     <CollectionView ItemsSource="{Binding CurrencyList}"
                                     SelectionMode="Multiple"
                                     SelectedItems="{Binding QueryCurrencies}"
-                                    IsVisible="{Binding EnableFilters}"
+                                    IsVisible="{Binding FilterCurrencies}"
                                     Grid.Row="1"
                                     Grid.Column="1">
                         <CollectionView.ItemTemplate>
@@ -65,28 +77,26 @@
                                 <VerticalStackLayout>
                                     <Label Text="{Binding}"
                                            Margin="10, 0, 0, 0" />
-
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup Name="CommonStates">
-                                            <VisualState Name="Normal"></VisualState>
-                                            <VisualState Name="Selected">
-                                                <VisualState.Setters>
-                                                    <Setter Property="BackgroundColor"
-                                                            Value="Grey"></Setter>
-                                                </VisualState.Setters>
-                                            </VisualState>
-
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
                                 </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
+                    <HorizontalStackLayout Grid.Row="0"
+                                           Grid.Column="2"
+                                           IsVisible="{Binding EnableFilters}"
+                                           Margin="10">
+
+                        <CheckBox IsChecked="{Binding FilterTypes}" />
+                        <Label Text="Project Types"
+                               VerticalOptions="CenterAndExpand" />
+
+                    </HorizontalStackLayout>
+
                     <CollectionView ItemsSource="{Binding TypeList}"
                                     SelectionMode="Multiple"
                                     SelectedItems="{Binding QueryTypes}"
-                                    IsVisible="{Binding EnableFilters}"
+                                    IsVisible="{Binding FilterTypes}"
                                     Grid.Row="1"
                                     Grid.Column="2">
                         <CollectionView.ItemTemplate>
@@ -94,28 +104,26 @@
                                 <VerticalStackLayout>
                                     <Label Text="{Binding}"
                                            Margin="10, 0, 0, 0" />
-
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup Name="CommonStates">
-                                            <VisualState Name="Normal"></VisualState>
-                                            <VisualState Name="Selected">
-                                                <VisualState.Setters>
-                                                    <Setter Property="BackgroundColor"
-                                                            Value="Grey"></Setter>
-                                                </VisualState.Setters>
-                                            </VisualState>
-
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
                                 </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
+                    <HorizontalStackLayout Grid.Row="0"
+                                           Grid.Column="3"
+                                           IsVisible="{Binding EnableFilters}"
+                                           Margin="10">
+
+                        <CheckBox IsChecked="{Binding FilterAgents}" />
+                        <Label Text="Agents"
+                               VerticalOptions="CenterAndExpand" />
+
+                    </HorizontalStackLayout>
+
                     <CollectionView ItemsSource="{Binding AgentList}"
                                     SelectionMode="Multiple"
                                     SelectedItems="{Binding QueryAgents}"
-                                    IsVisible="{Binding EnableFilters}"
+                                    IsVisible="{Binding FilterAgents}"
                                     Grid.Row="1"
                                     Grid.Column="3">
                         <CollectionView.ItemTemplate>
@@ -123,46 +131,45 @@
                                 <VerticalStackLayout>
                                     <Label Text="{Binding Agent, Converter={StaticResource AgentToString}}"
                                            Margin="10, 0, 0, 0" />
-
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup Name="CommonStates">
-                                            <VisualState Name="Normal"></VisualState>
-                                            <VisualState Name="Selected">
-                                                <VisualState.Setters>
-                                                    <Setter Property="BackgroundColor"
-                                                            Value="Grey"></Setter>
-                                                </VisualState.Setters>
-                                            </VisualState>
-
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
                                 </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
+                    <HorizontalStackLayout Grid.Row="0"
+                                           Grid.Column="4"
+                                           IsVisible="{Binding EnableFilters}"
+                                           Margin="10">
+
+                        <CheckBox IsChecked="{Binding FilterDates}" />
+                        <Label Text="Dates: From - Up Until"
+                               VerticalOptions="CenterAndExpand" />
+
+                    </HorizontalStackLayout>
+
 
                     <DatePicker Date="{Binding QueryStartDate}"
                                 Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
                                 Margin="10"
-                                IsVisible="{Binding EnableFilters}"
+                                IsVisible="{Binding FilterDates}"
                                 Grid.Row="1"
                                 Grid.Column="4" />
 
                     <DatePicker Date="{Binding QueryEndDate}"
                                 Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
                                 Margin="10"
-                                IsVisible="{Binding EnableFilters}"
+                                IsVisible="{Binding FilterDates}"
                                 Grid.Row="1"
                                 Grid.Column="5" />
 
-                    <Button Text="Apply Filter"
+                    <Button Text="Apply Filters"
                             Margin="10"
                             IsEnabled="True"
                             Command="{Binding ApplyFiltersCommand}"
                             IsVisible="{Binding EnableFilters}"
                             Grid.Row="1"
-                            Grid.Column="6" />
+                            Grid.Column="6" 
+                            HorizontalOptions="Center"/>
 
                 </Grid>
 
