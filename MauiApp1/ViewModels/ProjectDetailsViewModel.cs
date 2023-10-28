@@ -160,11 +160,11 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
                 };
             }
 
-            LoadselectedProjectVMDetails();
+            LoadSelectedProjectDetails();
         }
     }
 
-    private void LoadselectedProjectVMDetails()
+    private void LoadSelectedProjectDetails()
     {
         AgentWrapper = AgentList.FirstOrDefault(x => x.Agent == selectedProjectVM.Agent);
         Client = selectedProjectVM.Client;
