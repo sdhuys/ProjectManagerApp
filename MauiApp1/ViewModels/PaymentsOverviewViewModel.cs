@@ -66,12 +66,13 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
         // Group by Currency, Type, and Client
         var groupedData = queriedPayments
-            .GroupBy(payment => new { payment.Currency, payment.Type, payment.Client })
+            .GroupBy(payment => new { payment.Currency, payment.Type, payment.Client, payment.Agent })
             .Select(group => new
             {
                 Currency = group.Key.Currency,
                 Type = group.Key.Type,
                 Client = group.Key.Client,
+                Agent = group.Key.Agent,
                 TotalIncome = group.Sum(payment => payment.Amount),
                 TotalProfit = GetTotalProfit(group),
                 TotalExpenses = GetTotalExpenses(group),
@@ -105,8 +106,16 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                     group => group.Key,
                     group => group.Sum(item => item.TotalProfit));
 
+            var agentData = groupedData
+                .Where(item => item.Currency == currency)
+                .GroupBy(item => item.Agent)
+                .ToDictionary(
+                    group => group.Key != null ? group.Key.Name : "None",
+                    group => group.Sum(item => item.TotalProfit));
+
             dataForCharts.Add($"{currency} Profit Per Project Type", typeData);
             dataForCharts.Add($"{currency} Profit Per Client", clientData);
+            dataForCharts.Add($"{currency} Profit Per Agent", agentData);
             var charts = CreateCharts(dataForCharts);
             dataForCharts.Clear();
 
@@ -123,10 +132,11 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     }
     private List<PaymentViewModel> GetQueriedPayments()
     {
-        var currencies = QueryCurrencies.OfType<string>();
-        var types = QueryTypes.OfType<string>();
+        var currencies = FilterCurrencies ? QueryCurrencies.OfType<string>() : CurrencyList;
+        var types = FilterTypes ? QueryTypes.OfType<string>() : TypeList;
+        var agents = FilterAgents ? QueryAgents.OfType<AgentWrapper>() : AgentList;
 
-        return PaymentManager.Query(currencies, types, QueryStartDate, QueryEndDate)
+        return PaymentManager.Query(currencies, types, agents.Select(x => x.Agent), QueryStartDate, QueryEndDate)
                                                                    .Select(x => new PaymentViewModel(x))
                                                                    .ToList();
     }

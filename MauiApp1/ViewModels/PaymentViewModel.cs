@@ -13,6 +13,7 @@ public partial class PaymentViewModel : ObservableObject
     public string Type => Project.Type;
     public string Client => Project.Client;
     public string Currency => Project.Currency;
+    public Agent Agent => Project.Agent;
 
 
     public PaymentViewModel(Payment payment)

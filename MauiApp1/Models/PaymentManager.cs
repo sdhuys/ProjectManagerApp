@@ -8,7 +8,7 @@ public static class PaymentManager
         AllPayments.Add(payment);
     }
     public static void RemovePayment(Payment payment) => AllPayments.Remove(payment);
-    public static IEnumerable<Payment> Query(IEnumerable<string> currencies, IEnumerable<string> types, DateTime startDate, DateTime endDate)
+    public static IEnumerable<Payment> Query(IEnumerable<string> currencies, IEnumerable<string> types, IEnumerable<Agent> agents, DateTime startDate, DateTime endDate)
     {
         var projects = ProjectManager.AllProjects;
 
@@ -18,6 +18,7 @@ public static class PaymentManager
             return project != null &&
                    currencies.Contains(project.Currency) &&
                    types.Contains(project.Type) &&
+                   agents.Contains(project.Agent) &&
                    x.Date >= startDate &&
                    x.Date <= endDate;
         });
