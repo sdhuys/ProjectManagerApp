@@ -8,8 +8,15 @@ internal class AgentToStringConverter : IValueConverter
     {
         if (value is Agent agent)
         {
-            var percentage = agent.FeeDecimal * 100;
-            return $"{agent.Name}: {percentage:F1}%";
+            if (parameter is string param && param == "nameOnly")
+            {
+                return agent.Name;
+            }
+            else
+            {
+                var percentage = agent.FeeDecimal * 100;
+                return $"{agent.Name}: {percentage:F1}%";
+            }
         }
 
         else if (value == null)

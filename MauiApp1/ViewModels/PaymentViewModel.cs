@@ -15,7 +15,6 @@ public partial class PaymentViewModel : ObservableObject
     public string Currency => Project.Currency;
     public Agent Agent => Project.Agent;
 
-
     public PaymentViewModel(Payment payment)
     {
         Project = ProjectManager.AllProjects.FirstOrDefault(p => p.Id == payment.AssociatedProjectID);

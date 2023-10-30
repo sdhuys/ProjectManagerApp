@@ -10,6 +10,8 @@ namespace MauiApp1.ViewModels;
 
 public partial class PaymentsOverviewViewModel : ObservableObject
 {
+    private SettingsViewModel _settingsViewModel;
+
     [ObservableProperty]
     DateTime queryStartDate = ProjectManager.AllProjects.Min(x => x.Date);
 
@@ -17,11 +19,17 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     DateTime queryEndDate = DateTime.Today;
 
     public ObservableCollection<object> QueryCurrencies { get; set; }
-    public ObservableCollection<string> CurrencyList { get; set; }
+
+    [ObservableProperty]
+    ObservableCollection<string> currencyList;
     public ObservableCollection<object> QueryTypes { get; set; }
-    public ObservableCollection<string> TypeList { get; set; }
+
+    [ObservableProperty]
+    ObservableCollection<string> typeList;
     public ObservableCollection<object> QueryAgents { get; set; }
-    public ObservableCollection<AgentWrapper> AgentList { get; set; }
+
+    [ObservableProperty]
+    ObservableCollection<AgentWrapper> agentList;
     public ObservableCollection<CurrencyExpectedPaymentsViewModel> CurrencyExpectedIncome { get; set; }
 
     public ObservableCollection<CurrencyIncomeDetails> CurrencyIncomeDetailsCollection { get; set; }
@@ -44,11 +52,10 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
     public PaymentsOverviewViewModel(SettingsViewModel settings)
     {
-        CurrencyList = settings.Currencies;
+        _settingsViewModel = settings;
+        GetFilterOptions();
         QueryCurrencies = new();
-        TypeList = settings.ProjectTypes;
         QueryTypes = new();
-        AgentList = settings.AgentsIncludingNull;
         QueryAgents = new();
         CurrencyIncomeDetailsCollection = new();
         CurrencyExpectedIncome = new();
@@ -56,9 +63,33 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         EnableFilters = false;
     }
 
+    public void OnPageAppearing()
+    {
+        GetFilterOptions();
+        GetIncomeDataAndCreateCharts();
+        CreateCurrencyExpectedEarningsViewModels();
+    }
+
+    // Get Currencies, Types and Agents from Settings, and check all projects for currencies, types or agents not included in settings and add.
+    private void GetFilterOptions()
+    {
+        CurrencyList = _settingsViewModel.Currencies;
+        TypeList = _settingsViewModel.ProjectTypes;
+        AgentList = _settingsViewModel.AgentsIncludingNull;
+
+        var currenciesFromProjects = ProjectManager.AllProjects.Select(x => x.Currency);
+        var typesFromProjects = ProjectManager.AllProjects.Select(x => x.Type);
+        var agentsFromProjects = from project in ProjectManager.AllProjects
+                                 where project.Agent != null
+                                 select new AgentWrapper(project.Agent);
+
+        CurrencyList = new (CurrencyList.Union(currenciesFromProjects));
+        TypeList = new (TypeList.Union(typesFromProjects));
+        AgentList = new (AgentList.UnionBy(agentsFromProjects, x => x.Agent != null ? x.Agent.Name : null ));
+    }
     //Called inside IncomePage.OnAppearing to make sure changes in projects are accounted for
     [RelayCommand]
-    public void ApplyFilters()
+    private void GetIncomeDataAndCreateCharts()
     {
         CurrencyIncomeDetailsCollection.Clear();
 
@@ -219,7 +250,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
         return chartEntries;
     }
-    public void CreateCurrencyExpectedEarningsViewModels()
+    private void CreateCurrencyExpectedEarningsViewModels()
     {
         CurrencyExpectedIncome.Clear();
 
@@ -256,6 +287,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             QueryTypes.Clear();
             QueryStartDate = ProjectManager.AllProjects.Min(x => x.Date);
             QueryEndDate = DateTime.Today;
+
+            GetIncomeDataAndCreateCharts();
         }
     }
     public class ChartWithHeader

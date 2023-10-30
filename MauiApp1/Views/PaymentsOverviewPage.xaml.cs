@@ -15,7 +15,6 @@ public partial class PaymentsOverviewPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-		viewModel.ApplyFilters();
-		viewModel.CreateCurrencyExpectedEarningsViewModels();
+		viewModel.OnPageAppearing();
     }
 }

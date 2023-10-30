@@ -129,7 +129,7 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <VerticalStackLayout>
-                                    <Label Text="{Binding Agent, Converter={StaticResource AgentToString}}"
+                                    <Label Text="{Binding Agent, Converter={StaticResource AgentToString}, ConverterParameter=nameOnly}"
                                            Margin="10, 0, 0, 0" />
                                 </VerticalStackLayout>
                             </DataTemplate>
@@ -165,7 +165,7 @@
                     <Button Text="Apply Filters"
                             Margin="10"
                             IsEnabled="True"
-                            Command="{Binding ApplyFiltersCommand}"
+                            Command="{Binding GetIncomeDataAndCreateChartsCommand}"
                             IsVisible="{Binding EnableFilters}"
                             Grid.Row="1"
                             Grid.Column="6" 
