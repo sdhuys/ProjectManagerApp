@@ -1,7 +1,5 @@
 ﻿using MauiApp1.Converters;
 using Newtonsoft.Json;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace MauiApp1.Models;
 public static class Settings
