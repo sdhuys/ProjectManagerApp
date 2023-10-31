@@ -6,8 +6,12 @@ using System.Diagnostics;
 namespace MauiApp1.Models;
 public static class Settings
 {
-    private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
-    //private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "settings.json");
+    #if DEBUG
+        private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
+    #else
+        private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "settings.json");
+    #endif
+
 
     public static bool FileExists => File.Exists(filePath);
 

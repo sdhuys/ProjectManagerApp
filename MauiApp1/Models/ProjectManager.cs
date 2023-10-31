@@ -5,8 +5,12 @@ namespace MauiApp1.Models;
 
 internal static class ProjectManager
 {
-    private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "projects.json");
-    //private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "projects.json");
+    #if DEBUG
+        private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "projects.json");
+    #else
+    private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "projects.json");
+    #endif
+
 
     public static List<Project> AllProjects = new List<Project>();
 
@@ -23,7 +27,7 @@ internal static class ProjectManager
 
         string json = File.ReadAllText(filePath);
 
-        if (String.IsNullOrWhiteSpace(json)) 
+        if (String.IsNullOrWhiteSpace(json))
             return Enumerable.Empty<Project>();
 
         // Use custom converter that returns existing Agent if found
