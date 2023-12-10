@@ -18,7 +18,7 @@ public static class PaymentManager
             return project != null &&
                    currencies.Contains(project.Currency) &&
                    types.Contains(project.Type) &&
-                   agents.Contains(project.Agent) &&
+                   (agents.Contains(project.Agent) || agents.FirstOrDefault(a => a?.Name == project.Agent?.Name) != null) && // check for agent with same name (if multiple with diff % are saved in settings)
                    x.Date >= startDate &&
                    x.Date <= endDate;
         });
