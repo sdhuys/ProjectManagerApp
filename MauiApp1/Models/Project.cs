@@ -11,14 +11,14 @@ public class Project
     public decimal Fee { get; set; }
     public bool IsVatIncluded { get; set; }
     public decimal VatRateDecimal { get; set; }
-    public List<Expense> Expenses { get; set; }
+    public List<ProjectExpense> Expenses { get; set; }
     public Agent Agent { get; set; }
     public decimal AgencyFeeDecimal { get; set; }
     public List<Payment> Payments { get; set; }
     public ProjectStatus Status { get; set; }
 
 
-    public Project(string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<Expense> expenses, List<Payment> payments, ProjectStatus status)
+    public Project(string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, ProjectStatus status)
     {
         Id = Guid.NewGuid();
         Client = client;

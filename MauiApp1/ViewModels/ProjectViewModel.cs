@@ -94,7 +94,7 @@ public class ProjectViewModel : ObservableObject
             return IsVatIncluded ? "Incl." : "Excl.";
         }
     }
-    public List<Expense> Expenses
+    public List<ProjectExpense> Expenses
     {
         get => Project.Expenses;
         set
@@ -161,7 +161,7 @@ public class ProjectViewModel : ObservableObject
         this.Project = Project;
     }
 
-    public ProjectViewModel(string client, string type, string description, DateTime date, string currency, decimal fee, bool isVAT_Included, decimal vAT_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<Expense> expenses, List<Payment> payments, Project.ProjectStatus status)
+    public ProjectViewModel(string client, string type, string description, DateTime date, string currency, decimal fee, bool isVAT_Included, decimal vAT_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, Project.ProjectStatus status)
     {
         Project = new Project(client, type, description, date, currency, fee, isVAT_Included, vAT_RateDecimal, agent, agencyFeeDecimal, expenses, payments, status);
     }

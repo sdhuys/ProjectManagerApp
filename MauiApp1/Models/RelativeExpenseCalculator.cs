@@ -2,7 +2,7 @@
 
 public static class RelativeExpenseCalculator
 {
-    public static void SetRelativeExpensesAmounts(IEnumerable<Expense> expenses, decimal projectFee, decimal agencyFeeDecimal)
+    public static void SetRelativeExpensesAmounts(IEnumerable<ProjectExpense> expenses, decimal projectFee, decimal agencyFeeDecimal)
     {
         var totalAbsoluteExpenses = expenses.Where(x => !x.IsRelative).Select(x => x.Amount).Sum();
         var absoluteAgencyFee = projectFee * agencyFeeDecimal;

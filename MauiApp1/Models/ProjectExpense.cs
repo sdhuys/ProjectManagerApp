@@ -2,7 +2,7 @@
 
 namespace MauiApp1.Models;
 
-public partial class Expense : ObservableObject
+public partial class ProjectExpense : ObservableObject
 {
     public string Name { get; set; }
 
@@ -11,7 +11,7 @@ public partial class Expense : ObservableObject
     public bool IsRelative { get; set; }
     public decimal RelativeFeeDecimal { get; set; }
 
-    public Expense(string name, bool isRelative, decimal value)
+    public ProjectExpense(string name, bool isRelative, decimal value)
     {
         Name = name;
         IsRelative = isRelative;

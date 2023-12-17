@@ -59,7 +59,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     string customAgencyFeePercent;
 
     [ObservableProperty]
-    ObservableCollection<Expense> expenses;
+    ObservableCollection<ProjectExpense> expenses;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddExpenseCommand))]
@@ -313,7 +313,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     }
 
     [RelayCommand]
-    void DeleteExpense(Expense expense)
+    void DeleteExpense(ProjectExpense expense)
     {
         Expenses.Remove(expense);
         CalculateRelativeExpenseAmounts();
