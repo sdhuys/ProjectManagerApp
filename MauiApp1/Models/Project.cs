@@ -44,7 +44,7 @@ public class Project
     {
         Active,
         Invoiced,
-        Finished,
+        Completed,
         Cancelled
     }
 }

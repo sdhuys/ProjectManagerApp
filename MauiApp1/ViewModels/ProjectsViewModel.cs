@@ -20,7 +20,7 @@ public partial class ProjectsViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(EditProjectCommand))]
     ProjectViewModel selectedProjectVM;
 
-    public List<ProjectViewModel> FinishedProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Finished).ToList();
+    public List<ProjectViewModel> FinishedProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Completed).ToList();
     public List<ProjectViewModel> InvoicedProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Invoiced).ToList();
     public List<ProjectViewModel> CancelledProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Cancelled).ToList();
     public List<ProjectViewModel> ActiveProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Active).ToList();
