@@ -4,6 +4,7 @@ using MauiApp1.Models;
 using Microcharts;
 using SkiaSharp;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace MauiApp1.ViewModels;
@@ -83,9 +84,9 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                                  where project.Agent != null
                                  select new AgentWrapper(project.Agent);
 
-        CurrencyList = new (CurrencyList.Union(currenciesFromProjects));
-        TypeList = new (TypeList.Union(typesFromProjects));
-        AgentList = new (AgentList.UnionBy(agentsFromProjects, x => x.Agent != null ? x.Agent.Name : null ));
+        CurrencyList = new(CurrencyList.Union(currenciesFromProjects));
+        TypeList = new(TypeList.Union(typesFromProjects));
+        AgentList = new(AgentList.UnionBy(agentsFromProjects, x => x.Agent != null ? x.Agent.Name : null));
     }
     //Called inside IncomePage.OnAppearing to make sure changes in projects are accounted for
     [RelayCommand]
@@ -98,16 +99,23 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         // Group by Currency, Type, and Client
         var groupedData = queriedPayments
             .GroupBy(payment => new { payment.Currency, payment.Type, payment.Client, payment.Agent })
-            .Select(group => new
+            .Select(group =>
             {
-                Currency = group.Key.Currency,
-                Type = group.Key.Type,
-                Client = group.Key.Client,
-                Agent = group.Key.Agent,
-                TotalIncome = group.Sum(payment => payment.Amount),
-                TotalProfit = GetTotalProfit(group),
-                TotalExpenses = GetTotalExpenses(group),
-                TotalVat = group.Sum(payment => payment.VatAmount)
+                decimal totalIncome = group.Sum(payment => payment.Amount);
+                decimal totalExpenses = GetTotalExpenses(group);
+                decimal totalVat = group.Sum(payment => payment.VatAmount);
+
+                return new
+                {
+                    Currency = group.Key.Currency,
+                    Type = group.Key.Type,
+                    Client = group.Key.Client,
+                    Agent = group.Key.Agent,
+                    TotalIncome = totalIncome,
+                    TotalExpenses = totalExpenses,
+                    TotalVat = totalVat,
+                    TotalProfit = totalIncome - (totalExpenses + totalVat)
+                };
             });
 
         var uniqueCurrencies = queriedPayments.Select(payment => payment.Currency).Distinct();
@@ -171,27 +179,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                                                                    .Select(x => new PaymentViewModel(x))
                                                                    .ToList();
     }
-    private decimal GetTotalProfit(IGrouping<object, PaymentViewModel> group)
-    {
-        // Collection of associated projects whose TotalExpenses are already accounted for
-        List<Project> assProjects = new();
-        var totalProfit = 0m;
 
-        foreach (var payment in group)
-        {
-            var assProject = payment.Project;
-            // Account for VAT portion of payment
-            totalProfit += payment.Amount / (1 + assProject.VatRateDecimal);
-
-            if (!assProjects.Contains(assProject))
-            {
-                totalProfit -= assProject.Expenses.Sum(e => e.Amount);
-                assProjects.Add(assProject);
-            }
-        }
-
-        return totalProfit;
-    }
     private decimal GetTotalExpenses(IGrouping<object, PaymentViewModel> group)
     {
         // Collection of associated projects whose TotalExpenses are already accounted for
