@@ -1,8 +1,11 @@
-﻿namespace MauiApp1.Models;
+﻿using Newtonsoft.Json;
+
+namespace MauiApp1.Models;
 
 public class Project
 {
-    public Guid Id { get; }
+    [JsonProperty(nameof(Id))]
+    public Guid Id { get; private set; }
     public string Client { get; set; }
     public string Type { get; set; }
     public string Description { get; set; }
@@ -20,6 +23,7 @@ public class Project
 
     public Project(string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, ProjectStatus status)
     {
+        // When deserialising, newly created Id will be overriden by JSON object's Id value
         Id = Guid.NewGuid();
         Client = client;
         Type = type;
