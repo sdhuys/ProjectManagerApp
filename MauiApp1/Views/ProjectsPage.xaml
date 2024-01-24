@@ -80,10 +80,10 @@
             <Label Text="Agent + Fee"
                    Grid.Column="8"
                    VerticalOptions="CenterAndExpand" />
-            <Label Text="Profit"
+            <Label Text="Paid"
                    Grid.Column="9"
                    VerticalOptions="CenterAndExpand" />
-            <Label Text="Paid"
+            <Label Text="Profit"
                    Grid.Column="10"
                    VerticalOptions="CenterAndExpand" />
             <Label Text="Status"
@@ -182,11 +182,7 @@
                                IsVisible="{Binding ManagedByAgent, Converter={StaticResource InvertedBoolConverter}}"
                                Text="None" />
 
-                        <Label Text="{Binding Profit, StringFormat='{0:N0}'}"
-                               Grid.Column="9"
-                               Margin="0,0,10,0"
-                               VerticalOptions="CenterAndExpand" />
-                        <Label Grid.Column="10"
+                        <Label Grid.Column="9"
                                Margin="0,0,10,0"
                                VerticalOptions="CenterAndExpand">
                             <Label.FormattedText>
@@ -196,6 +192,11 @@
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
+
+                        <Label Text="{Binding Profit, StringFormat='{0:N0}'}"
+                               Grid.Column="10"
+                               Margin="0,0,10,0"
+                               VerticalOptions="CenterAndExpand" />
 
                         <Label Text="{Binding Status}"
                                Grid.Column="11"
