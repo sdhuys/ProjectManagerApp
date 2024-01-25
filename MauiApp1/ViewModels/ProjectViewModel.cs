@@ -96,13 +96,14 @@ public class ProjectViewModel : ObservableObject
     }
     public List<ProjectExpense> Expenses
     {
-        get => Project.Expenses;
+        get => new (Project.Expenses);
         set
         {
-            Project.Expenses = value;
+            Project.Expenses = value.ToList();
             OnPropertyChanged();
             OnPropertyChanged(nameof(TotalExpenses));
             OnPropertyChanged(nameof(Profit));
+            OnPropertyChanged(nameof(ActualProfit));
         }
     }
     public decimal TotalExpenses => Expenses == null ? 0 : Expenses.Sum(x => x.Amount);
@@ -113,6 +114,7 @@ public class ProjectViewModel : ObservableObject
         {
             Project.Agent = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(Profit));
             OnPropertyChanged(nameof(ManagedByAgent));
         }
     }
@@ -128,24 +130,26 @@ public class ProjectViewModel : ObservableObject
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
-
-    //ASSUMING AGENCY FEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
+    // Expected profit
     public decimal Profit => FeeExcludingVat - TotalExpenses - (FeeExcludingVat * AgencyFeeDecimal);
+
+    // Actual profit based on payments received
+    public decimal ActualProfit => (1 - VatRateDecimal) * PaidAmount - TotalExpenses; 
     public List<Payment> Payments
     {
-        get => Project.Payments;
+        get => new (Project.Payments);
         set
         {
-            Project.Payments = value;
+            Project.Payments = value.ToList();
             OnPropertyChanged();
             OnPropertyChanged(nameof(PaidAmount));
             OnPropertyChanged(nameof(PaidPercentage));
+            OnPropertyChanged(nameof(ActualProfit));
         }
     }
     public decimal TotalExpectedPaymentsAmount => FeeIncludingVat - (AgencyFeeDecimal * FeeExcludingVat);
     public decimal PaidAmount => Payments.Sum(x => x.Amount);
 
-    //ASSUMING AGENCYFEE IS CALCULATED BASED ON FEE AFTER VAT DEDUCTION
     public decimal PaidPercentage => (PaidAmount / (FeeIncludingVat - (AgencyFeeDecimal * FeeExcludingVat))) * 100m;
     public Project.ProjectStatus Status
     {
@@ -154,8 +158,12 @@ public class ProjectViewModel : ObservableObject
         {
             Project.Status = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(IsOnGoing));
         }
     }
+
+    // Returns true for Active and Invoiced projects
+    public bool IsOnGoing => (int)Status < 2;
     public ProjectViewModel(Project Project)
     {
         this.Project = Project;

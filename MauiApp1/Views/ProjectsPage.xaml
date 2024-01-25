@@ -193,10 +193,17 @@
                             </Label.FormattedText>
                         </Label>
 
-                        <Label Text="{Binding Profit, StringFormat='{0:N0}'}"
-                               Grid.Column="10"
+                        <Label Grid.Column="10"
                                Margin="0,0,10,0"
-                               VerticalOptions="CenterAndExpand" />
+                               VerticalOptions="CenterAndExpand"
+                               IsVisible="{Binding IsOnGoing}"
+                               Text="{Binding Profit}" />
+
+                        <Label Grid.Column="10"
+                               Margin="0,0,10,0"
+                               VerticalOptions="CenterAndExpand"
+                               IsVisible="{Binding IsOnGoing, Converter={StaticResource InvertedBoolConverter}}"
+                               Text="{Binding ActualProfit}" />
 
                         <Label Text="{Binding Status}"
                                Grid.Column="11"
@@ -235,7 +242,7 @@
             <Label Margin="10">
                 <Label.FormattedText>
                     <FormattedString>
-                        <Span Text="Finished Projects: " />
+                        <Span Text="Completed Projects: " />
                         <Span Text="{Binding Path=FinishedProjects.Count}" />
                     </FormattedString>
                 </Label.FormattedText>
