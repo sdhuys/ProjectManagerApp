@@ -130,7 +130,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
     public void OnPageAppearing()
     {
-        // Add current project details to picker collections if they've been removed from settings
+        // Add current project details to picker collections if they've been removed from settings (create copies so they don't get added to settings)
         // Makes sure deleted Agents/Types/Currencies aren't lost on project edit page
         // and sets them as current Agent/Type/Currency
         if (EditMode)
@@ -399,7 +399,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     {
         return !(String.IsNullOrEmpty(Client) || String.IsNullOrEmpty(Fee) || String.IsNullOrEmpty(Currency) || (HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent)));
     }
-
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.ContainsKey("projects"))
