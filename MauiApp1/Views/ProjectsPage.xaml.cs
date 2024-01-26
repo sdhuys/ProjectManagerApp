@@ -18,8 +18,6 @@ public partial class ProjectsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        Debug.WriteLine(viewModel.Projects.First().Profit);
-        Debug.WriteLine(viewModel.Projects.First().IsOnGoing);
     }
 
     private async void OnPageSizeChanged(object sender, EventArgs e)
