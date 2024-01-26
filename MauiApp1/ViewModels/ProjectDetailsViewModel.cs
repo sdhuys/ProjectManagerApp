@@ -336,7 +336,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         }
         Payments.Add(newPayment);
 
-        if (!selectedProjectVM.IsOnGoing)
+        // Calculate rel expenses if project is not ongoing (=> calculation based on actual payments)
+        if ((int)Status > 1)
         {
             CalculateRelativeExpenseAmounts();
         }
