@@ -274,20 +274,24 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         }
     }
 
-    // Called on agency/fee/expense changes to update UI
+    partial void OnStatusChanged(Project.ProjectStatus value)
+    {
+        CalculateRelativeExpenseAmounts();
+    }
+
+    // Called on agency/fee/expense/payment changes to update UI
     private void CalculateRelativeExpenseAmounts()
     {
         if (!Expenses.Any(x => x.IsRelative))
             return;
+        bool isOnGoing = (int)Status < 2 ? true : false;
 
-        if (String.IsNullOrEmpty(Fee))
-        {
-            RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, 0, 0);
-            return;
-        }
+        // If the project is concluded, base earnings based on payments received
+        var projectEarnings = isOnGoing ? decimal.Parse(Fee) : Payments.Sum(x => x.Amount);
 
+        // If earnings are based on payments, agency fee is irrelevant
         decimal agencyFeeDecimal;
-        if (AgentWrapper.Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
+        if (isOnGoing || AgentWrapper.Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
             agencyFeeDecimal = 0;
 
         else if (HasCustomAgencyFee && !String.IsNullOrEmpty(CustomAgencyFeePercent))
@@ -296,9 +300,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         else
             agencyFeeDecimal = Agent.FeeDecimal;
 
-        var feeExcludingVat = (IsVatIncluded && !String.IsNullOrEmpty(VatRatePercent)) ? decimal.Parse(Fee) / (1 + decimal.Parse(VatRatePercent) / 100m) : decimal.Parse(Fee);
-
-        RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, feeExcludingVat, agencyFeeDecimal);
+        var earningsExcludingVat = (IsVatIncluded && !String.IsNullOrEmpty(VatRatePercent)) ? projectEarnings / (1 + decimal.Parse(VatRatePercent) / 100m) : projectEarnings;
+        RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, earningsExcludingVat, agencyFeeDecimal);
     }
 
     [RelayCommand(CanExecute = nameof(CanAddExpense))]
@@ -332,6 +335,12 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             newPayment = new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date);
         }
         Payments.Add(newPayment);
+
+        if (!selectedProjectVM.IsOnGoing)
+        {
+            CalculateRelativeExpenseAmounts();
+        }
+
         paymentsToRemoveFromManagerOnCancel.Add(newPayment);
 
         NewPaymentAmount = null;
@@ -343,6 +352,11 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     {
         paymentsToRemoveFromManagerOnSave.Add(payment);
         Payments.Remove(payment);
+
+        if (!selectedProjectVM.IsOnGoing)
+        {
+            CalculateRelativeExpenseAmounts();
+        }
     }
 
     [RelayCommand]
