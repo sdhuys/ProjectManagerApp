@@ -354,7 +354,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         paymentsToRemoveFromManagerOnSave.Add(payment);
         Payments.Remove(payment);
 
-        if (!selectedProjectVM.IsOnGoing)
+        if ((int)Status > 1)
         {
             CalculateRelativeExpenseAmounts();
         }
