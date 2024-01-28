@@ -247,8 +247,8 @@
                                 Grid.Row="1"
                                 ItemsSource="{Binding Expenses}"
                                 Margin="10"
-                                MinimumHeightRequest="150"
-                                MaximumHeightRequest="150">
+                                MinimumHeightRequest="140"
+                                MaximumHeightRequest="140">
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
@@ -363,7 +363,8 @@
                                 Grid.Row="1"
                                 ItemsSource="{Binding Payments}"
                                 Margin="10"
-                                MaximumHeightRequest="175">
+                                MinimumHeightRequest="140"
+                                MaximumHeightRequest="140">
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
