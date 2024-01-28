@@ -139,7 +139,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         // and sets them as current Agent/Type/Currency
         if (EditMode)
         {
-            if (AgentList.Any(x => x.Agent == selectedProjectVM.Agent))
+            if (!AgentList.Any(x => x.Agent == selectedProjectVM.Agent))
             {
                 AgentWrapper wrapper = new(selectedProjectVM.Agent);
                 AgentList = new(AgentList)
