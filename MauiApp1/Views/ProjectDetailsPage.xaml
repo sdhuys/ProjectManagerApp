@@ -246,7 +246,6 @@
                                 Grid.Column="0"
                                 Grid.Row="1"
                                 ItemsSource="{Binding Expenses}"
-                                Margin="10"
                                 MinimumHeightRequest="140"
                                 MaximumHeightRequest="140">
 
@@ -263,16 +262,19 @@
 
                                 <Label Text="{Binding Name}"
                                        Grid.Column="0"
-                                       Margin="10" />
+                                       Margin="15,0,15,0"
+                                       VerticalTextAlignment="Center"/>
 
                                 <Label Text="{Binding Amount, StringFormat='{0:N2}'}"
                                        Grid.Column="1"
                                        IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}"
-                                       Margin="10" />
+                                       Margin="15,0,15,0"
+                                       VerticalTextAlignment="Center" />
 
                                 <Label Grid.Column="1"
                                        IsVisible="{Binding IsRelative}"
-                                       Margin="10">
+                                       Margin="15,0,15,0"
+                                       VerticalTextAlignment="Center">
                                     <Label.FormattedText>
                                         <FormattedString>
                                             <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P0}'}" />
@@ -284,7 +286,8 @@
 
                                 <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
                                        Grid.Column="2"
-                                       Margin="10" />
+                                       Margin="10,0,10,0"
+                                       VerticalTextAlignment="Center" />
 
                                 <Button Text="X"
                                         Grid.Column="3"
@@ -292,8 +295,9 @@
                                         TextColor="White"
                                         Command="{Binding BindingContext.DeleteExpenseCommand, Source={x:Reference expenseCollection}}"
                                         CommandParameter="{Binding .}"
-                                        HorizontalOptions="EndAndExpand">
-                                </Button>
+                                        HorizontalOptions="EndAndExpand"
+                                        Margin="0,0,10,3" />
+
 
                             </Grid>
 
@@ -362,9 +366,9 @@
                                 Grid.Column="1"
                                 Grid.Row="1"
                                 ItemsSource="{Binding Payments}"
-                                Margin="10"
                                 MinimumHeightRequest="140"
-                                MaximumHeightRequest="140">
+                                MaximumHeightRequest="140"
+                                ItemSizingStrategy="MeasureAllItems">
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
@@ -377,14 +381,17 @@
 
                                 <Label Text="{Binding Amount}"
                                        Grid.Column="0"
-                                       Margin="10" />
+                                       Margin="15,0,15,0"
+                                       VerticalTextAlignment="Center" />
 
                                 <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
                                        Grid.Column="1"
-                                       Margin="10" />
+                                       Margin="15,0,15,0"
+                                       VerticalTextAlignment="Center"  />
 
 
                                 <Button Text="X"
+                                        Margin="0,0,10,3"
                                         Grid.Column="2"
                                         BackgroundColor="Red"
                                         TextColor="White"
