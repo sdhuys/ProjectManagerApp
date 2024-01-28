@@ -10,14 +10,16 @@ public partial class ProjectExpense : ObservableObject
     decimal amount;
     public bool IsRelative { get; set; }
     public decimal RelativeFeeDecimal { get; set; }
+    public DateTime Date { get; set; }
 
-    public ProjectExpense(string name, bool isRelative, decimal value)
+    public ProjectExpense(string name, bool isRelative, decimal value, DateTime date)
     {
         Name = name;
         IsRelative = isRelative;
+        Date = date;
 
         if (isRelative)
-            RelativeFeeDecimal = value/100;
+            RelativeFeeDecimal = value / 100;
         else
             Amount = value;
     }

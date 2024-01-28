@@ -73,6 +73,9 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     bool newExpenseIsRelative;
 
     [ObservableProperty]
+    DateTime newExpenseDate;
+
+    [ObservableProperty]
     ObservableCollection<Payment> payments;
 
     [ObservableProperty]
@@ -126,6 +129,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         StatusList = Enum.GetValues(typeof(Project.ProjectStatus)).OfType<Project.ProjectStatus>().ToList();
         Date = DateTime.Today;
         NewPaymentDate = DateTime.Today;
+        NewExpenseDate = DateTime.Today;
     }
 
     public void OnPageAppearing()
@@ -135,7 +139,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         // and sets them as current Agent/Type/Currency
         if (EditMode)
         {
-            if (AgentList.Where(x => x.Agent == selectedProjectVM.Agent).Count() == 0)
+            if (AgentList.Any(x => x.Agent == selectedProjectVM.Agent))
             {
                 AgentWrapper wrapper = new(selectedProjectVM.Agent);
                 AgentList = new(AgentList)
@@ -307,7 +311,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand(CanExecute = nameof(CanAddExpense))]
     void AddExpense()
     {
-        Expenses.Add(new(NewExpenseName, NewExpenseIsRelative, Convert.ToDecimal(NewExpenseValue)));
+        Expenses.Add(new(NewExpenseName, NewExpenseIsRelative, Convert.ToDecimal(NewExpenseValue), NewExpenseDate));
         CalculateRelativeExpenseAmounts();
 
         NewExpenseIsRelative = false;
