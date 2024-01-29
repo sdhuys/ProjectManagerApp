@@ -176,34 +176,33 @@
                        Margin="20" />
 
 
-                    <Picker ItemsSource="{Binding AgentList}"
-                            ItemDisplayBinding="{Binding Agent, Converter={StaticResource AgentToString}}"
-                            SelectedItem="{Binding AgentWrapper}"
-                            Grid.Row="3"
-                            Grid.Column="2"
-                            VerticalOptions="CenterAndExpand"
-                            HorizontalOptions="StartAndExpand"
-                            Margin="10" />
+                <Picker ItemsSource="{Binding AgentList}"
+                        ItemDisplayBinding="{Binding Agent, Converter={StaticResource AgentToString}}"
+                        SelectedItem="{Binding AgentWrapper}"
+                        Grid.Row="3"
+                        Grid.Column="2"
+                        VerticalOptions="CenterAndExpand"
+                        HorizontalOptions="StartAndExpand"
+                        Margin="10" />
 
                 <StackLayout Orientation="Horizontal"
                              Grid.Row="4"
                              Grid.Column="2"
-                             Margin="10,0,0,0">
-                    <CheckBox IsChecked="{Binding HasCustomAgencyFee}"
-                              IsVisible="{Binding AgentIsSelected}" />
+                             Margin="10,0,0,0"
+                             IsVisible="{Binding AgentIsSelected}">
+                    <CheckBox IsChecked="{Binding HasCustomAgencyFee}" />
 
                     <Label Text="Custom %"
                            VerticalOptions="CenterAndExpand"
                            Margin="-5,0,10,0"
-                           FontSize="12"
-                           IsVisible="{Binding AgentIsSelected}" />
-                
+                           FontSize="12" />
 
-                <Entry Placeholder="Fee"
-                       Text="{Binding CustomAgencyFeePercent}"
-                       FontSize="13"
-                       VerticalTextAlignment="Center"
-                       IsEnabled="{Binding HasCustomAgencyFee}" />
+
+                    <Entry Placeholder="Fee"
+                           Text="{Binding CustomAgencyFeePercent}"
+                           FontSize="13"
+                           VerticalTextAlignment="Center"
+                           IsEnabled="{Binding HasCustomAgencyFee}" />
                 </StackLayout>
 
 
@@ -263,7 +262,7 @@
                                 <Label Text="{Binding Name}"
                                        Grid.Column="0"
                                        Margin="15,0,15,0"
-                                       VerticalTextAlignment="Center"/>
+                                       VerticalTextAlignment="Center" />
 
                                 <Label Text="{Binding Amount, StringFormat='{0:N2}'}"
                                        Grid.Column="1"
@@ -387,7 +386,7 @@
                                 <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
                                        Grid.Column="1"
                                        Margin="15,0,15,0"
-                                       VerticalTextAlignment="Center"  />
+                                       VerticalTextAlignment="Center" />
 
 
                                 <Button Text="X"
