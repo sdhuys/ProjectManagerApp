@@ -13,7 +13,7 @@ internal static class ProjectManager
 
     public static List<Project> AllProjects = new List<Project>();
 
-    public static void SaveProjects(ICollection<Project> projects)
+    public static void SaveProjects(IEnumerable<Project> projects)
     {
         string json = JsonConvert.SerializeObject(projects);
         File.WriteAllText(filePath, json);
