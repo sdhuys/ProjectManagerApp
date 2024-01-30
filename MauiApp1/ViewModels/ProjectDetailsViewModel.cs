@@ -45,7 +45,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     string vatRatePercent;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AgentIsSelected))]
+    [NotifyPropertyChangedFor(nameof(AgentIsSelectedToOpacity))]
     AgentWrapper agentWrapper;
 
     Agent Agent => AgentWrapper.Agent;
@@ -115,6 +115,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             return true;
         }
     }
+    public double AgentIsSelectedToOpacity => AgentIsSelected ? 1 : 0;
     public ProjectDetailsViewModel(SettingsViewModel settings)
     {
         Expenses = new();

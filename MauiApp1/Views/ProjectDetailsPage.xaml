@@ -47,7 +47,7 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="50" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -145,7 +145,7 @@
                     <Entry Text="{Binding Fee}"
                            Placeholder="Enter Fee"
                            Grid.Column="0"
-                           WidthRequest="75"
+                           WidthRequest="85"
                            Margin="0,0,20,0"
                            VerticalOptions="CenterAndExpand" />
 
@@ -188,8 +188,9 @@
                 <StackLayout Orientation="Horizontal"
                              Grid.Row="4"
                              Grid.Column="2"
-                             Margin="10,0,0,0"
-                             IsVisible="{Binding AgentIsSelected}">
+                             Margin="10,-10,0,0"
+                             Opacity="{Binding AgentIsSelectedToOpacity}" >
+
                     <CheckBox IsChecked="{Binding HasCustomAgencyFee}" />
 
                     <Label Text="Custom %"
@@ -199,8 +200,8 @@
 
 
                     <Entry Placeholder="Fee"
+                           Margin="10"
                            Text="{Binding CustomAgencyFeePercent}"
-                           FontSize="13"
                            VerticalTextAlignment="Center"
                            IsEnabled="{Binding HasCustomAgencyFee}" />
                 </StackLayout>
