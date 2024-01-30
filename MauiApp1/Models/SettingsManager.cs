@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 
 namespace MauiApp1.Models;
-public static class Settings
+public static class SettingsManager
 {
     #if DEBUG
         private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
@@ -13,7 +13,7 @@ public static class Settings
 
     public static bool FileExists => File.Exists(filePath);
 
-    static Settings()
+    static SettingsManager()
     {
         LoadFromJson();
     }

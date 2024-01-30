@@ -10,7 +10,7 @@ namespace MauiApp1
         {
             InitializeComponent();
 
-            if (Settings.FileExists)
+            if (SettingsManager.FileExists)
             {
                 MainPage = new AppShell();
             }

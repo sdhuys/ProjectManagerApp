@@ -39,9 +39,9 @@ public partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel()
     {
-        if (Settings.FileExists)
+        if (SettingsManager.FileExists)
         {
-            var settings = Settings.LoadFromJson();
+            var settings = SettingsManager.LoadFromJson();
             ProjectTypes = new(settings.Item1);
             Currencies = new(settings.Item2);
             Agents = new(settings.Item3);
@@ -182,19 +182,19 @@ public partial class SettingsViewModel : ObservableObject
         {
             await Application.Current.MainPage.DisplayAlert("Alert", "Make sure to set at least one currency and one project type!", "Ok");
 
-            if (Settings.FileExists)
+            if (SettingsManager.FileExists)
                 Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(2);
         }
 
         else
         {
             // After first time saving settings load appshell
-            if (!Settings.FileExists)
+            if (!SettingsManager.FileExists)
             {
                 ((App)Application.Current).SetMainPageToAppShell();
             }
 
-            Settings.Save(new(ProjectTypes), new(Currencies), new(Agents));
+            SettingsManager.Save(new(ProjectTypes), new(Currencies), new(Agents));
         }
     }
 }
