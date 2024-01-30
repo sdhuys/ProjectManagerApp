@@ -5,12 +5,11 @@ namespace MauiApp1.Models;
 
 internal static class ProjectManager
 {
-    #if DEBUG
-        private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "projects.json");
-    #else
+#if DEBUG
+    private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "projects.json");
+#else
     private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "projects.json");
-    #endif
-
+#endif
 
     public static List<Project> AllProjects = new List<Project>();
 
