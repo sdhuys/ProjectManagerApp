@@ -4,7 +4,6 @@ using MauiApp1.Models;
 using Microcharts;
 using SkiaSharp;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 
 namespace MauiApp1.ViewModels;
@@ -96,7 +95,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
         var queriedPayments = !EnableFilters ? PaymentManager.AllPayments.Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
 
-        // Group by Currency, Type, and Client
+        // Group of PaymentViewModels by associated Currency, ProjectType, Client and Agent
         var groupedData = queriedPayments
             .GroupBy(payment => new { payment.Currency, payment.Type, payment.Client, payment.Agent })
             .Select(group =>
@@ -124,6 +123,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         var dataForCharts = new Dictionary<string, Dictionary<string, decimal>>();
         foreach (var currency in uniqueCurrencies)
         {
+            dataForCharts.Clear();
+
             var totalCurrencyData = groupedData.Where(item => item.Currency == currency);
             var totalIncome = totalCurrencyData.Sum(x => x.TotalIncome);
             var totalVat = totalCurrencyData.Sum(x => x.TotalVat);
@@ -156,7 +157,6 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             dataForCharts.Add($"{currency} Profit Per Client", clientData);
             dataForCharts.Add($"{currency} Profit Per Agent", agentData);
             var charts = CreateCharts(dataForCharts);
-            dataForCharts.Clear();
 
             CurrencyIncomeDetailsCollection.Add(new CurrencyIncomeDetails
             {
@@ -180,6 +180,10 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                                                                    .ToList();
     }
 
+    // Calculates the total project expenses of a group of PaymentViewModels
+    // When filtering payments on date, only count expenses made within that timeframe
+    // For relative/profit sharing expenses, only include the expense if the project is Finished or Cancelled
+    // ^ in case the expense is added before the project is concluded, but likely only paid out afterwards
     private decimal GetTotalExpenses(IGrouping<object, PaymentViewModel> group)
     {
         // Collection of associated projects whose TotalExpenses are already accounted for
@@ -191,7 +195,18 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             var assProject = payment.Project;
             if (!assProjects.Contains(assProject))
             {
-                totalExpenses += assProject.Expenses.Sum(e => e.Amount);
+                var absoluteExpenses = assProject.Expenses.Where(e => !e.IsRelative);
+                var relevantAbsoluteExpenses = !FilterDates ? absoluteExpenses : absoluteExpenses.Where(e => e.Date >= QueryStartDate && e.Date <= QueryEndDate);
+                var relExpenses = assProject.Expenses.Where(e => e.IsRelative);
+                var relevantRelExpenses = !FilterDates ? relExpenses : relExpenses.Where(e => e.Date >= QueryStartDate && e.Date <= QueryEndDate);
+
+                totalExpenses += relevantAbsoluteExpenses.Sum(e => e.Amount);
+
+                if (assProject.Status == Project.ProjectStatus.Completed || assProject.Status == Project.ProjectStatus.Cancelled)
+                {
+                    totalExpenses += relevantRelExpenses.Sum(e => e.Amount);
+                }
+
                 assProjects.Add(assProject);
             }
         }
@@ -261,7 +276,6 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             });
         }
     }
-
     partial void OnEnableFiltersChanged(bool value)
     {
         if (!value)
@@ -284,6 +298,9 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         public Chart Chart { get; set; }
         public string Header { get; set; }
     }
+    
+    // Class representing total payments received, the VAT portion, related expenses and the resulting profit
+    // Including charts showing 
     public class CurrencyIncomeDetails
     {
         public string Currency { get; set; }

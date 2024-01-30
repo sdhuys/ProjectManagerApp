@@ -308,6 +308,14 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, earningsExcludingVat, agencyFeeDecimal);
     }
 
+    private void SetRelativeExpenseDateToToday()
+    {
+        foreach (var expense in Expenses.Where(e => e.IsRelative))
+        {
+            expense.Date = DateTime.Now;
+        }
+    }
+
     [RelayCommand(CanExecute = nameof(CanAddExpense))]
     void AddExpense()
     {
@@ -387,6 +395,12 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         //Save edits
         else
         {
+            // If project is being set to Finished/Cancelled
+            if ((int)selectedProjectVM.Status < 2 && (int)Status >= 2)
+            {
+                SetRelativeExpenseDateToToday();
+            }
+
             selectedProjectVM.Client = Client;
             selectedProjectVM.Type = Type;
             selectedProjectVM.Description = Description;

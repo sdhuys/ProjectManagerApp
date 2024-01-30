@@ -213,7 +213,7 @@
                                 <Label>
                                     <Label.FormattedText>
                                         <FormattedString>
-                                            <Span Text="Total Expenses: " />
+                                            <Span Text="Total Associated Expenses: " />
                                             <Span Text="{Binding ExpensesAmount, StringFormat='{0:N2}'}" />
                                         </FormattedString>
                                     </Label.FormattedText>
