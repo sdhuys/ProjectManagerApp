@@ -10,7 +10,6 @@ public static class SettingsManager
         private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "settings.json");
     #endif
 
-
     public static bool FileExists => File.Exists(filePath);
 
     static SettingsManager()
