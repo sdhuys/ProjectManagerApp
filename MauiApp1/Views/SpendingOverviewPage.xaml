@@ -93,6 +93,7 @@
 
                                         <HorizontalStackLayout HorizontalOptions="StartAndExpand">
                                             <Entry Text="{Binding Name}"
+                                                   Placeholder="Category Name"
                                                    IsEnabled="{Binding Source={x:Reference SpendingOverview}, Path=BindingContext.EditMode}"
                                                    WidthRequest="145"
                                                    Margin="10" />
@@ -184,7 +185,7 @@
                                                VerticalOptions="EndAndExpand"
                                                Opacity="{Binding Source={x:Reference SpendingOverview}, Path=BindingContext.EditModeToOpacity}" />
 
-                                        <Entry Placeholder="Add Expense"
+                                        <Entry Placeholder="New Expense"
                                                Text="{Binding NewExpenseValue}"
                                                Margin="10"
                                                VerticalOptions="EndAndExpand" />
