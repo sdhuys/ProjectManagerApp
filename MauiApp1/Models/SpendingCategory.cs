@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace MauiApp1.Models;
 public class SpendingCategory
@@ -11,12 +10,13 @@ public class SpendingCategory
     public ObservableCollection<Expense> Expenses { get; set; }
 
     [JsonConstructor]
-    public SpendingCategory(string name, string currency, decimal percentage, ObservableCollection<Expense> expenses)
+    public SpendingCategory(string name, string currency, decimal percentage, List<Expense> expenses)
     {
         Name = name;
         Currency = currency;
         Percentage = percentage;
-        Expenses = expenses;
+        // Order by date in case expenses are somehow moved around in JSON file
+        Expenses = new(expenses.OrderBy(x => x.Date));
     }
 
     public SpendingCategory(string name, string currency)

@@ -18,7 +18,9 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public List<CurrencyConversion> CurrencyConversions { get; set; }
     public IEnumerable<CurrencyConversion> ToSelectedCurrencyConversions => CurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency);
     public IEnumerable<CurrencyConversion> FromSelectedCurrencyConversions => CurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency);
-    public ObservableCollection<CurrencyConversion> SelectedCurrencyConversions { get; set; }
+
+    [ObservableProperty]
+    public ObservableCollection<CurrencyConversion> selectedCurrencyConversions;
     public decimal NetConversionsForCurrency => ToSelectedCurrencyConversions.Sum(x => x.ToAmount) - FromSelectedCurrencyConversions.Sum(x => x.FromAmount);
     public decimal ActualProfitForCurrency => ProjectManager.AllProjects.Where(p => p.Currency == SelectedCurrency)
                                                     .Select(p => new ProjectViewModel(p))
@@ -57,7 +59,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public SpendingOverviewViewModel(SettingsViewModel settings)
     {
         SpendingCategoryViewModels = new(SpendingCategoryManager.LoadFromJson().Select(x => new SpendingCategoryViewModel(x)));
-        CurrencyConversions = new(CurrencyConversionManager.LoadFromJson());
+        CurrencyConversions = new(CurrencyConversionManager.LoadFromJson().OrderBy(x => x.Date));
         SelectedCurrencyConversions = new();
         SelectedCurrencySpendingCategoryViewModels = new();
 
@@ -157,8 +159,18 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public void AddCurrencyConversion()
     {
         var newConversion = new CurrencyConversion(SelectedCurrency, NewToCurrencyEntry, NewFromAmountEntry, NewToAmountEntry, NewConversionDate);
-        CurrencyConversions.Add(newConversion);
-        SelectedCurrencyConversions.Add(newConversion);
+
+        if (CurrencyConversions.Any(x => x.Date > NewConversionDate))
+        {
+            var index = CurrencyConversions.Where(x => x.Date < NewConversionDate).Count();
+            CurrencyConversions.Insert(index, newConversion);
+        }
+        else
+        {
+            CurrencyConversions.Add(newConversion);
+        }
+
+        PopulateSelectedCurrencyConversions();
         OnPropertyChanged(nameof(AdjustedActualProfitForCurrency));
         SetCategoryTotalBudgets();
         OnPropertyChanged(nameof(AbsoluteSavingsGoal));
@@ -227,12 +239,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
     }
     private void PopulateSelectedCurrencyConversions()
     {
-        SelectedCurrencyConversions.Clear();
-
-        foreach (var conv in FromSelectedCurrencyConversions.Union(ToSelectedCurrencyConversions))
-        {
-            SelectedCurrencyConversions.Add(conv);
-        }
+        // Create new to force template selection
+        SelectedCurrencyConversions = new(FromSelectedCurrencyConversions.Union(ToSelectedCurrencyConversions).OrderBy(x => x.Date));
     }
     private void CheckPercentages()
     {
