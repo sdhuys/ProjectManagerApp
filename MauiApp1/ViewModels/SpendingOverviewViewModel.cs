@@ -45,12 +45,15 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public DateTime expenseDate = DateTime.Today;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
     public string newToCurrencyEntry;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
     public decimal newToAmountEntry;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
     public decimal newFromAmountEntry;
 
     [ObservableProperty]
@@ -62,36 +65,15 @@ public partial class SpendingOverviewViewModel : ObservableObject
         CurrencyConversions = new(CurrencyConversionManager.LoadFromJson().OrderBy(x => x.Date));
         SelectedCurrencyConversions = new();
         SelectedCurrencySpendingCategoryViewModels = new();
-
-        /*
-        SpendingCategories = new List<SpendingCategoryViewModel>
-        {
-            new SpendingCategoryViewModel(new SpendingCategory("living expenses", "EUR", 30m, new ObservableCollection<SpendingCategory.Expense> { new(120m, DateTime.Now), new(124m, DateTime.Now), new(120m, DateTime.Now), new(10m, DateTime.Now) })),
-            new SpendingCategoryViewModel(new SpendingCategory("living expenses2", "EUR", 40m, new ObservableCollection<SpendingCategory.Expense> { new(120m, DateTime.Now), new(50m, DateTime.Now), new(12m, DateTime.Now), new(120m, DateTime.Now) })),
-            new SpendingCategoryViewModel(new SpendingCategory("living expenses3", "EUR", 30m, new ObservableCollection<SpendingCategory.Expense>{ new(12m, DateTime.Now), new(520m, DateTime.Now), new(120m, DateTime.Now), new(20m, DateTime.Now) }))
-        };
-
-        SpendingCategoryManager.WriteToJson(SpendingCategories.Select(x => x.Category));
-        */
     }
 
     public void OnAppearing()
     {
         _currencyList = ProjectManager.AllProjects.Select(p => p.Currency).Distinct().ToList();
         OnPropertyChanged(nameof(CurrencyList));
-
-        if (NewCurrencyAddedInProjects())
-        {
-            AddNewCurrenciesToExpenses();
-        }
-
-        SelectedCurrency = CurrencyList.FirstOrDefault();
+        SelectedCurrency = CurrencyList.Order().FirstOrDefault();
     }
-    public void OnDisappearing()
-    {
-        SaveAllCurrencyConversions();
-        SaveAllSpendingCategories();
-    }
+
     partial void OnSelectedCurrencyChanged(string value)
     {
         if (value == null)
@@ -124,9 +106,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
             cat.AddNewExpense(ExpenseDate);
         }
         OnPropertyChanged(nameof(ActualSavings));
-
-        // MOVE SAVING TO ONDISAPPEARING
-        //SaveAll();
     }
 
     [RelayCommand]
@@ -142,6 +121,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         SpendingCategory selectedCurrencyCategory = new(string.Empty, SelectedCurrency);
         SpendingCategoryViewModel vm = new(selectedCurrencyCategory);
+        vm.SetBudget(AdjustedActualProfitForCurrency);
         SpendingCategoryViewModels.Add(vm);
         SelectedCurrencySpendingCategoryViewModels.Add(vm);
         EditMode = true;
@@ -152,10 +132,15 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         SpendingCategoryViewModels.Remove(cat);
         SelectedCurrencySpendingCategoryViewModels.Remove(cat);
-        EditMode = true;
+
+        if (SelectedCurrencySpendingCategoryViewModels.Count == 0)
+        {
+            SavingsGoalPercentage = 100;
+            EditMode = false;
+        }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanAddCurrencyConversion))]
     public void AddCurrencyConversion()
     {
         var newConversion = new CurrencyConversion(SelectedCurrency, NewToCurrencyEntry, NewFromAmountEntry, NewToAmountEntry, NewConversionDate);
@@ -176,9 +161,16 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(AbsoluteSavingsGoal));
         OnPropertyChanged(nameof(ActualSavings));
 
+        SaveAllCurrencyConversions();
+
         NewToAmountEntry = 0;
         NewFromAmountEntry = 0;
         NewConversionDate = DateTime.Today;
+    }
+
+    private bool CanAddCurrencyConversion()
+    {
+        return (NewToAmountEntry != 0 && NewFromAmountEntry != 0 && !String.IsNullOrEmpty(NewToCurrencyEntry));
     }
 
     [RelayCommand]
@@ -198,36 +190,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
             category.SetBudget(AdjustedActualProfitForCurrency);
         }
     }
-    // Returns true if project has been added/edited with new currency that has not yet been included in SpendingCategories' ExpensePerCurrency dictionary
-    private bool NewCurrencyAddedInProjects()
-    {
-        return SpendingCategoryViewModels.Any() && CurrencyList.Except(SpendingCategoryViewModels.Select(c => c.Currency)).Any();
-    }
-    // Creates Spending Categories with same names, currencies and percentages for each new currency
-    private void AddNewCurrenciesToExpenses()
-    {
-        if (SpendingCategoryViewModels.Count() == 0)
-            return;
-
-        List<SpendingCategoryViewModel> toAdd = new();
-
-        foreach (var currency in CurrencyList.Except(SpendingCategoryViewModels.Select(c => c.Currency).Distinct()))
-        {
-            foreach (var category in SpendingCategoryViewModels.DistinctBy(x => x.Name))
-            {
-                var newCategory = new SpendingCategory(category.Name, currency, category.Percentage, new());
-                toAdd.Add(new SpendingCategoryViewModel(newCategory));
-            }
-
-            foreach (var categoryViewModel in toAdd)
-            {
-                SpendingCategoryViewModels.Add(categoryViewModel);
-            }
-            toAdd.Clear();
-        }
-
-        //SaveAll();
-    }
     private void PopulateSelectedCurrencySpendingCategories()
     {
         SelectedCurrencySpendingCategoryViewModels.Clear();
@@ -244,9 +206,9 @@ public partial class SpendingOverviewViewModel : ObservableObject
     }
     private void CheckPercentages()
     {
-        if (!PercentageSumEquals100() && SelectedCurrencySpendingCategoryViewModels.Count > 0)
+        if (!PercentageSumEquals100())
         {
-            Application.Current.MainPage.DisplayAlert("Invalid Percentages Total", "Category percentages + savings goal must add up to 100%", "Ok");
+            Application.Current.MainPage.DisplayAlert("Invalid Percentages Total", "Category percentages + Savings Goal must add up to 100%", "Ok");
             if (EditMode == false)
             {
                 EditMode = true;

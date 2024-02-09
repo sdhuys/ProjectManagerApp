@@ -5,6 +5,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:selector="clr-namespace:MauiApp1.Selectors"
+             xmlns:local="clr-namespace:MauiApp1.ViewModels"
              x:Class="MauiApp1.Views.SpendingOverviewPage"
              Title="Spending"
              x:Name="SpendingOverview">
@@ -159,12 +160,21 @@
                                            VerticalOptions="CenterAndExpand"
                                            Margin="10"
                                            Grid.Column="2">
+                        <HorizontalStackLayout.Triggers>
+                            <DataTrigger TargetType="HorizontalStackLayout"
+                                         Binding="{Binding SelectedCurrencySpendingCategoryViewModels.Count}"
+                                         Value="0">
+                                <Setter Property="IsVisible"
+                                        Value="False" />
+
+                            </DataTrigger>
+                        </HorizontalStackLayout.Triggers>
+                        
                         <Label Text="Edit Categories"
                                VerticalOptions="CenterAndExpand" />
 
                         <Switch IsToggled="{Binding EditMode}"
                                 HorizontalOptions="EndAndExpand" />
-
                     </HorizontalStackLayout>
                 </Grid>
 
@@ -182,6 +192,13 @@
                             <LinearItemsLayout Orientation="Horizontal"
                                                ItemSpacing="10" />
                         </CollectionView.ItemsLayout>
+
+                        <CollectionView.EmptyView>
+                            <Label Text="No spending categories added yet"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   FontAttributes="Italic" />
+                        </CollectionView.EmptyView>
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
@@ -210,17 +227,13 @@
 
                                             <Entry Text="{Binding Percentage, StringFormat='{0:G}'}"
                                                    IsEnabled="{Binding Source={x:Reference SpendingOverview}, Path=BindingContext.EditMode}"
-                                                   MaximumWidthRequest="50"
-                                                   Margin="10,0,3,0">
+                                                   Margin="10,0,0,0">
                                                 <Entry.Behaviors>
                                                     <behaviors:PercentageInputValidationBehavior />
                                                 </Entry.Behaviors>
                                             </Entry>
 
-                                            <Label Text="%     ="
-                                                   VerticalOptions="CenterAndExpand"
-                                                   Margin="0,0,10,0" />
-                                            <Label Text="{Binding SpendingLimit, StringFormat='{0:N}'}"
+                                            <Label Text="{Binding SpendingLimit, StringFormat='% = {0:N}'}"
                                                    VerticalOptions="CenterAndExpand" />
                                         </HorizontalStackLayout>
 
@@ -236,6 +249,13 @@
                                             <CollectionView.ItemsLayout>
                                                 <LinearItemsLayout Orientation="Vertical" />
                                             </CollectionView.ItemsLayout>
+
+                                            <CollectionView.EmptyView>
+                                                <Label Text="No expenses yet"
+                                                       HorizontalTextAlignment="Center"
+                                                       VerticalTextAlignment="Center"
+                                                       FontAttributes="Italic" />
+                                            </CollectionView.EmptyView>
 
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate>
@@ -311,6 +331,15 @@
                         <VerticalStackLayout Grid.Row="1"
                                              VerticalOptions="EndAndExpand"
                                              Margin="10">
+                            <VerticalStackLayout.Triggers>
+                                <DataTrigger TargetType="VerticalStackLayout"
+                                             Binding="{Binding SelectedCurrencySpendingCategoryViewModels.Count}"
+                                             Value="0">
+                                    <Setter Property="IsVisible"
+                                            Value="False" />
+                                </DataTrigger>
+                            </VerticalStackLayout.Triggers>
+                            
                             <DatePicker Date="{Binding ExpenseDate}"
                                         Format="MMM yy"
                                         MaximumDate="{x:Static sys:DateTime.Now}" />
@@ -399,6 +428,12 @@
                                     ItemsSource="{Binding SelectedCurrencyConversions}"
                                     ItemTemplate="{x:StaticResource Selector}"
                                     HeightRequest="200">
+                        <CollectionView.EmptyView>
+                            <Label Text="None"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   FontAttributes="Italic" />
+                        </CollectionView.EmptyView>
                         <CollectionView.ItemsLayout>
                             <LinearItemsLayout Orientation="Vertical"
                                                ItemSpacing="5" />

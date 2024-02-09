@@ -24,7 +24,7 @@ internal class PercentageInputValidationBehavior : Behavior<Entry>
             return;
         }
 
-        if (!(decimal.TryParse(e.NewTextValue, NumberStyles.AllowDecimalPoint, CultureInfo.CurrentCulture, out decimal newValue) && newValue >= 0 && newValue < 100))
+        if (!(decimal.TryParse(e.NewTextValue, NumberStyles.AllowDecimalPoint, CultureInfo.CurrentCulture, out decimal newValue) && newValue >= 0 && newValue <= 100))
         {
             ((Entry)sender).Text = e.OldTextValue;
         }
