@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:MauiApp1.ViewModels"
              xmlns:conv="clr-namespace:MauiApp1.Converters"
              x:Class="MauiApp1.Views.PaymentsOverviewPage"
@@ -157,6 +158,7 @@
 
                     <DatePicker Date="{Binding QueryEndDate}"
                                 Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
+                                MaximumDate="{x:Static sys:DateTime.Now}"
                                 Margin="10"
                                 IsVisible="{Binding FilterDates}"
                                 Grid.Row="1"
