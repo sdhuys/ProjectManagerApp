@@ -21,6 +21,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     string client;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveNewOrEditProjectCommand))]
     string type;
 
     [ObservableProperty]
@@ -430,7 +431,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     }
     private bool CanSaveProject()
     {
-        return !(String.IsNullOrEmpty(Client) || String.IsNullOrEmpty(Fee) || String.IsNullOrEmpty(Currency) || (HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent)));
+        return !(String.IsNullOrEmpty(Client) || String.IsNullOrEmpty(Fee) || String.IsNullOrEmpty(Type) || String.IsNullOrEmpty(Currency) || (HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent)));
     }
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
