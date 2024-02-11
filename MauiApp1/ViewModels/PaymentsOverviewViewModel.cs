@@ -13,7 +13,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     private SettingsViewModel _settingsViewModel;
 
     [ObservableProperty]
-    DateTime queryStartDate = ProjectManager.AllProjects.Min(x => x.Date);
+    DateTime queryStartDate = ProjectManager.AllProjects.Count > 1 ? ProjectManager.AllProjects.Min(x => x.Date) : DateTime.Today;
 
     [ObservableProperty]
     DateTime queryEndDate = DateTime.Today;
@@ -287,7 +287,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             QueryAgents.Clear();
             QueryCurrencies.Clear();
             QueryTypes.Clear();
-            QueryStartDate = ProjectManager.AllProjects.Min(x => x.Date);
+            QueryStartDate = ProjectManager.AllProjects.Count > 1 ? ProjectManager.AllProjects.Min(x => x.Date) : DateTime.Today;
             QueryEndDate = DateTime.Today;
 
             GetIncomeDataAndCreateCharts();

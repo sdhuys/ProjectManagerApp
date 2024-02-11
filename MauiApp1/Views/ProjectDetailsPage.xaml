@@ -21,7 +21,7 @@
     </ContentPage.Resources>
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Save New Project"
+        <ToolbarItem Text="Save"
                      Command="{Binding SaveNewOrEditProjectCommand}"
                      IconImageSource="{FontImage Glyph='✔', Color=Green, Size=22}"
                      Order="Primary"
@@ -223,7 +223,7 @@
             </Grid>
 
             <Grid Grid.Row="1"
-                  Margin="35,0,100,35">
+                  Margin="35,0,100,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />

@@ -169,7 +169,7 @@
 
                             </DataTrigger>
                         </HorizontalStackLayout.Triggers>
-                        
+
                         <Label Text="Edit Categories"
                                VerticalOptions="CenterAndExpand" />
 
@@ -326,7 +326,17 @@
                                 Text="Add Category"
                                 HeightRequest="40"
                                 VerticalOptions="StartAndExpand"
-                                Margin="10" />
+                                Margin="10">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding CurrencyList.Count}"
+                                             Value="0">
+                                    <Setter Property="IsVisible"
+                                            Value="False" />
+
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
 
                         <VerticalStackLayout Grid.Row="1"
                                              VerticalOptions="EndAndExpand"
@@ -339,7 +349,7 @@
                                             Value="False" />
                                 </DataTrigger>
                             </VerticalStackLayout.Triggers>
-                            
+
                             <DatePicker Date="{Binding ExpenseDate}"
                                         Format="MMM yy"
                                         MaximumDate="{x:Static sys:DateTime.Now}" />

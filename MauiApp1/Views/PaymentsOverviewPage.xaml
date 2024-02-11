@@ -176,10 +176,15 @@
                 </Grid>
 
                 <CollectionView ItemsSource="{Binding CurrencyIncomeDetailsCollection}"
-                                EmptyView="No Payments Match Your Filters"
                                 SelectionMode="None"
                                 Grid.Row="1"
                                 VerticalScrollBarVisibility="Always">
+                    <CollectionView.EmptyView>
+                        <Label Text="No Matching Payments"
+                               FontAttributes="Italic"
+                               VerticalTextAlignment="Center"
+                               HorizontalTextAlignment="Center"/>
+                    </CollectionView.EmptyView>
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
@@ -265,9 +270,13 @@
             <Label Text="Active &amp; Invoiced Projects Expected Payments:"
                    Margin="0,0,10,0" />
 
-            <ListView ItemsSource="{Binding CurrencyExpectedIncome}"
+            <CollectionView ItemsSource="{Binding CurrencyExpectedIncome}"
                       SelectionMode="None">
-                <ListView.ItemTemplate>
+                <CollectionView.EmptyView>
+                    <Label Text="None"
+                           FontAttributes="Italic" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
                             <Label>
@@ -281,8 +290,8 @@
                             </Label>
                         </ViewCell>
                     </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
         </HorizontalStackLayout>
     </Grid>

@@ -182,8 +182,9 @@ public partial class SettingsViewModel : ObservableObject
         {
             await Application.Current.MainPage.DisplayAlert("Alert", "Make sure to set at least one currency and one project type!", "Ok");
 
+            // Return to Settings Page
             if (SettingsManager.FileExists)
-                Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(2);
+                Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(3);
         }
 
         else

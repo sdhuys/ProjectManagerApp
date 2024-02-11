@@ -15,7 +15,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
     public bool EditMode => selectedProjectVM != null;
     public string PageTitle => EditMode ? "Edit Project" : "New Project";
-    public string CommandTitle => EditMode ? "Save Changes" : "Save New Project";
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveNewOrEditProjectCommand))]
