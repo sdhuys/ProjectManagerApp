@@ -111,7 +111,6 @@
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
 
-
     <ScrollView>
         <Grid x:Name="OuterGrid">
             <Grid.ColumnDefinitions>
@@ -151,7 +150,7 @@
                             <FormattedString>
                                 <Span Text="Total Net Profit + Net Currency Conversions: &#160;" />
                                 <Span Text="{Binding SelectedCurrency, StringFormat='{0} &#160;'}" />
-                                <Span Text="{Binding AdjustedActualProfitForCurrency, StringFormat='{0:N}'}" />
+                                <Span Text="{Binding TotalSpendingBudget, StringFormat='{0:N}'}" />
                             </FormattedString>
                         </Label.FormattedText>
                     </Label>
@@ -243,7 +242,7 @@
                                                  Margin="10" />
 
                                         <CollectionView x:Name="expenseCollection"
-                                                        ItemsSource="{Binding Expenses}"
+                                                        ItemsSource="{Binding AllTransactions}"
                                                         Margin="15"
                                                         HeightRequest="250">
                                             <CollectionView.ItemsLayout>
@@ -263,7 +262,7 @@
                                                         <FlyoutBase.ContextFlyout>
                                                             <MenuFlyout>
                                                                 <MenuFlyoutItem Text="Delete"
-                                                                                Command="{Binding Path=BindingContext.RemoveExpenseCommand, Source={x:Reference SpendingOverview}}"
+                                                                                Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
                                                                                 CommandParameter="{Binding .}" />
                                                             </MenuFlyout>
                                                         </FlyoutBase.ContextFlyout>
@@ -304,7 +303,7 @@
                                                Opacity="{Binding Source={x:Reference SpendingOverview}, Path=BindingContext.EditModeToOpacity}" />
 
                                         <Entry Placeholder="New Expense"
-                                               Text="{Binding NewExpenseValue}"
+                                               Text="{Binding NewTransactionValue}"
                                                Margin="10"
                                                VerticalOptions="EndAndExpand" />
 
@@ -350,11 +349,11 @@
                                 </DataTrigger>
                             </VerticalStackLayout.Triggers>
 
-                            <DatePicker Date="{Binding ExpenseDate}"
+                            <DatePicker Date="{Binding NewExpenseDate}"
                                         Format="MMM yy"
                                         MaximumDate="{x:Static sys:DateTime.Now}" />
 
-                            <Button Command="{Binding AddNewExpensesCommand}"
+                            <Button Command="{Binding AddNewTransactionToAllSpendingCategoriesCommand}"
                                     HeightRequest="44"
                                     Text="Add Expenses"
                                     IsEnabled="{Binding EditMode, Converter={StaticResource InvertedBoolConverter}}" />

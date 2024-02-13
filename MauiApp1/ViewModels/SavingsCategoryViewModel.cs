@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using static MauiApp1.Models.SpendingCategory;
 
 namespace MauiApp1.ViewModels;
-public partial class SpendingCategoryViewModel : ObservableObject
+public partial class SavingsCategoryViewModel : ObservableObject
 {
     public SpendingCategory Category { get; }
 
@@ -36,8 +36,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         {
             Category.Percentage = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(SpendingLimit));
-            OnPropertyChanged(nameof(RemainingBudget));
+            OnPropertyChanged(nameof(SavingsGoal));
         }
     }
 
@@ -66,12 +65,14 @@ public partial class SpendingCategoryViewModel : ObservableObject
     [ObservableProperty]
     decimal newTransactionValue;
 
-    public decimal SpendingLimit => _budget * Percentage / 100m;
-    public decimal RemainingBudget => SpendingLimit - Expenses.Sum(x => x.Amount);
+    public decimal SavingsGoal => _budget * Percentage / 100m;
+    public decimal PotentialSavings => _budget - _otherCategoriesExpensesTotals;
+    public bool IsSavingsGoalReached => PotentialSavings >= SavingsGoal;
 
     private decimal _budget;
+    private decimal _otherCategoriesExpensesTotals;
 
-    public SpendingCategoryViewModel(SpendingCategory category)
+    public SavingsCategoryViewModel(SpendingCategory category)
     {
         Category = category;
         AllTransactions = new(Category.Expenses.Cast<Transaction>().Union(Category.Transfers.Cast<Transaction>()));
@@ -80,18 +81,25 @@ public partial class SpendingCategoryViewModel : ObservableObject
     public void SetBudget(decimal budget)
     {
         _budget = budget;
-        OnPropertyChanged(nameof(SpendingLimit));
-        OnPropertyChanged(nameof(RemainingBudget));
+        OnPropertyChanged(nameof(SavingsGoal));
     }
 
-    public void AddNewExpense(ExpenseTransaction newExpense)
+    public void SetOtherCategoreisExpensesTotals(decimal otherCategoriesExpensesTotals)
+    {
+        _otherCategoriesExpensesTotals = otherCategoriesExpensesTotals;
+        OnPropertyChanged(nameof(PotentialSavings));
+        OnPropertyChanged(nameof(IsSavingsGoalReached));
+    }
+
+    public void AddNewSavingsSpending(DateTime date, string spendingDescription)
     {
         if (NewTransactionValue == 0)
             return;
+        ExpenseTransaction newExpense = new(NewTransactionValue, date, "");
 
-        if (Category.Expenses.Any(x => x.Date > newExpense.Date))
+        if (Category.Expenses.Any(x => x.Date > date))
         {
-            var index = Category.Expenses.Where(x => x.Date < newExpense.Date).Count();
+            var index = Category.Expenses.Where(x => x.Date < date).Count();
             Category.Expenses.Insert(index, newExpense);
         }
         else
@@ -102,10 +110,9 @@ public partial class SpendingCategoryViewModel : ObservableObject
         UpdateAllTransactions(newExpense, true);
 
         NewTransactionValue = 0;
-        OnPropertyChanged(nameof(RemainingBudget));
     }
 
-    public void RemoveTransaction(Transaction transaction) 
+    public void RemoveTransaction(Transaction transaction)
     {
         if (transaction is ExpenseTransaction expense)
         {
@@ -117,8 +124,6 @@ public partial class SpendingCategoryViewModel : ObservableObject
         }
 
         UpdateAllTransactions(transaction, false);
-
-        OnPropertyChanged(nameof(RemainingBudget));
     }
 
     private void UpdateAllTransactions(Transaction transaction, bool add)
