@@ -293,7 +293,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
         // If earnings are based on payments received, agency fee is irrelevant
         decimal agencyFeeDecimal;
-        if (isOnGoing || AgentWrapper.Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
+        if (!isOnGoing || AgentWrapper.Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
             agencyFeeDecimal = 0;
 
         else if (HasCustomAgencyFee && !String.IsNullOrEmpty(CustomAgencyFeePercent))
