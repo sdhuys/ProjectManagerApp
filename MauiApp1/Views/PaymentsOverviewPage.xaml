@@ -151,6 +151,7 @@
 
                     <DatePicker Date="{Binding QueryStartDate}"
                                 Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
+                                MaximumDate="{Binding QueryEndDate}"
                                 Margin="10"
                                 IsVisible="{Binding FilterDates}"
                                 Grid.Row="1"
@@ -159,6 +160,7 @@
                     <DatePicker Date="{Binding QueryEndDate}"
                                 Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
                                 MaximumDate="{x:Static sys:DateTime.Now}"
+                                MinimumDate="{Binding QueryStartDate}"
                                 Margin="10"
                                 IsVisible="{Binding FilterDates}"
                                 Grid.Row="1"
