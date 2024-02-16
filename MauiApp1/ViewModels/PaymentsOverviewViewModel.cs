@@ -101,7 +101,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             .Select(group =>
             {
                 decimal totalIncome = group.Sum(payment => payment.Amount);
-                decimal totalExpenses = GetTotalExpenses(group);
+                decimal totalExpenses = FilterDates ? PaymentsRelatedExpensesCalculator.CalculateRelatedExpenses(group.Select(x => x), QueryStartDate, QueryEndDate)
+                                                    : PaymentsRelatedExpensesCalculator.CalculateRelatedExpenses(group.Select(x => x));
                 decimal totalVat = group.Sum(payment => payment.VatAmount);
 
                 return new
@@ -175,43 +176,14 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         var types = FilterTypes ? QueryTypes.OfType<string>() : TypeList;
         var agents = FilterAgents ? QueryAgents.OfType<AgentWrapper>() : AgentList;
 
-        return PaymentManager.Query(currencies, types, agents.Select(x => x.Agent), QueryStartDate, QueryEndDate)
+        var startDateToQuery = FilterDates ? QueryStartDate : DateTime.MinValue;
+        var endDateToQuery = FilterDates ? QueryEndDate : DateTime.MaxValue;
+
+        return PaymentManager.QueryByCurrenciesTypesAgentsAndDate(currencies, types, agents.Select(x => x.Agent), startDateToQuery, endDateToQuery)
                                                                    .Select(x => new PaymentViewModel(x))
                                                                    .ToList();
     }
 
-    // Calculates the total project expenses of a group of PaymentViewModels
-    // When filtering payments on date, only count expenses made within that timeframe
-    // For relative/profit sharing expenses, only include the expense if the project is Finished or Cancelled
-    // ^ in case the expense is added before the project is concluded, but likely only paid out afterwards
-    private decimal GetTotalExpenses(IGrouping<object, PaymentViewModel> group)
-    {
-        // Collection of associated projects whose TotalExpenses are already accounted for
-        List<Project> assProjects = new();
-        var totalExpenses = 0m;
-
-        foreach (var payment in group)
-        {
-            var assProject = payment.Project;
-            if (!assProjects.Contains(assProject))
-            {
-                var absoluteExpenses = assProject.Expenses.Where(e => !e.IsRelative);
-                var relevantAbsoluteExpenses = !FilterDates ? absoluteExpenses : absoluteExpenses.Where(e => e.Date >= QueryStartDate && e.Date <= QueryEndDate);
-                var relExpenses = assProject.Expenses.Where(e => e.IsRelative);
-                var relevantRelExpenses = !FilterDates ? relExpenses : relExpenses.Where(e => e.Date >= QueryStartDate && e.Date <= QueryEndDate);
-
-                totalExpenses += relevantAbsoluteExpenses.Sum(e => e.Amount);
-
-                if (assProject.Status == Project.ProjectStatus.Completed || assProject.Status == Project.ProjectStatus.Cancelled)
-                {
-                    totalExpenses += relevantRelExpenses.Sum(e => e.Amount);
-                }
-
-                assProjects.Add(assProject);
-            }
-        }
-        return totalExpenses;
-    }
     private List<ChartWithHeader> CreateCharts(Dictionary<string, Dictionary<string, decimal>> dataForCharts)
     {
         var result = new List<ChartWithHeader>();
