@@ -122,7 +122,8 @@
 
                     <Entry x:Name="NewCurrencyEntry"
                            Placeholder="New Currency"
-                           Text="{Binding CurrencyEntry}" />
+                           Text="{Binding CurrencyEntry}"
+                           TextTransform="Uppercase"/>
 
                     <Button Text="Add Currency"
                             Command="{Binding AddCurrencyCommand}" />
