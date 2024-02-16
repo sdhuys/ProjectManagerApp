@@ -21,7 +21,7 @@
                    HorizontalOptions="Center" />
 
             <Label Grid.Row="1"
-                   Text="Please fill out the types of projects you work on, the currencies you earn in, and your agents (if any)."
+                   Text="Please fill out the types of projects you work on, the currencies you earn in (EUR, USD, INR, etc format), and your agents (if any)."
                    IsVisible="{Binding WelcomeTextVisible}"
                    VerticalOptions="Start"
                    HorizontalOptions="Center"
