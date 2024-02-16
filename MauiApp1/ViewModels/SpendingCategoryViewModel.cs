@@ -29,17 +29,28 @@ public partial class SpendingCategoryViewModel : ObservableObject
     }
 
     // Not in decimal notation!
+    private decimal _percentage;
     public decimal Percentage
     {
-        get => Category.Percentage;
+        get => _percentage;
         set
         {
-            Category.Percentage = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(SpendingLimit));
-            OnPropertyChanged(nameof(RemainingBudget));
+            if (_percentage != value)
+            {
+                _percentage = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(MonthSpendingLimit));
+                OnPropertyChanged(nameof(RemainingBudget));
+
+                if (_selectedDate != DateTime.MinValue)
+                {
+                    PercentageHistory[_selectedDate] = value;
+                }
+            }
+
         }
     }
+    private Dictionary<DateTime, decimal> PercentageHistory => Category.PercentageHistory;
 
     public List<ExpenseTransaction> Expenses
     {
@@ -62,50 +73,93 @@ public partial class SpendingCategoryViewModel : ObservableObject
     }
 
     public ObservableCollection<Transaction> AllTransactions { get; set; }
+    public ObservableCollection<Transaction> SelectedMonthTransactions { get; set; }
 
     [ObservableProperty]
     decimal newTransactionValue;
-
-    public decimal SpendingLimit => _budget * Percentage / 100m;
-    public decimal RemainingBudget => SpendingLimit - Expenses.Sum(x => x.Amount);
+    private decimal previousCumulativeBudget = 0;
+    public decimal MonthSpendingLimit => _budget * Percentage / 100m;
+    public decimal RemainingBudget => previousCumulativeBudget + MonthSpendingLimit - SelectedMonthTransactions.Sum(x => x.Amount);
 
     private decimal _budget;
+    private DateTime _selectedDate;
 
     public SpendingCategoryViewModel(SpendingCategory category)
     {
         Category = category;
         AllTransactions = new(Category.Expenses.Cast<Transaction>().Union(Category.Transfers.Cast<Transaction>()));
+        SelectedMonthTransactions = new();
     }
 
     public void SetBudget(decimal budget)
     {
         _budget = budget;
-        OnPropertyChanged(nameof(SpendingLimit));
+        OnPropertyChanged(nameof(MonthSpendingLimit));
         OnPropertyChanged(nameof(RemainingBudget));
     }
 
-    public void AddNewExpense(ExpenseTransaction newExpense)
+    public void SetAndApplyDate(DateTime date)
     {
-        if (NewTransactionValue == 0)
-            return;
+        _selectedDate = date;
+        GetDatePercentage(_selectedDate);
+        GetMonthTransactions(_selectedDate);
+        OnPropertyChanged(nameof(RemainingBudget));
+    }
 
-        if (Category.Expenses.Any(x => x.Date > newExpense.Date))
+    private void GetDatePercentage(DateTime date)
+    {
+        var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
+        Percentage = previousOrCurrentDateKeys.Any() ? PercentageHistory[previousOrCurrentDateKeys.Max()] : 0;
+    }
+
+    private void GetMonthTransactions(DateTime date)
+    {
+        SelectedMonthTransactions.Clear();
+
+        foreach (var transaction in AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year))
         {
-            var index = Category.Expenses.Where(x => x.Date < newExpense.Date).Count();
-            Category.Expenses.Insert(index, newExpense);
+            SelectedMonthTransactions.Add(transaction);
+        }
+    }
+
+    public void AddNewExpense(DateTime date, string spendingDescription)
+    {
+        if (NewTransactionValue == 0) return;
+
+        ExpenseTransaction newExpense = new(NewTransactionValue, date, spendingDescription);
+        AddOrInsertTransaction(Expenses, newExpense);
+    }
+
+    public void AddNewsTransfer(DateTime date, SpendingCategory destination)
+    {
+        if (NewTransactionValue == 0) return;
+        if (NewTransactionValue > RemainingBudget)
+        {
+            Application.Current.MainPage.DisplayAlert("Insufficient Balance", "You cannot transfer more than the remaining budget balance!", "Ok");
+            return;
+        }
+        TransferTransaction newTransfer = new(Name, NewTransactionValue, date, destination);
+        AddOrInsertTransaction(Transfers, newTransfer);
+    }
+
+    private void AddOrInsertTransaction<T>(List<T> transactions, T newTransaction) where T : Transaction
+    {
+        if (transactions.Any(x => x.Date > newTransaction.Date))
+        {
+            var index = transactions.Where(x => x.Date < newTransaction.Date).Count();
+            transactions.Insert(index, newTransaction);
         }
         else
         {
-            Category.Expenses.Add(newExpense);
+            transactions.Add(newTransaction);
         }
-
-        UpdateAllTransactions(newExpense, true);
+        UpdateAllAndMonthTransactions(newTransaction, true);
+        OnPropertyChanged(nameof(RemainingBudget));
 
         NewTransactionValue = 0;
-        OnPropertyChanged(nameof(RemainingBudget));
     }
 
-    public void RemoveTransaction(Transaction transaction) 
+    public void RemoveTransaction(Transaction transaction)
     {
         if (transaction is ExpenseTransaction expense)
         {
@@ -116,15 +170,15 @@ public partial class SpendingCategoryViewModel : ObservableObject
             Category.Transfers.Remove(transfer);
         }
 
-        UpdateAllTransactions(transaction, false);
-
+        UpdateAllAndMonthTransactions(transaction, false);
         OnPropertyChanged(nameof(RemainingBudget));
     }
 
-    private void UpdateAllTransactions(Transaction transaction, bool add)
+    private void UpdateAllAndMonthTransactions(Transaction transaction, bool add)
     {
         if (add)
         {
+            SelectedMonthTransactions.Add(transaction);
             if (AllTransactions.Any(x => x.Date > transaction.Date))
             {
                 var index = AllTransactions.Where(x => x.Date < transaction.Date).Count();
@@ -140,6 +194,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         else
         {
             AllTransactions.Remove(transaction);
+            SelectedMonthTransactions.Remove(transaction);
         }
     }
 }

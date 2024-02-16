@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using static MauiApp1.Models.SpendingCategory;
+using System.Diagnostics;
 
 namespace MauiApp1.ViewModels;
 public partial class SavingsCategoryViewModel : ObservableObject
@@ -29,16 +30,27 @@ public partial class SavingsCategoryViewModel : ObservableObject
     }
 
     // Not in decimal notation!
+    private decimal _percentage;
     public decimal Percentage
     {
-        get => Category.Percentage;
+        get => _percentage;
         set
         {
-            Category.Percentage = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(SavingsGoal));
+            if (_percentage != value)
+            {
+                _percentage = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SavingsGoal));
+
+                if (_selectedDate != DateTime.MinValue)
+                {
+                    PercentageHistory[_selectedDate] = value;
+                }
+            }
+
         }
     }
+    private Dictionary<DateTime, decimal> PercentageHistory => Category.PercentageHistory;
 
     public List<ExpenseTransaction> Expenses
     {
@@ -61,21 +73,42 @@ public partial class SavingsCategoryViewModel : ObservableObject
     }
 
     public ObservableCollection<Transaction> AllTransactions { get; set; }
+    public ObservableCollection<Transaction> SelectedMonthTransactions { get; set; }
 
     [ObservableProperty]
     decimal newTransactionValue;
 
+    public decimal TotalSavings
+    {
+        get
+        {
+            var incomingTransfers = Transfers.Where(x => x.Destination == Category).Sum(x => x.Amount);
+            var outgoingTransfers = Transfers.Where(x => x.Destination != Category).Sum(x => x.Amount);
+            var expenses = Expenses.Sum(x => x.Amount);
+            return incomingTransfers - (outgoingTransfers + expenses);
+        }
+    }
+
+    public decimal SelectedMonthSavings
+    {
+        get
+        {
+            var incomingTransfers = SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Destination == Category).Sum(x => x.Amount);
+            var outgoingTransfers = SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Destination != Category).Sum(x => x.Amount);
+            var expenses = SelectedMonthTransactions.Where(x => x is ExpenseTransaction).Sum(x => x.Amount);
+            return incomingTransfers - (outgoingTransfers + expenses);
+        }
+    }
     public decimal SavingsGoal => _budget * Percentage / 100m;
-    public decimal PotentialSavings => _budget - _otherCategoriesExpensesTotals;
-    public bool IsSavingsGoalReached => PotentialSavings >= SavingsGoal;
 
     private decimal _budget;
-    private decimal _otherCategoriesExpensesTotals;
+    private DateTime _selectedDate;
 
     public SavingsCategoryViewModel(SpendingCategory category)
     {
         Category = category;
-        AllTransactions = new(Category.Expenses.Cast<Transaction>().Union(Category.Transfers.Cast<Transaction>()));
+        AllTransactions = new(Expenses.Cast<Transaction>().Union(Transfers.Cast<Transaction>()));
+        SelectedMonthTransactions = new();
     }
 
     public void SetBudget(decimal budget)
@@ -84,30 +117,57 @@ public partial class SavingsCategoryViewModel : ObservableObject
         OnPropertyChanged(nameof(SavingsGoal));
     }
 
-    public void SetOtherCategoreisExpensesTotals(decimal otherCategoriesExpensesTotals)
+    public void SetAndApplyDate(DateTime date)
     {
-        _otherCategoriesExpensesTotals = otherCategoriesExpensesTotals;
-        OnPropertyChanged(nameof(PotentialSavings));
-        OnPropertyChanged(nameof(IsSavingsGoalReached));
+        _selectedDate = date;
+        GetDatePercentage(_selectedDate);
+        GetMonthTransactions(date);
     }
 
-    public void AddNewSavingsSpending(DateTime date, string spendingDescription)
+    private void GetDatePercentage(DateTime date)
     {
-        if (NewTransactionValue == 0)
-            return;
-        ExpenseTransaction newExpense = new(NewTransactionValue, date, "");
+        var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
+        Percentage = previousOrCurrentDateKeys.Any() ? PercentageHistory[previousOrCurrentDateKeys.Max()] : 100;
+    }
 
-        if (Category.Expenses.Any(x => x.Date > date))
+    public void GetMonthTransactions(DateTime date)
+    {
+        SelectedMonthTransactions.Clear();
+
+        foreach (var transaction in AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year))
         {
-            var index = Category.Expenses.Where(x => x.Date < date).Count();
-            Category.Expenses.Insert(index, newExpense);
+            SelectedMonthTransactions.Add(transaction);
+        }
+    }
+
+    public void AddNewSavingsExpense(DateTime date, string spendingDescription)
+    {
+        if (NewTransactionValue == 0) return;
+
+        ExpenseTransaction newExpense = new(NewTransactionValue, date, spendingDescription);
+        AddOrInsertTransaction(Expenses, newExpense);
+    }
+
+    public void AddNewSavingsTransfer(DateTime date, SpendingCategory destination)
+    {
+        if (NewTransactionValue == 0) return;
+
+        TransferTransaction newTransfer = new(this.Name, NewTransactionValue, date, destination);
+        AddOrInsertTransaction(Transfers, newTransfer);
+    }
+
+    private void AddOrInsertTransaction<T>(List<T> transactions, T newTransaction) where T : Transaction
+    {
+        if (transactions.Any(x => x.Date > newTransaction.Date))
+        {
+            var index = transactions.Where(x => x.Date < newTransaction.Date).Count();
+            transactions.Insert(index, newTransaction);
         }
         else
         {
-            Category.Expenses.Add(newExpense);
+            transactions.Add(newTransaction);
         }
-
-        UpdateAllTransactions(newExpense, true);
+        UpdateAllAndMonthTransactions(newTransaction, true);
 
         NewTransactionValue = 0;
     }
@@ -116,20 +176,20 @@ public partial class SavingsCategoryViewModel : ObservableObject
     {
         if (transaction is ExpenseTransaction expense)
         {
-            Category.Expenses.Remove(expense);
+            Expenses.Remove(expense);
         }
         else if (transaction is TransferTransaction transfer)
         {
-            Category.Transfers.Remove(transfer);
+            Transfers.Remove(transfer);
         }
 
-        UpdateAllTransactions(transaction, false);
+        UpdateAllAndMonthTransactions(transaction, false);
     }
-
-    private void UpdateAllTransactions(Transaction transaction, bool add)
+    private void UpdateAllAndMonthTransactions(Transaction transaction, bool add)
     {
         if (add)
         {
+            SelectedMonthTransactions.Add(transaction);
             if (AllTransactions.Any(x => x.Date > transaction.Date))
             {
                 var index = AllTransactions.Where(x => x.Date < transaction.Date).Count();
@@ -145,6 +205,8 @@ public partial class SavingsCategoryViewModel : ObservableObject
         else
         {
             AllTransactions.Remove(transaction);
+            SelectedMonthTransactions.Remove(transaction);
         }
+        OnPropertyChanged(nameof(SelectedMonthSavings));
     }
 }

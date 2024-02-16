@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Collections.ObjectModel;
 
 namespace MauiApp1.Models;
 
@@ -7,16 +6,16 @@ public class SpendingCategory
 {
     public string Name { get; set; }
     public string Currency { get; set; }
-    public decimal Percentage { get; set; }
+    public Dictionary<DateTime, decimal> PercentageHistory { get; set; }
     public List<ExpenseTransaction> Expenses { get; set; }
     public List<TransferTransaction> Transfers { get; set; }
 
     [JsonConstructor]
-    public SpendingCategory(string name, string currency, decimal percentage, List<ExpenseTransaction> expenses, List<TransferTransaction> transfers) 
+    public SpendingCategory(string name, string currency, Dictionary<DateTime, decimal> percentageHistory, List<ExpenseTransaction> expenses, List<TransferTransaction> transfers) 
     {
         Name = name;
         Currency = currency;
-        Percentage = percentage;
+        PercentageHistory = percentageHistory;
         Expenses = expenses;
         Transfers = transfers;
     }
@@ -27,9 +26,10 @@ public class SpendingCategory
         Currency = currency;
         Expenses = new();
         Transfers = new();
+        PercentageHistory = new();
     }
 
-    public class Transaction
+    public abstract class Transaction
     {
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
