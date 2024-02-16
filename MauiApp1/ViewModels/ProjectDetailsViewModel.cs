@@ -88,9 +88,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [ObservableProperty]
     Project.ProjectStatus status;
 
-    private List<Payment> paymentsToRemoveFromManagerOnCancel = new();
-    private List<Payment> paymentsToRemoveFromManagerOnSave = new();
-
     [ObservableProperty]
     public ObservableCollection<AgentWrapper> agentList;
 
@@ -294,7 +291,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         // If the project is concluded, base earnings based on payments received
         var projectEarnings = isOnGoing ? decimal.Parse(Fee) : Payments.Sum(x => x.Amount);
 
-        // If earnings are based on payments, agency fee is irrelevant
+        // If earnings are based on payments received, agency fee is irrelevant
         decimal agencyFeeDecimal;
         if (isOnGoing || AgentWrapper.Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
             agencyFeeDecimal = 0;
@@ -355,8 +352,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             CalculateRelativeExpenseAmounts();
         }
 
-        paymentsToRemoveFromManagerOnCancel.Add(newPayment);
-
         NewPaymentAmount = null;
         NewPaymentDate = DateTime.Today;
     }
@@ -364,7 +359,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand]
     void DeletePayment(Payment payment)
     {
-        paymentsToRemoveFromManagerOnSave.Add(payment);
         Payments.Remove(payment);
 
         if ((int)Status > 1)
@@ -376,7 +370,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand]
     async Task Cancel()
     {
-        PaymentManager.AllPayments.RemoveAll(paymentsToRemoveFromManagerOnCancel.Contains);
         await Shell.Current.GoToAsync("..");
     }
 
@@ -416,7 +409,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             selectedProjectVM.Payments = Payments.ToList();
             selectedProjectVM.Status = Status;
         }
-        PaymentManager.AllPayments.RemoveAll(paymentsToRemoveFromManagerOnSave.Contains);
         ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         await Shell.Current.GoToAsync("..");
     }

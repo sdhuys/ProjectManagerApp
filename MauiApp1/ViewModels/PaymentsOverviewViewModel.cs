@@ -13,7 +13,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     private SettingsViewModel _settingsViewModel;
 
     [ObservableProperty]
-    DateTime queryStartDate = ProjectManager.AllProjects.Count > 1 ? ProjectManager.AllProjects.Min(x => x.Date) : DateTime.Today;
+    DateTime queryStartDate = ProjectManager.AllProjects.Count > 1 ? ProjectManager.AllProjects.SelectMany(p => p.Payments).Min(x => x.Date) : DateTime.Today;
 
     [ObservableProperty]
     DateTime queryEndDate = DateTime.Today;
@@ -93,7 +93,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     {
         CurrencyIncomeDetailsCollection.Clear();
 
-        var queriedPayments = !EnableFilters ? PaymentManager.AllPayments.Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
+        var queriedPayments = !EnableFilters ? ProjectManager.AllProjects.SelectMany(p => p.Payments).Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
 
         // Group of PaymentViewModels by associated Currency, ProjectType, Client and Agent
         var groupedData = queriedPayments
@@ -179,7 +179,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         var startDateToQuery = FilterDates ? QueryStartDate : DateTime.MinValue;
         var endDateToQuery = FilterDates ? QueryEndDate : DateTime.MaxValue;
 
-        return PaymentManager.QueryByCurrenciesTypesAgentsAndDate(currencies, types, agents.Select(x => x.Agent), startDateToQuery, endDateToQuery)
+        return PaymentQueryManager.QueryByCurrenciesTypesAgentsAndDate(currencies, types, agents.Select(x => x.Agent), startDateToQuery, endDateToQuery)
                                                                    .Select(x => new PaymentViewModel(x))
                                                                    .ToList();
     }

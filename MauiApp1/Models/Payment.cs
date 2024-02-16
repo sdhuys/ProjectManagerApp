@@ -15,16 +15,14 @@ namespace MauiApp1.Models
             Amount = amount;
             Date = date;
             AssociatedProjectID = projectID;
-            PaymentManager.AddPayment(this);
         }
 
-        //Constructor to be called when adding payment to new project (no ID created yet)
+        //Constructor to be called when adding payment to new to be created project (no ID created yet)
         [JsonConstructor]
         public Payment(decimal amount, DateTime date)
         {
             Amount = amount;
             Date = date;
-            PaymentManager.AddPayment(this);
         }
     }
 }

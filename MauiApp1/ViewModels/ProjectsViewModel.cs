@@ -59,7 +59,6 @@ public partial class ProjectsViewModel : ObservableObject
         bool confirmed = await DisplayConfirmationDialog("Confirm Deletion", "Are you sure you want to delete this project?");
         if (confirmed)
         {
-            PaymentManager.AllPayments.RemoveAll(SelectedProjectVM.Payments.Contains);
             ProjectManager.AllProjects.Remove(SelectedProjectVM.Project);
             Projects.Remove(SelectedProjectVM);
             ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
