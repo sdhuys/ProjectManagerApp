@@ -7,7 +7,7 @@ internal class SpendingViewModelTransactionTemplateSelector : DataTemplateSelect
     public DataTemplate TransferToSavingsTemplate { get; set; }
     protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
     {
-        if (item is SpendingCategory.TransferTransaction) return TransferToSavingsTemplate;
+        if (item is TransferTransaction) return TransferToSavingsTemplate;
         else return ExpenseTemplate;
     }
 }

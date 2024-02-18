@@ -46,8 +46,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
     [ObservableProperty]
     ObservableCollection<CurrencyConversion> selectedCurrencyConversions;
 
-    public decimal SelectedCurrencyNetSavingsConversions => ToSelectedCurrencySavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencySavingsConversions.Sum(x => x.FromAmount);
-    public decimal SelectedCurrencyNetNonSavingsConversions => ToSelectedCurrencyNonSavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencyNonSavingsConversions.Sum(x => x.FromAmount);
+    public decimal SelectedCurrencyNetSavingsConversions => ToSelectedCurrencySavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencySavingsConversions.Sum(x => x.Amount);
+    public decimal SelectedCurrencyNetNonSavingsConversions => ToSelectedCurrencyNonSavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencyNonSavingsConversions.Sum(x => x.Amount);
 
     public decimal ActualProfitForCurrency => ShowAllTransactions ? GetSelectedMonthNetProfit()
                                                                 : ProjectManager.AllProjects.Where(p => p.Currency == SelectedCurrency)
@@ -181,7 +181,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void RemoveTransaction(SpendingCategory.Transaction transaction)
+    public void RemoveTransaction(Transaction transaction)
     {
         var categoryToRemoveFrom = SelectedCurrencySpendingCategoryViewModels.Where(cat => cat.Expenses.Contains(transaction) || cat.Transfers.Contains(transaction)).FirstOrDefault();
         categoryToRemoveFrom.RemoveTransaction(transaction);

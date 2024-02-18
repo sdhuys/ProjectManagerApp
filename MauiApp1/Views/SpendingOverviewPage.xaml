@@ -37,7 +37,7 @@
                         <Label.FormattedText>
                             <FormattedString>
                                 <Span Text="{Binding FromCurrency}" />
-                                <Span Text="{Binding FromAmount, StringFormat=' {0:N0}'}" />
+                                <Span Text="{Binding Amount, StringFormat=' {0:N0}'}" />
                             </FormattedString>
                         </Label.FormattedText>
                         <Label.Triggers>
@@ -120,7 +120,7 @@
                         <Label.FormattedText>
                             <FormattedString>
                                 <Span Text="{Binding FromCurrency}" />
-                                <Span Text="{Binding FromAmount, StringFormat=' {0:N0}'}" />
+                                <Span Text="{Binding Amount, StringFormat=' {0:N0}'}" />
                             </FormattedString>
                         </Label.FormattedText>
                         <Label.Triggers>
