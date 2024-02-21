@@ -119,13 +119,13 @@ public partial class SpendingOverviewViewModel : ObservableObject
         {
             if (conv.IsFromSavings)
             {
-                var savings = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == conv.FromCurrency);
-                savings?.AddNewSavingsConversion(conv);
+                var fromSavingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == conv.FromCurrency);
+                fromSavingsVM?.AddNewSavingsConversion(conv);
             }
             if (conv.IsToSavings)
             {
-                var savings = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == conv.ToCurrency);
-                savings?.AddNewSavingsConversion(conv);
+                var toSavingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == conv.ToCurrency);
+                toSavingsVM?.AddNewSavingsConversion(conv);
             }
         }
     }
@@ -153,8 +153,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectedSavingsCategoryViewModel));
         OnPropertyChanged(nameof(TotalSpendingBudget));
         OnPropertyChanged(nameof(IsSavingsGoalReached));
-        SetCategoriesTotalBudgets();
-        SetAndApplyCategoriesDates();
+        SetCategoriesBudgetandDate();
         OnPropertyChanged(nameof(NonSelectedCurrencies));
         CheckPercentages();
         SetExpensesAreFinalisedFromDictionary();
@@ -167,8 +166,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         if (newValue.Month != oldValue.Month || newValue.Year != oldValue.Year)
         {
-            SetAndApplyCategoriesDates();
-            SetCategoriesTotalBudgets();
+            SetCategoriesBudgetandDate();
             PopulateSelectedCurrencyConversions();
             OnPropertyChanged(nameof(TotalSpendingBudget));
             CheckPercentages();
@@ -193,6 +191,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
     // If expenses exceed budget, add Expense to savings to cover for the overdraft
     //
     // When expenses are set back to Unfinalised, remove automatically added transfer or expenses
+    //
+    // Immidiately return if value is set from dictionary on page load/date change (= not a real change)
     partial void OnExpensesAreFinalisedChanged(bool oldValue, bool newValue)
     {
         if (_blockOnExpensesFinalisedChanged) return;
@@ -232,6 +232,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     }
     private void SetExpensesAreFinalisedFromDictionary()
     {
+        // Set to true so OnExpensesAreFinalisedChanged immidiately returns
         _blockOnExpensesFinalisedChanged = true;
         var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate.ToString("Y")}";
         if (_finalizedMonthsDictionary.ContainsKey(currencyMonthKey))
@@ -269,7 +270,10 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(TotalRemainingBudget));
         OnPropertyChanged(nameof(IsSavingsGoalReached));
     }
+    public void AddExternalSavingsTransfer()
+    {
 
+    }
     [RelayCommand]
     public void RemoveTransaction(Transaction transaction)
     {
@@ -282,7 +286,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
             if ((conv.FromCurrency == SelectedCurrency && !conv.IsFromSavings) || (conv.ToCurrency == SelectedCurrency && !conv.IsToSavings))
             {
                 OnPropertyChanged(nameof(TotalSpendingBudget));
-                SetCategoriesTotalBudgets();
+                SetCategoriesBudget();
             }
 
             if (conv.IsFromSavings || conv.IsToSavings)
@@ -315,8 +319,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         SpendingCategory selectedCurrencyCategory = new(string.Empty, SelectedCurrency);
         SpendingCategoryViewModel vm = new(selectedCurrencyCategory);
-        vm.SetBudget(TotalSpendingBudget);
-        vm.SetAndApplyDate(SelectedDate);
+        vm.SetBudgetAndDate(TotalSpendingBudget, SelectedDate);
         SpendingCategoryViewModels.Add(vm);
         SelectedCurrencySpendingCategoryViewModels.Add(vm);
         EditMode = true;
@@ -371,7 +374,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         PopulateSelectedCurrencyConversions();
         OnPropertyChanged(nameof(TotalSpendingBudget));
-        SetCategoriesTotalBudgets();
+        SetCategoriesBudget();
         SaveAllCurrencyConversions();
 
         NewToAmountEntry = 0;
@@ -382,7 +385,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         return (NewToAmountEntry != 0 && NewFromAmountEntry != 0 && !String.IsNullOrEmpty(NewToCurrencyEntry));
     }
 
-    private void SetCategoriesTotalBudgets()
+    private void SetCategoriesBudget()
     {
         foreach (var category in SelectedCurrencySpendingCategoryViewModels)
         {
@@ -391,14 +394,14 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         SelectedSavingsCategoryViewModel.SetBudget(TotalSpendingBudget);
     }
-    private void SetAndApplyCategoriesDates()
+    private void SetCategoriesBudgetandDate()
     {
         foreach (var category in SelectedCurrencySpendingCategoryViewModels)
         {
-            category.SetAndApplyDate(SelectedDate);
+            category.SetBudgetAndDate(TotalSpendingBudget, SelectedDate);
         }
 
-        SelectedSavingsCategoryViewModel.SetAndApplyDate(SelectedDate);
+        SelectedSavingsCategoryViewModel.SetBudgetAndDate(TotalSpendingBudget, SelectedDate);
     }
     private void PopulateSelectedCurrencySpendingCategories()
     {

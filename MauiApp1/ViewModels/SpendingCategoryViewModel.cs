@@ -91,19 +91,22 @@ public partial class SpendingCategoryViewModel : ObservableObject
         SelectedMonthTransactions = new();
     }
 
-    public void SetBudget(decimal budget)
+
+    public void SetBudgetAndDate(decimal budget, DateTime date)
     {
         _budget = budget;
+        _selectedDate = date;
+
+        Percentage = GetDatePercentage(_selectedDate);
+        PopulateSelectedMonthTransactions(_selectedDate);
         OnPropertyChanged(nameof(MonthSpendingLimit));
         OnPropertyChanged(nameof(RemainingBudget));
         OnPropertyChanged(nameof(CumulativeRemainingBudget));
     }
-
-    public void SetAndApplyDate(DateTime date)
+    public void SetBudget(decimal budget)
     {
-        _selectedDate = date;
-        Percentage = GetDatePercentage(_selectedDate);
-        PopulateSelectedMonthTransactions(_selectedDate);
+        _budget = budget;
+        OnPropertyChanged(nameof(MonthSpendingLimit));
         OnPropertyChanged(nameof(RemainingBudget));
         OnPropertyChanged(nameof(CumulativeRemainingBudget));
     }

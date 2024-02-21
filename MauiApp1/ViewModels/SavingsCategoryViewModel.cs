@@ -132,8 +132,9 @@ public partial class SavingsCategoryViewModel : ObservableObject
         OnPropertyChanged(nameof(SavingsGoal));
     }
 
-    public void SetAndApplyDate(DateTime date)
+    public void SetBudgetAndDate(decimal budget, DateTime date)
     {
+        _budget = budget;
         _selectedDate = date;
         Percentage = GetDatePercentage(_selectedDate);
         GetMonthTransactions(date);
