@@ -1,4 +1,6 @@
-﻿namespace MauiApp1.Models;
+﻿using MauiApp1.Models;
+
+namespace MauiApp1.StaticHelpers;
 
 public static class RelativeExpenseCalculator
 {
@@ -10,7 +12,7 @@ public static class RelativeExpenseCalculator
 
         foreach (var relExpense in expenses.Where(x => x.IsRelative))
         {
-                relExpense.Amount = profitLeft > 0 ? profitLeft * relExpense.RelativeFeeDecimal : 0;
+            relExpense.Amount = profitLeft > 0 ? profitLeft * relExpense.RelativeFeeDecimal : 0;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using MauiApp1.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using static MauiApp1.Models.SpendingCategory;
+using MauiApp1.StaticHelpers;
 
 namespace MauiApp1.ViewModels;
 public partial class SpendingCategoryViewModel : ObservableObject
@@ -38,14 +38,16 @@ public partial class SpendingCategoryViewModel : ObservableObject
             if (_percentage != value)
             {
                 _percentage = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(MonthSpendingLimit));
-                OnPropertyChanged(nameof(RemainingBudget));
 
                 if (_selectedDate != DateTime.MinValue)
                 {
                     PercentageHistory[_selectedDate] = value;
                 }
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(MonthSpendingLimit));
+                OnPropertyChanged(nameof(RemainingBudget));
+                OnPropertyChanged(nameof(CumulativeRemainingBudget));
             }
 
         }
@@ -58,7 +60,6 @@ public partial class SpendingCategoryViewModel : ObservableObject
         set
         {
             Category.Expenses = value;
-            OnPropertyChanged();
         }
     }
 
@@ -68,7 +69,6 @@ public partial class SpendingCategoryViewModel : ObservableObject
         set
         {
             Category.Transfers = value;
-            OnPropertyChanged();
         }
     }
 
@@ -77,9 +77,9 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
     [ObservableProperty]
     decimal newTransactionValue;
-    private decimal previousCumulativeBudget = 0;
     public decimal MonthSpendingLimit => _budget * Percentage / 100m;
-    public decimal RemainingBudget => previousCumulativeBudget + MonthSpendingLimit - SelectedMonthTransactions.Sum(x => x.Amount);
+    public decimal CumulativeRemainingBudget => GetCumulativeRemainingBudget(_selectedDate);
+    public decimal RemainingBudget => MonthSpendingLimit - SelectedMonthTransactions.Sum(x => x.Amount);
 
     private decimal _budget;
     private DateTime _selectedDate;
@@ -96,23 +96,25 @@ public partial class SpendingCategoryViewModel : ObservableObject
         _budget = budget;
         OnPropertyChanged(nameof(MonthSpendingLimit));
         OnPropertyChanged(nameof(RemainingBudget));
+        OnPropertyChanged(nameof(CumulativeRemainingBudget));
     }
 
     public void SetAndApplyDate(DateTime date)
     {
         _selectedDate = date;
-        GetDatePercentage(_selectedDate);
-        GetMonthTransactions(_selectedDate);
+        Percentage = GetDatePercentage(_selectedDate);
+        PopulateSelectedMonthTransactions(_selectedDate);
         OnPropertyChanged(nameof(RemainingBudget));
+        OnPropertyChanged(nameof(CumulativeRemainingBudget));
     }
 
-    private void GetDatePercentage(DateTime date)
+    private decimal GetDatePercentage(DateTime date)
     {
         var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
-        Percentage = previousOrCurrentDateKeys.Any() ? PercentageHistory[previousOrCurrentDateKeys.Max()] : 0;
+        return previousOrCurrentDateKeys.Any() ? PercentageHistory[previousOrCurrentDateKeys.Max()] : 0;
     }
 
-    private void GetMonthTransactions(DateTime date)
+    private void PopulateSelectedMonthTransactions(DateTime date)
     {
         SelectedMonthTransactions.Clear();
 
@@ -130,16 +132,19 @@ public partial class SpendingCategoryViewModel : ObservableObject
         AddOrInsertTransaction(Expenses, newExpense);
     }
 
-    public void AddNewsTransfer(DateTime date, SpendingCategory destination)
+    public void AddNewsTransfer(DateTime date, SavingsCategoryViewModel destinationViewModel)
     {
         if (NewTransactionValue == 0) return;
-        if (NewTransactionValue > RemainingBudget)
+        if (NewTransactionValue > CumulativeRemainingBudget)
         {
             Application.Current.MainPage.DisplayAlert("Insufficient Balance", "You cannot transfer more than the remaining budget balance!", "Ok");
             return;
         }
-        TransferTransaction newTransfer = new(Name, NewTransactionValue, date, destination);
+        TransferTransaction newTransfer = new(Name, NewTransactionValue, date, destinationViewModel.Name);
+
+        // Add the transfer to both the SpendingCategory and the SavingsCategory
         AddOrInsertTransaction(Transfers, newTransfer);
+        destinationViewModel.AddIncomingSavingsTransfer(newTransfer);
     }
 
     private void AddOrInsertTransaction<T>(List<T> transactions, T newTransaction) where T : Transaction
@@ -155,6 +160,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         }
         UpdateAllAndMonthTransactions(newTransaction, true);
         OnPropertyChanged(nameof(RemainingBudget));
+        OnPropertyChanged(nameof(CumulativeRemainingBudget));
 
         NewTransactionValue = 0;
     }
@@ -172,6 +178,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
         UpdateAllAndMonthTransactions(transaction, false);
         OnPropertyChanged(nameof(RemainingBudget));
+        OnPropertyChanged(nameof(CumulativeRemainingBudget));
     }
 
     private void UpdateAllAndMonthTransactions(Transaction transaction, bool add)
@@ -196,5 +203,36 @@ public partial class SpendingCategoryViewModel : ObservableObject
             AllTransactions.Remove(transaction);
             SelectedMonthTransactions.Remove(transaction);
         }
+    }
+    
+    private decimal GetCumulativeRemainingBudget(DateTime date)
+    {
+        if (PercentageHistory.Keys.Count == 0 || date < PercentageHistory.Keys.Min()) return 0;
+
+        if (date == PercentageHistory.Keys.Min())
+        {
+            return GetRemainingBudget(date);
+        }
+        var previousMonth = date.AddMonths(-1);
+        return GetCumulativeRemainingBudget(previousMonth) + GetRemainingBudget(date);
+    }
+
+    private decimal GetRemainingBudget(DateTime date)
+    {
+        var percentage = GetDatePercentage(date);
+        var spendingBudget = MonthlyProfitCalculator.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+
+        var monthTransactionsAmount = AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(x => x.Amount);
+
+        return (spendingBudget * percentage / 100m) - monthTransactionsAmount;
+
+    }
+
+    private decimal GetNetCurrencyConversionsAmount(DateTime date)
+    {
+        var outgoing = CurrencyConversionManager.AllConversions.Where(c => c.Date == date && c.FromCurrency == Currency && !c.IsFromSavings).Sum(c => c.Amount);
+        var incoming = CurrencyConversionManager.AllConversions.Where(c => c.Date == date && c.ToCurrency == Currency && !c.IsToSavings).Sum(c => c.ToAmount);
+
+        return incoming - outgoing;
     }
 }

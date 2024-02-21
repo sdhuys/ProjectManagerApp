@@ -3,6 +3,7 @@ using MauiApp1.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Views;
+using MauiApp1.StaticHelpers;
 
 namespace MauiApp1.ViewModels;
 public partial class ProjectsViewModel : ObservableObject

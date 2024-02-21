@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Models;
+using MauiApp1.StaticHelpers;
 
 namespace MauiApp1.ViewModels;
 

@@ -1,6 +1,7 @@
-﻿using MauiApp1.ViewModels;
+﻿using MauiApp1.Models;
+using MauiApp1.ViewModels;
 
-namespace MauiApp1.Models;
+namespace MauiApp1.StaticHelpers;
 
 // Calculates the total project expenses of a collection of PaymentViewModels
 // When filtering payments on date, only count expenses made within that timeframe

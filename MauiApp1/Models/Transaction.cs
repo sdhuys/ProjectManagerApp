@@ -1,5 +1,4 @@
-﻿
-namespace MauiApp1.Models;
+﻿namespace MauiApp1.Models;
 
 public abstract class Transaction
 {
@@ -27,8 +26,8 @@ public class TransferTransaction : Transaction
 {
     // Source can be a SpendingCategory.Name, "Savings Goal", or "External"
     public string Source { get; set; }
-    public SpendingCategory Destination { get; set; }
-    public TransferTransaction(string source, decimal amount, DateTime date, SpendingCategory destination) : base(amount, date)
+    public string Destination { get; set; }
+    public TransferTransaction(string source, decimal amount, DateTime date, string destination) : base(amount, date)
     {
         Source = source;
         Destination = destination;

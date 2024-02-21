@@ -1,4 +1,4 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:behaviors="clr-namespace:MauiApp1.Behaviors"
              xmlns:conv="clr-namespace:MauiApp1.Converters"
@@ -17,7 +17,7 @@
                     <FlyoutBase.ContextFlyout>
                         <MenuFlyout>
                             <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveCurrencyConversionCommand, Source={x:Reference SpendingOverview}}"
+                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
                                             CommandParameter="{Binding .}" />
                         </MenuFlyout>
                     </FlyoutBase.ContextFlyout>
@@ -80,7 +80,7 @@
                     <FlyoutBase.ContextFlyout>
                         <MenuFlyout>
                             <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveCurrencyConversionCommand, Source={x:Reference SpendingOverview}}"
+                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
                                             CommandParameter="{Binding .}" />
                         </MenuFlyout>
                     </FlyoutBase.ContextFlyout>
@@ -243,18 +243,21 @@
                                     MaximumDate="{x:Static sys:DateTime.Now}"
                                     IsEnabled="{Binding EditMode, Converter={StaticResource InvertedBoolConverter}}"
                                     Margin="0,0,10,0" />
-                        <!--IsVisible="{Binding IsFilteredByMonth}"-->
 
                     </HorizontalStackLayout>
 
 
                     <Label VerticalOptions="CenterAndExpand"
-                           Grid.Column="1">
+                           Grid.Column="1"
+                           ToolTipProperties.Text="Selected month's Net Profit + Net Non-Savings Currency Conversions">
                         <Label.FormattedText>
                             <FormattedString>
-                                <Span Text="Total Budget: Net Profit + Net Currency Conversions = &#160;" />
-                                <Span Text="{Binding SelectedCurrency, StringFormat='{0}'}" />
-                                <Span Text="{Binding TotalSpendingBudget, StringFormat='&#160; {0:N}'}" />
+                                <Span Text="Total Budget: &#160;"
+                                      FontAttributes="Bold" />
+                                <Span Text="{Binding SelectedCurrency, StringFormat='{0}'}"
+                                      FontAttributes="Bold"/>
+                                <Span Text="{Binding TotalSpendingBudget, StringFormat='&#160; {0:N}'}"
+                                      FontAttributes="Bold"/>
                             </FormattedString>
                         </Label.FormattedText>
                     </Label>
@@ -360,7 +363,7 @@
                                                         ItemsSource="{Binding SelectedMonthTransactions}"
                                                         ItemTemplate="{x:StaticResource TransactionTemplateSelector}"
                                                         Margin="15"
-                                                        HeightRequest="200">
+                                                        HeightRequest="180">
                                             <CollectionView.Triggers>
                                                 <DataTrigger TargetType="CollectionView"
                                                              Binding="{Binding Source={x:Reference SpendingOverview}, Path=BindingContext.ShowAllTransactions}"
@@ -389,13 +392,29 @@
                                                  Margin="10" />
 
                                         <Label Text="Remaining budget:"
-                                               Margin="0,10,0,15"
+                                               FontSize="10"
+                                               Margin="0,0,0,5"
                                                HorizontalOptions="Center"
                                                VerticalOptions="EndAndExpand" />
 
                                         <Label Text="{Binding RemainingBudget, StringFormat='{0:N}'}"
+                                               FontSize="10"
+                                               Margin="0,0,0,10"
+                                               HorizontalOptions="CenterAndExpand"
+                                               VerticalOptions="EndAndExpand" />
+
+                                        <Label Text="Cumulative remaining budget:"
+                                               FontSize="12"
+                                               Margin="0,0,0,5"
                                                HorizontalOptions="Center"
                                                VerticalOptions="EndAndExpand" />
+
+                                        <Label Text="{Binding CumulativeRemainingBudget, StringFormat='{0:N}'}"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="EndAndExpand" />
+
 
                                         <Entry Placeholder="New Expense"
                                                Text="{Binding NewTransactionValue}"
@@ -475,11 +494,15 @@
 
                 <Grid x:Name="SavingsGrid"
                       Grid.Row="2"
-                      Margin="10">
+                      Margin="10,10,10,15">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
                     <HorizontalStackLayout x:Name="SavingsGoal"
                                            Grid.Row="0">
@@ -505,34 +528,79 @@
                             <Label.Triggers>
                                 <DataTrigger TargetType="Label"
                                              Binding="{Binding IsSavingsGoalReached}"
-                                             Value="false">
+                                             Value="Fully">
+                                    <Setter Property="TextColor"
+                                            Value="Green" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsSavingsGoalReached}"
+                                             Value="Partly">
+                                    <Setter Property="TextColor"
+                                            Value="Orange" />
+                                </DataTrigger>
+
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsSavingsGoalReached}"
+                                             Value="Zero">
+                                    <Setter Property="TextColor"
+                                            Value="Grey" />
+                                </DataTrigger>
+
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsSavingsGoalReached}"
+                                             Value="Negative">
                                     <Setter Property="TextColor"
                                             Value="Red" />
                                 </DataTrigger>
+
                             </Label.Triggers>
                         </Label>
+                        
                         <Label Text="{Binding SelectedSavingsCategoryViewModel.SavingsGoal, StringFormat=' &#160;{0:N}'}"
                                VerticalOptions="CenterAndExpand"
-                               VerticalTextAlignment="Center"
-                               TextColor="Green">
+                               VerticalTextAlignment="Center" >
                             <Label.Triggers>
                                 <DataTrigger TargetType="Label"
                                              Binding="{Binding IsSavingsGoalReached}"
-                                             Value="false">
+                                             Value="Fully">
+                                    <Setter Property="TextColor"
+                                            Value="Green" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsSavingsGoalReached}"
+                                             Value="Partly">
+                                    <Setter Property="TextColor"
+                                            Value="Orange" />
+                                </DataTrigger>
+
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsSavingsGoalReached}"
+                                             Value="Zero">
+                                    <Setter Property="TextColor"
+                                            Value="Grey"/>
+                                </DataTrigger>
+                                
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsSavingsGoalReached}"
+                                             Value="Negative">
                                     <Setter Property="TextColor"
                                             Value="Red" />
                                 </DataTrigger>
+                                
                             </Label.Triggers>
                         </Label>
-                        <Label Text="&#x1F4B0;"
+
+                        <Label Text="&#x27A1; &#x1F4B0;"
                                VerticalTextAlignment="Center"
-                               FontSize="18" />
+                               FontSize="18"
+                               IsVisible="{Binding SelectedSavingsCategoryViewModel.IsSavingsGoalTransferred}"
+                               Margin="10,0,0,0"/>
 
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout x:Name="totalRemainingBudget"
                                            Grid.Row="1">
-                        <Label Text="Total Remaining Budget: &#160;" />
+                        <Label Text="Total Remaining Budgets: &#160;" />
                         <Label>
                             <Label.FormattedText>
                                 <FormattedString>
@@ -550,6 +618,40 @@
                             </Label.Triggers>
                         </Label>
                     </HorizontalStackLayout>
+
+                    <BoxView WidthRequest="500"
+                             HeightRequest="1"
+                             Grid.Column="1"
+                             VerticalOptions="StartAndExpand"
+                             Color="DodgerBlue" />
+                        
+                    <Label Grid.Row="0"
+                           Grid.Column="1"
+                           VerticalOptions="CenterAndExpand">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="Added Savings: " />
+                                <Span Text="{Binding SelectedCurrency, StringFormat='{0,9}'}" />
+                                <Span Text="   " />
+                                <Span Text="{Binding SelectedSavingsCategoryViewModel.SelectedMonthSavings, StringFormat='{0:N}'}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+
+                    <Label Grid.Row="1"
+                           Grid.Column="1"
+                           VerticalOptions="CenterAndExpand">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="Total Savings: " />
+                                <Span Text="{Binding SelectedCurrency, StringFormat='{0,12}'}" />
+                                <Span Text="   " />
+                                <Span Text="{Binding SelectedSavingsCategoryViewModel.TotalSavingsUpToSelectedDate, StringFormat='{0:N}'}" />
+                                <Span Text="&#x1F4B0;"
+                                      FontSize="18" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
                 </Grid>
 
             </Grid>
@@ -604,38 +706,38 @@
                             <Label Text="{Binding SelectedCurrency}"
                                    VerticalTextAlignment="Center"
                                    HorizontalOptions="StartAndExpand"
-                                   WidthRequest="100"/>
+                                   WidthRequest="100" />
                             <CheckBox IsChecked="{Binding IsFromSavingsConversion}"
                                       HorizontalOptions="FillAndExpand" />
                             <Label Text="Savings Balance"
                                    VerticalTextAlignment="Center"
                                    TextDecorations="Underline"
-                                   HorizontalOptions="FillAndExpand"/>
+                                   HorizontalOptions="FillAndExpand" />
                         </HorizontalStackLayout>
                         <Entry Text="{Binding NewFromAmountEntry}"
-                               Margin="0,5,0,0"/>
+                               Margin="0,5,0,0" />
 
-                        <Label Text="to" 
-                               Margin="0,5,0,0"/>
+                        <Label Text="to"
+                               Margin="0,5,0,0" />
 
                         <HorizontalStackLayout Margin="0,5,0,0">
                             <Picker ItemsSource="{Binding NonSelectedCurrencies}"
-                                    SelectedItem="{Binding NewToCurrencyEntry}" 
-                                    WidthRequest="100"/>
+                                    SelectedItem="{Binding NewToCurrencyEntry}"
+                                    WidthRequest="100" />
                             <CheckBox IsChecked="{Binding IsToSavingsConversion}"
                                       HorizontalOptions="FillAndExpand" />
                             <Label Text="Savings Balance"
                                    VerticalTextAlignment="Center"
                                    TextDecorations="Underline"
-                                   HorizontalOptions="FillAndExpand"/>
+                                   HorizontalOptions="FillAndExpand" />
                         </HorizontalStackLayout>
-                        
+
                         <Entry Text="{Binding NewToAmountEntry}"
-                               Margin="0,5,0,0"/>
+                               Margin="0,5,0,0" />
                         <Button Text="Add Conversion"
                                 MaximumHeightRequest="75"
                                 Command="{Binding Path=BindingContext.AddCurrencyConversionCommand, Source={x:Reference SpendingOverview}}"
-                                Margin="0,5,0,0"/>
+                                Margin="0,5,0,0" />
 
                     </VerticalStackLayout>
                 </VerticalStackLayout>

@@ -1,7 +1,8 @@
 ﻿using Newtonsoft.Json;
 using MauiApp1.Converters;
+using MauiApp1.Models;
 
-namespace MauiApp1.Models;
+namespace MauiApp1.StaticHelpers;
 
 internal static class ProjectManager
 {
@@ -31,7 +32,7 @@ internal static class ProjectManager
 
         string json = File.ReadAllText(filePath);
 
-        if (String.IsNullOrWhiteSpace(json))
+        if (string.IsNullOrWhiteSpace(json))
             return Enumerable.Empty<Project>();
 
         // Use custom converter that returns existing Agent if found

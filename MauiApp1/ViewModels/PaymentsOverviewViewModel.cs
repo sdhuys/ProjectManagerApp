@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
+using MauiApp1.StaticHelpers;
 using Microcharts;
 using SkiaSharp;
 using System.Collections.ObjectModel;

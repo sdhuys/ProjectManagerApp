@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MauiApp1.StaticHelpers;
+using Newtonsoft.Json;
 
 namespace MauiApp1.Models;
 

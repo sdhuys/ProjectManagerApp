@@ -1,14 +1,15 @@
 ﻿using MauiApp1.Converters;
+using MauiApp1.Models;
 using Newtonsoft.Json;
 
-namespace MauiApp1.Models;
+namespace MauiApp1.StaticHelpers;
 public static class SettingsManager
 {
-    #if DEBUG
-        private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
-    #else
+#if DEBUG
+    private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
+#else
         private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "settings.json");
-    #endif
+#endif
 
     public static bool FileExists => File.Exists(filePath);
 

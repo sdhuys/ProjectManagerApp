@@ -1,4 +1,4 @@
-﻿using MauiApp1.Models;
+﻿using MauiApp1.StaticHelpers;
 using MauiApp1.ViewModels;
 using MauiApp1.Views;
 

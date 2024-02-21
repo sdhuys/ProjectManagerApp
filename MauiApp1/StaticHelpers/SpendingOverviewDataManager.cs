@@ -1,6 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using MauiApp1.Models;
+using Newtonsoft.Json;
 
-namespace MauiApp1.Models;
+namespace MauiApp1.StaticHelpers;
 
 // Class that handles (de)serialization of data for SpendingOverviewViewModel
 public static class SpendingOverviewDataManager
