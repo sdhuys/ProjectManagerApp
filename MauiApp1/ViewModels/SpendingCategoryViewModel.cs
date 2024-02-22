@@ -76,7 +76,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
     public ObservableCollection<Transaction> SelectedMonthTransactions { get; set; }
 
     [ObservableProperty]
-    decimal newTransactionValue;
+    decimal newTransactionAmount;
     public decimal MonthSpendingLimit => _budget * Percentage / 100m;
     public decimal CumulativeRemainingBudget => GetCumulativeRemainingBudget(_selectedDate);
     public decimal RemainingBudget => MonthSpendingLimit - SelectedMonthTransactions.Sum(x => x.Amount);
@@ -98,7 +98,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         _selectedDate = date;
 
         Percentage = GetDatePercentage(_selectedDate);
-        PopulateSelectedMonthTransactions(_selectedDate);
+        PopulateSelectedMonthTransactions();
         OnPropertyChanged(nameof(MonthSpendingLimit));
         OnPropertyChanged(nameof(RemainingBudget));
         OnPropertyChanged(nameof(CumulativeRemainingBudget));
@@ -117,33 +117,33 @@ public partial class SpendingCategoryViewModel : ObservableObject
         return previousOrCurrentDateKeys.Any() ? PercentageHistory[previousOrCurrentDateKeys.Max()] : 0;
     }
 
-    private void PopulateSelectedMonthTransactions(DateTime date)
+    private void PopulateSelectedMonthTransactions()
     {
         SelectedMonthTransactions.Clear();
 
-        foreach (var transaction in AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year))
+        foreach (var transaction in AllTransactions.Where(x => x.Date.Month == _selectedDate.Month && x.Date.Year == _selectedDate.Year))
         {
             SelectedMonthTransactions.Add(transaction);
         }
     }
 
-    public void AddNewExpense(DateTime date, string spendingDescription)
+    public void AddNewExpense(string spendingDescription)
     {
-        if (NewTransactionValue == 0) return;
+        if (NewTransactionAmount == 0) return;
 
-        ExpenseTransaction newExpense = new(NewTransactionValue, date, spendingDescription);
+        ExpenseTransaction newExpense = new(NewTransactionAmount, _selectedDate, spendingDescription);
         AddOrInsertTransaction(Expenses, newExpense);
     }
 
-    public void AddNewsTransfer(DateTime date, SavingsCategoryViewModel destinationViewModel)
+    public void AddNewsTransfer(SavingsCategoryViewModel destinationViewModel)
     {
-        if (NewTransactionValue == 0) return;
-        if (NewTransactionValue > CumulativeRemainingBudget)
+        if (NewTransactionAmount == 0) return;
+        if (NewTransactionAmount > CumulativeRemainingBudget)
         {
             Application.Current.MainPage.DisplayAlert("Insufficient Balance", "You cannot transfer more than the remaining budget balance!", "Ok");
             return;
         }
-        TransferTransaction newTransfer = new(Name, NewTransactionValue, date, destinationViewModel.Name);
+        TransferTransaction newTransfer = new(Name, NewTransactionAmount, _selectedDate, destinationViewModel.Name);
 
         // Add the transfer to both the SpendingCategory and the SavingsCategory
         AddOrInsertTransaction(Transfers, newTransfer);
@@ -165,7 +165,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         OnPropertyChanged(nameof(RemainingBudget));
         OnPropertyChanged(nameof(CumulativeRemainingBudget));
 
-        NewTransactionValue = 0;
+        NewTransactionAmount = 0;
     }
 
     public void RemoveTransaction(Transaction transaction)

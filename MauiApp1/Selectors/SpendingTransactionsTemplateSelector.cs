@@ -1,7 +1,7 @@
 ﻿using MauiApp1.Models;
 
 namespace MauiApp1.Selectors;
-internal class SpendingViewModelTransactionTemplateSelector : DataTemplateSelector
+internal class SpendingTransactionsTemplateSelector : DataTemplateSelector
 {
     public DataTemplate ExpenseTemplate { get; set; }
     public DataTemplate TransferToSavingsTemplate { get; set; }

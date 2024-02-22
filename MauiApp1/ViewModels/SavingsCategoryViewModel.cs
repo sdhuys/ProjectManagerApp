@@ -46,7 +46,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
                 }
 
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(SavingsGoal));
+                OnPropertyChanged(nameof(CumulativeSavingsGoal));
             }
 
         }
@@ -79,7 +79,13 @@ public partial class SavingsCategoryViewModel : ObservableObject
     public ObservableCollection<Transaction> SelectedMonthTransactions { get; set; }
 
     [ObservableProperty]
-    decimal newTransactionValue;
+    decimal newTransactionAmount;
+    [ObservableProperty]
+    string selectedTransactionType;
+    [ObservableProperty]
+    string newTransactionDescription;
+
+    public static string[] TransactionTypes { get; } = new[] { "Expense", "External Deposit" };
 
     public decimal TotalSavingsUpToSelectedDate
     {
@@ -110,8 +116,13 @@ public partial class SavingsCategoryViewModel : ObservableObject
     }
     //public decimal SavingsGoal => _budget * Percentage / 100m;
 
-    public decimal SavingsGoal => CalculateCumulSavingsGoal(_selectedDate);
-    public bool IsSavingsGoalTransferred => SelectedMonthTransactions.Any(x => x is TransferTransaction t && t.Source == "SavingsGoalPortion");
+    public decimal SavingsGoal => GetMonthSavingsGoal(_selectedDate);
+    public decimal LastMonthSavingsGoalDeficit => _selectedDate == DateTime.MinValue ? 0 : GetMissedSavingsGoalAmount(_selectedDate.AddMonths(-1));
+    public decimal CumulativeSavingsGoal => SavingsGoal + LastMonthSavingsGoalDeficit;
+    public bool IsLastMonthSavingsGoalReached => SavingsGoal == CumulativeSavingsGoal;
+
+
+    public bool IsSavingsGoalTransferred => SelectedMonthTransactions.Any(x => x is TransferTransaction t && t.Date == _selectedDate && t.Source == "Savings Goal Portion");
     private decimal _budget;
     private DateTime _selectedDate;
 
@@ -122,6 +133,8 @@ public partial class SavingsCategoryViewModel : ObservableObject
         SelectedMonthTransactions = new();
         Conversions = new();
 
+        selectedTransactionType = TransactionTypes[0];
+
         // Set in case name has somehow been changed in JSON file
         if (Name != "Name") Name = "Savings";
     }
@@ -129,7 +142,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
     public void SetBudget(decimal budget)
     {
         _budget = budget;
-        OnPropertyChanged(nameof(SavingsGoal));
+        OnPropertyChanged(nameof(CumulativeSavingsGoal));
     }
 
     public void SetBudgetAndDate(decimal budget, DateTime date)
@@ -139,10 +152,11 @@ public partial class SavingsCategoryViewModel : ObservableObject
         Percentage = GetDatePercentage(_selectedDate);
         GetMonthTransactions(date);
 
-        OnPropertyChanged(nameof(SavingsGoal));
+        OnPropertyChanged(nameof(CumulativeSavingsGoal));
         OnPropertyChanged(nameof(SelectedMonthSavings));
         OnPropertyChanged(nameof(TotalSavingsUpToSelectedDate));
         OnPropertyChanged(nameof(IsSavingsGoalTransferred));
+        OnPropertyChanged(nameof(IsLastMonthSavingsGoalReached));
     }
 
     private decimal GetDatePercentage(DateTime date)
@@ -176,16 +190,35 @@ public partial class SavingsCategoryViewModel : ObservableObject
         OnPropertyChanged(nameof(IsSavingsGoalTransferred));
     }
 
-    public void AddNewSavingsConversion(CurrencyConversion newConversion)
+    public void AddIncomingSavingsConversion(CurrencyConversion newConversion)
     {
         AddOrInsertTransaction(Conversions, newConversion);
     }
 
-    public void AddNewSavingsExpense(DateTime date, string spendingDescription)
+    public void AddNewTransaction()
     {
-        if (NewTransactionValue == 0) return;
+        if (SelectedTransactionType == TransactionTypes[0])
+        {
+            AddNewSavingsExpense();
+        }
 
-        ExpenseTransaction newExpense = new(NewTransactionValue, date, spendingDescription);
+        else
+        {
+            AddNewSavingsTransfer();
+        }
+    }
+    public void AddNewSavingsTransfer()
+    {
+        if (NewTransactionAmount == 0) return;
+
+        var newTransfer = new TransferTransaction(NewTransactionDescription, NewTransactionAmount, _selectedDate, Name);
+        AddOrInsertTransaction(Transfers, newTransfer);
+    }
+    public void AddNewSavingsExpense()
+    {
+        if (NewTransactionAmount == 0) return;
+
+        ExpenseTransaction newExpense = new(NewTransactionAmount, _selectedDate, NewTransactionDescription);
         AddOrInsertTransaction(Expenses, newExpense);
     }
 
@@ -202,7 +235,8 @@ public partial class SavingsCategoryViewModel : ObservableObject
         }
         UpdateAllAndMonthTransactions(newTransaction, true);
 
-        NewTransactionValue = 0;
+        NewTransactionAmount = 0;
+        NewTransactionDescription = String.Empty;
     }
 
     public void RemoveTransaction(Transaction transaction)
@@ -246,12 +280,12 @@ public partial class SavingsCategoryViewModel : ObservableObject
             AllTransactions.Remove(transaction);
             SelectedMonthTransactions.Remove(transaction);
 
-            if (transaction is TransferTransaction t && t.Source == "SavingsGoalPortion")
+            if (transaction is TransferTransaction t && t.Source == "Savings Goal Portion")
             {
                 OnPropertyChanged(nameof(IsSavingsGoalTransferred));
             }
         }
-        OnPropertyChanged(nameof(SavingsGoal));
+        OnPropertyChanged(nameof(CumulativeSavingsGoal));
         OnPropertyChanged(nameof(SelectedMonthSavings));
         OnPropertyChanged(nameof(TotalSavingsUpToSelectedDate));
     }
@@ -269,7 +303,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
     {
         if (PercentageHistory.Keys.Count == 0 || date < PercentageHistory.Keys.Min()) return 0;
 
-        var transferredToSavingsAmount = AllTransactions.Where(x => x is TransferTransaction t && t.Date == date && t.Source == "SavingsGoalPortion").Sum(x => x.Amount);
+        var transferredToSavingsAmount = AllTransactions.Where(x => x is TransferTransaction t && t.Date == date && t.Source == "Savings Goal Portion").Sum(x => x.Amount);
         var fromSavingsAmount = AllTransactions.Where(x => x is ExpenseTransaction e && e.Date == date && e.Description == "Spendings Overdraft Coverage").Sum(x => x.Amount);
 
         return CalculateCumulSavingsGoal(date) - transferredToSavingsAmount + fromSavingsAmount;

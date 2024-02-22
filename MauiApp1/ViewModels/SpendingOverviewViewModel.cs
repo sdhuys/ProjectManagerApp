@@ -10,6 +10,10 @@ public partial class SpendingOverviewViewModel : ObservableObject
 {
     [ObservableProperty]
     bool showAllTransactions;
+    public string[] ViewOptions { get; }
+
+    [ObservableProperty]
+    string selectedViewOption;
 
     [ObservableProperty]
     DateTime selectedDate = new(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -52,16 +56,16 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     public decimal ActualProfitForCurrency => MonthlyProfitCalculator.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency);
     public decimal TotalSpendingBudget => ActualProfitForCurrency + SelectedCurrencyNetNonSavingsConversions;
-    public decimal TotalRemainingBudget => SelectedCurrencySpendingCategoryViewModels.Sum(cat => cat.CumulativeRemainingBudget);
+    public decimal TotalCumulRemainingBudget => SelectedCurrencySpendingCategoryViewModels.Sum(cat => cat.CumulativeRemainingBudget);
     public SavingsGoalReachedStatus IsSavingsGoalReached
     {
         get
         {
-            if (TotalRemainingBudget >= 0)
+            if (TotalCumulRemainingBudget >= 0)
                 return SavingsGoalReachedStatus.Fully;
-            else if (Math.Abs(TotalRemainingBudget) < SelectedSavingsCategoryViewModel.SavingsGoal)
+            else if (Math.Abs(TotalCumulRemainingBudget) < SelectedSavingsCategoryViewModel.CumulativeSavingsGoal)
                 return SavingsGoalReachedStatus.Partly;
-            else if (Math.Abs(TotalRemainingBudget) == SelectedSavingsCategoryViewModel.SavingsGoal)
+            else if (Math.Abs(TotalCumulRemainingBudget) == SelectedSavingsCategoryViewModel.CumulativeSavingsGoal)
                 return SavingsGoalReachedStatus.Zero;
             else
                 return SavingsGoalReachedStatus.Negative;
@@ -73,6 +77,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     private Dictionary<string, bool> _finalizedMonthsDictionary;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
     bool expensesAreFinalised;
 
     private bool _blockOnExpensesFinalisedChanged;
@@ -81,6 +86,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     bool editMode;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
     bool isFromSavingsConversion;
 
     [ObservableProperty]
@@ -100,16 +106,19 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     public SpendingOverviewViewModel()
     {
-        var jsonData = SpendingOverviewDataManager.LoadFromJson();
-        SpendingCategoryViewModels = jsonData.spendings.Select(x => new SpendingCategoryViewModel(x)).ToList();
-        SavingsCategoryViewModels = jsonData.savings.Select(x => new SavingsCategoryViewModel(x)).ToList();
-        _finalizedMonthsDictionary = jsonData.dict;
+        var (spendings, savings, dict) = SpendingOverviewDataManager.LoadFromJson();
+        SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x)).ToList();
+        SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x)).ToList();
+        _finalizedMonthsDictionary = dict;
 
         CurrencyConversions = CurrencyConversionManager.LoadFromJson();
         SelectedCurrencyConversions = new();
         SelectedCurrencySpendingCategoryViewModels = new();
 
         _currencyList = ProjectManager.AllProjects.Select(p => p.Currency).Distinct().ToList();
+        ViewOptions = new[] { "Spending Categories", "Savings" };
+        SelectedViewOption = ViewOptions[0];
+
         CheckForAndCreateMissingSavingsViewModels();
         AddSavingsConversionsToSavingsViewModels();
     }
@@ -120,12 +129,12 @@ public partial class SpendingOverviewViewModel : ObservableObject
             if (conv.IsFromSavings)
             {
                 var fromSavingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == conv.FromCurrency);
-                fromSavingsVM?.AddNewSavingsConversion(conv);
+                fromSavingsVM?.AddIncomingSavingsConversion(conv);
             }
             if (conv.IsToSavings)
             {
                 var toSavingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == conv.ToCurrency);
-                toSavingsVM?.AddNewSavingsConversion(conv);
+                toSavingsVM?.AddIncomingSavingsConversion(conv);
             }
         }
     }
@@ -200,20 +209,23 @@ public partial class SpendingOverviewViewModel : ObservableObject
         // If set to Finalised transfer as much as possible of SavingsGoal to savings
         if (newValue)
         {
-            decimal savingsGoal = SelectedSavingsCategoryViewModel.SavingsGoal;
+            decimal savingsGoal = SelectedSavingsCategoryViewModel.CumulativeSavingsGoal;
+
+            if (savingsGoal == 0) return;
 
             // 2 == SavingsGoalReachedStatus.Zero
             if ((int)IsSavingsGoalReached < 2)
             {
-                var amountToTransfer = Math.Min(savingsGoal, savingsGoal + TotalRemainingBudget);
+                var amountToTransfer = Math.Min(savingsGoal, savingsGoal + TotalCumulRemainingBudget);
 
-                var savingsGoalTransfer = new TransferTransaction("SavingsGoalPortion", amountToTransfer, SelectedDate, "Savings");
+                var savingsGoalTransfer = new TransferTransaction("Savings Goal Portion", amountToTransfer, SelectedDate, "Savings");
                 SelectedSavingsCategoryViewModel.AddIncomingSavingsTransfer(savingsGoalTransfer);
             }
 
             else if ((int)IsSavingsGoalReached > 2)
             {
-                var amountToCoverFromSavings = savingsGoal + TotalRemainingBudget;
+                var monthSavingsGoal = SelectedSavingsCategoryViewModel.SavingsGoal;
+                var amountToCoverFromSavings = monthSavingsGoal + TotalCumulRemainingBudget;
                 var newExpense = new ExpenseTransaction(Math.Abs(amountToCoverFromSavings), SelectedDate, "Spendings Overdraft Coverage");
                 SelectedSavingsCategoryViewModel.AddIncomingSavingsExpense(newExpense);
             }
@@ -221,9 +233,19 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         else
         {
+            var manualExtraSavingsTransfers = SelectedCurrencySpendingCategoryViewModels.SelectMany(x => x.SelectedMonthTransactions)
+                                                                                        .OfType<TransferTransaction>()
+                                                                                        .ToList(); 
+            foreach (var transfer in manualExtraSavingsTransfers)
+            {
+                var spendingCat = SelectedCurrencySpendingCategoryViewModels.Where(x => x.Name == transfer.Source).FirstOrDefault();
+                spendingCat.RemoveTransaction(transfer);
+                SelectedSavingsCategoryViewModel.RemoveTransaction(transfer);
+            }
+
             var expense = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is ExpenseTransaction e && e.Description == "Spendings Overdraft Coverage").FirstOrDefault();
-            var transfer = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Source == "SavingsGoalPortion").FirstOrDefault();
-            SelectedSavingsCategoryViewModel.RemoveTransaction(transfer);
+            var goalTransfer = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Source == "Savings Goal Portion").FirstOrDefault();
+            SelectedSavingsCategoryViewModel.RemoveTransaction(goalTransfer);
             SelectedSavingsCategoryViewModel.RemoveTransaction(expense);
         }
 
@@ -234,7 +256,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         // Set to true so OnExpensesAreFinalisedChanged immidiately returns
         _blockOnExpensesFinalisedChanged = true;
-        var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate.ToString("Y")}";
+        var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate:Y}";
         if (_finalizedMonthsDictionary.ContainsKey(currencyMonthKey))
         {
             ExpensesAreFinalised = _finalizedMonthsDictionary[currencyMonthKey];
@@ -254,7 +276,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         {
             foreach (var cat in SelectedCurrencySpendingCategoryViewModels)
             {
-                cat.AddNewExpense(SelectedDate, "");
+                cat.AddNewExpense("");
             }
         }
 
@@ -263,17 +285,20 @@ public partial class SpendingOverviewViewModel : ObservableObject
         {
             foreach (var cat in SelectedCurrencySpendingCategoryViewModels)
             {
-                cat.AddNewsTransfer(SelectedDate, SelectedSavingsCategoryViewModel);
+                cat.AddNewsTransfer(SelectedSavingsCategoryViewModel);
             }
         }
 
-        OnPropertyChanged(nameof(TotalRemainingBudget));
+        OnPropertyChanged(nameof(TotalCumulRemainingBudget));
         OnPropertyChanged(nameof(IsSavingsGoalReached));
     }
-    public void AddExternalSavingsTransfer()
-    {
 
+    [RelayCommand]
+    public void AddNewSavingsTransaction()
+    {
+        SelectedSavingsCategoryViewModel.AddNewTransaction();
     }
+
     [RelayCommand]
     public void RemoveTransaction(Transaction transaction)
     {
@@ -302,14 +327,10 @@ public partial class SpendingOverviewViewModel : ObservableObject
         else
         {
             var categoryToRemoveFrom = SelectedCurrencySpendingCategoryViewModels.Where(cat => cat.Expenses.Contains(transaction) || cat.Transfers.Contains(transaction)).FirstOrDefault();
-            categoryToRemoveFrom.RemoveTransaction(transaction);
+            categoryToRemoveFrom?.RemoveTransaction(transaction);
+            SelectedSavingsCategoryViewModel.RemoveTransaction(transaction);
 
-            if (transaction is TransferTransaction t && t.Destination == SelectedSavingsCategoryViewModel.Name)
-            {
-                SelectedSavingsCategoryViewModel.RemoveTransaction(t);
-            }
-
-            OnPropertyChanged(nameof(TotalRemainingBudget));
+            OnPropertyChanged(nameof(TotalCumulRemainingBudget));
             OnPropertyChanged(nameof(IsSavingsGoalReached));
         }
     }
@@ -362,27 +383,27 @@ public partial class SpendingOverviewViewModel : ObservableObject
         // Add conversions to relevant SavingsViewModels if conversions are to/from savings
         if (newConversion.IsFromSavings)
         {
-            var savingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == newConversion.FromCurrency);
-            savingsVM.AddNewSavingsConversion(newConversion);
+            var fromSavingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == newConversion.FromCurrency);
+            fromSavingsVM.AddIncomingSavingsConversion(newConversion);
         }
 
         if (newConversion.IsToSavings)
         {
-            var savingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == newConversion.ToCurrency);
-            savingsVM.AddNewSavingsConversion(newConversion);
+            var toSavingsVM = SavingsCategoryViewModels.FirstOrDefault(x => x.Currency == newConversion.ToCurrency);
+            toSavingsVM.AddIncomingSavingsConversion(newConversion);
         }
 
         PopulateSelectedCurrencyConversions();
         OnPropertyChanged(nameof(TotalSpendingBudget));
         SetCategoriesBudget();
-        SaveAllCurrencyConversions();
 
         NewToAmountEntry = 0;
         NewFromAmountEntry = 0;
     }
     private bool CanAddCurrencyConversion()
     {
-        return (NewToAmountEntry != 0 && NewFromAmountEntry != 0 && !String.IsNullOrEmpty(NewToCurrencyEntry));
+        // Cannot convert money from spending balance after finalisation
+        return (!(ExpensesAreFinalised && !IsFromSavingsConversion) && NewToAmountEntry != 0 && NewFromAmountEntry != 0 && !String.IsNullOrEmpty(NewToCurrencyEntry));
     }
 
     private void SetCategoriesBudget()
@@ -433,9 +454,9 @@ public partial class SpendingOverviewViewModel : ObservableObject
         }
         else
         {
-            OnPropertyChanged(nameof(TotalRemainingBudget));
+            OnPropertyChanged(nameof(TotalCumulRemainingBudget));
             OnPropertyChanged(nameof(IsSavingsGoalReached));
-            await SaveAllSpendingCategories();
+            await SaveAllSpendingCategoriesAndCurrencyConversions();
         }
     }
     private bool PercentageSumEquals100()
@@ -451,10 +472,14 @@ public partial class SpendingOverviewViewModel : ObservableObject
             SavingsCategoryViewModels.Add(newSavingsVM);
         }
     }
-    private async Task SaveAllSpendingCategories()
+    private async Task SaveAllSpendingCategoriesAndCurrencyConversions()
     {
         if (PercentageSumEquals100())
+        {
+            SaveAllCurrencyConversions();
             await SpendingOverviewDataManager.WriteToJson(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalizedMonthsDictionary);
+        }
+
     }
     private void SaveAllCurrencyConversions()
     {

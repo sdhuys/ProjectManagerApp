@@ -24,7 +24,7 @@ public class ExpenseTransaction : Transaction
 
 public class TransferTransaction : Transaction
 {
-    // Source can be a SpendingCategory.Name, "Savings Goal", or "External"
+    // Source can be a SpendingCategory.Name, "Savings Goal Portion", or [any description designating external source]
     public string Source { get; set; }
     public string Destination { get; set; }
     public TransferTransaction(string source, decimal amount, DateTime date, string destination) : base(amount, date)
