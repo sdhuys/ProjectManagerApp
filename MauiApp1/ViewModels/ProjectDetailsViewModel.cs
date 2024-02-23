@@ -289,8 +289,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             return;
         bool isOnGoing = (int)Status < 2 ? true : false;
 
-        // If the project is concluded, base earnings based on payments received
-        var projectEarnings = isOnGoing ? decimal.Parse(Fee) : Payments.Sum(x => x.Amount);
+        // If the project is concluded, base earnings based on payments received instead of fee
+        var projectEarnings = isOnGoing ? (decimal.TryParse(Fee, out decimal result) ? result : 0) : Payments.Sum(x => x.Amount);
 
         // If earnings are based on payments received, agency fee is irrelevant
         decimal agencyFeeDecimal;
