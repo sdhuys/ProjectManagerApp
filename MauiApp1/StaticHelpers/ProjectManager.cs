@@ -16,12 +16,7 @@ internal static class ProjectManager
 
     public static void SaveProjects(IEnumerable<Project> projects)
     {
-        var settings = new JsonSerializerSettings
-        {
-            Converters = new List<JsonConverter> { new DecimalJsonConverter() }
-        };
-
-        string json = JsonConvert.SerializeObject(projects, settings);
+        string json = JsonConvert.SerializeObject(projects);
         File.WriteAllText(filePath, json);
     }
 

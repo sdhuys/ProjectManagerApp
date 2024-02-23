@@ -17,13 +17,8 @@ public static class SpendingOverviewDataManager
     // Dictionary for FinalizedMonthsDictionary on the third line
     public static async Task WriteToJson(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, bool> dict)
     {
-        var settings = new JsonSerializerSettings
-        {
-            Converters = new List<JsonConverter> { new DecimalJsonConverter() }
-        };
-
-        string spendingsJson = JsonConvert.SerializeObject(spendings, settings);
-        string savingsJson = JsonConvert.SerializeObject(savings, settings);
+        string spendingsJson = JsonConvert.SerializeObject(spendings);
+        string savingsJson = JsonConvert.SerializeObject(savings);
         string dictJson = JsonConvert.SerializeObject(dict);
 
         // Combine spending and savings JSON into a single string with a newline separator
