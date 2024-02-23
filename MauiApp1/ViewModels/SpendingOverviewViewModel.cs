@@ -235,7 +235,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         {
             var manualExtraSavingsTransfers = SelectedCurrencySpendingCategoryViewModels.SelectMany(x => x.SelectedMonthTransactions)
                                                                                         .OfType<TransferTransaction>()
-                                                                                        .ToList(); 
+                                                                                        .ToList();
             foreach (var transfer in manualExtraSavingsTransfers)
             {
                 var spendingCat = SelectedCurrencySpendingCategoryViewModels.Where(x => x.Name == transfer.Source).FirstOrDefault();
@@ -300,6 +300,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     }
 
     [RelayCommand]
+    // Removes transaction from all associated categories
     public void RemoveTransaction(Transaction transaction)
     {
         if (transaction is CurrencyConversion conv)
@@ -347,17 +348,42 @@ public partial class SpendingOverviewViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void RemoveCategory(SpendingCategoryViewModel cat)
+    public async Task RemoveCategory(SpendingCategoryViewModel cat)
+    {
+        bool confirmed = await ConfirmCategoryDeletion(cat);
+
+        if (confirmed)
+        {
+            RemoveCategoryAllTransactions(cat);
+
+            SpendingCategoryViewModels.Remove(cat);
+            SelectedCurrencySpendingCategoryViewModels.Remove(cat);
+
+            ResetSavingsCategoryIfNeeded();
+        }
+    }
+
+    private async Task<bool> ConfirmCategoryDeletion(SpendingCategoryViewModel cat)
+    {
+        if (cat.AllTransactions.Count != 0)
+        {
+            return await DisplayCategoryDeletionConfirmationDialog("Are you sure you want to delete this category?", "You will lose its entire transaction history!\n\nIf you no longer wish to allocate budget to this category, consider setting its Percentage to 0 instead of deleting the entire category.");
+        }
+
+        return true;
+    }
+
+    private void RemoveCategoryAllTransactions(SpendingCategoryViewModel cat)
     {
         // Makes sure all transactions impacting Savings are removed from savings as well
         foreach (var transaction in cat.AllTransactions.ToList())
         {
             RemoveTransaction(transaction);
         }
+    }
 
-        SpendingCategoryViewModels.Remove(cat);
-        SelectedCurrencySpendingCategoryViewModels.Remove(cat);
-
+    private void ResetSavingsCategoryIfNeeded()
+    {
         if (SelectedCurrencySpendingCategoryViewModels.Count == 0)
         {
             SelectedSavingsCategoryViewModel.Percentage = 100;
@@ -365,7 +391,12 @@ public partial class SpendingOverviewViewModel : ObservableObject
         }
     }
 
+    private async Task<bool> DisplayCategoryDeletionConfirmationDialog(string title, string message)
+    {
+        return await Application.Current.MainPage.DisplayAlert(title, message, "Delete Anyway", "Cancel");
+    }
     [RelayCommand(CanExecute = nameof(CanAddCurrencyConversion))]
+
     public void AddCurrencyConversion()
     {
         var newConversion = new CurrencyConversion(SelectedCurrency, IsFromSavingsConversion, NewToCurrencyEntry, IsToSavingsConversion, NewFromAmountEntry, NewToAmountEntry, SelectedDate);
