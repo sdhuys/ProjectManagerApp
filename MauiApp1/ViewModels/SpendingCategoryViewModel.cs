@@ -13,7 +13,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         get => Category.Name;
         set
         {
-            Category.Name = value;
+            Category.Name = value.Trim();
             OnPropertyChanged();
         }
     }

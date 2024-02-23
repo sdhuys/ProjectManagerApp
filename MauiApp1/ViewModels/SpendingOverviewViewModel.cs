@@ -187,6 +187,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         if (!value)
         {
+            CheckCategoryNamesAreUnique();
             CheckPercentages();
         }
     }
@@ -395,8 +396,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         return await Application.Current.MainPage.DisplayAlert(title, message, "Delete Anyway", "Cancel");
     }
-    [RelayCommand(CanExecute = nameof(CanAddCurrencyConversion))]
 
+    [RelayCommand(CanExecute = nameof(CanAddCurrencyConversion))]
     public void AddCurrencyConversion()
     {
         var newConversion = new CurrencyConversion(SelectedCurrency, IsFromSavingsConversion, NewToCurrencyEntry, IsToSavingsConversion, NewFromAmountEntry, NewToAmountEntry, SelectedDate);
@@ -493,6 +494,17 @@ public partial class SpendingOverviewViewModel : ObservableObject
     private bool PercentageSumEquals100()
     {
         return SelectedCurrencySpendingCategoryViewModels.Sum(x => x.Percentage) + SelectedSavingsCategoryViewModel.Percentage == 100m;
+    }
+    private async void CheckCategoryNamesAreUnique()
+    {
+        if (SelectedCurrencySpendingCategoryViewModels.Select(x => x.Name).Distinct().Count() != SelectedCurrencySpendingCategoryViewModels.Count)
+        {
+            await Application.Current.MainPage.DisplayAlert("Duplicate Category Names!", "All category names must be unique.", "Ok.");
+            if (EditMode == false)
+            {
+                EditMode = true;
+            }
+        }
     }
     private void CheckForAndCreateMissingSavingsViewModels()
     {
