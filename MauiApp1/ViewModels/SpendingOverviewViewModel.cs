@@ -413,7 +413,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
             category.SetBudget(TotalSpendingBudget);
         }
 
-        SelectedSavingsCategoryViewModel.SetBudget(TotalSpendingBudget);
+        SelectedSavingsCategoryViewModel.CalculateSavingsGoal();
     }
     private void SetCategoriesBudgetandDate()
     {
@@ -422,7 +422,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
             category.SetBudgetAndDate(TotalSpendingBudget, SelectedDate);
         }
 
-        SelectedSavingsCategoryViewModel.SetBudgetAndDate(TotalSpendingBudget, SelectedDate);
+        SelectedSavingsCategoryViewModel.SetAndApplyDate(TotalSpendingBudget, SelectedDate);
     }
     private void PopulateSelectedCurrencySpendingCategories()
     {
