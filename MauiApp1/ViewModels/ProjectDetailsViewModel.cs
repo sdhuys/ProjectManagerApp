@@ -398,7 +398,8 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         //Create new projectviewmodel and add to the collection
         if (!EditMode)
         {
-            ProjectViewModel projectVM = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), IsVatIncluded, vatRateDecimal, Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
+            Project newProject = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), IsVatIncluded, vatRateDecimal, Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
+            ProjectViewModel projectVM = new(newProject);
             Projects.Add(projectVM);
         }
 
