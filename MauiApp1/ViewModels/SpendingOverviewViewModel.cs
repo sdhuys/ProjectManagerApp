@@ -528,15 +528,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         CurrencyConversionManager.WriteToJson();
     }
-    private decimal GetSelectedMonthNetProfit()
-    {
-        var payments = PaymentQueryManager.QueryByCurrencyAndMonth(SelectedCurrency, SelectedDate).Select(x => new PaymentViewModel(x));
-        var totalPaymentsAmount = payments.Sum(p => p.Amount);
-        var totalPaymentsVatAmount = payments.Sum(p => p.VatAmount);
-        var totalRelatedExpenses = PaymentsRelatedExpensesCalculator.CalculateRelatedExpenses(payments, SelectedDate);
-
-        return totalPaymentsAmount - (totalRelatedExpenses + totalPaymentsVatAmount);
-    }
 
     public enum SavingsGoalReachedStatus
     {
