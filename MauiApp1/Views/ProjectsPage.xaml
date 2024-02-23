@@ -23,6 +23,7 @@
 
     <ContentPage.Resources>
         <conv:DateFormatConverter x:Key="DateFormat" />
+        <conv:DecimalFormatConverter x:Key="DecimalFormat" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
 
@@ -143,7 +144,7 @@
                                Grid.Column="4"
                                Margin="0,0,10,0"
                                VerticalOptions="CenterAndExpand" />
-                        <Label Text="{Binding Fee, StringFormat='{0:N0}'}"
+                        <Label Text="{Binding Fee, Converter={StaticResource DecimalFormat}}"
                                Grid.Column="5"
                                Margin="0,0,10,0"
                                VerticalOptions="CenterAndExpand" />
@@ -159,7 +160,7 @@
                             </Label.FormattedText>
                         </Label>
 
-                        <Label Text="{Binding TotalExpenses, StringFormat='{0:N0}'}"
+                        <Label Text="{Binding TotalExpenses, Converter={StaticResource DecimalFormat}}"
                                Grid.Column="7"
                                Margin="0,0,10,0"
                                VerticalOptions="CenterAndExpand" />
@@ -197,13 +198,13 @@
                                Margin="0,0,10,0"
                                VerticalOptions="CenterAndExpand"
                                IsVisible="{Binding IsOnGoing}"
-                               Text="{Binding Profit, StringFormat='{0:N0}'}" />
+                               Text="{Binding Profit, Converter={StaticResource DecimalFormat}}" />
 
                         <Label Grid.Column="10"
                                Margin="0,0,10,0"
                                VerticalOptions="CenterAndExpand"
                                IsVisible="{Binding IsOnGoing, Converter={StaticResource InvertedBoolConverter}}"
-                               Text="{Binding ActualProfit, StringFormat='{0:N0}'}" />
+                               Text="{Binding ActualProfit, Converter={StaticResource DecimalFormat}}" />
 
                         <Label Text="{Binding Status}"
                                Grid.Column="11"

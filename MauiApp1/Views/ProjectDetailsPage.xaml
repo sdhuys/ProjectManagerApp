@@ -15,6 +15,7 @@
     </Shell.BackButtonBehavior>
 
     <ContentPage.Resources>
+        <conv:DecimalFormatConverter x:Key="DecimalFormat" />
         <conv:AgentToStringConverter x:Key="AgentToString" />
         <conv:DateFormatConverter x:Key="DateFormat" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
@@ -265,7 +266,7 @@
                                        Margin="15,0,15,0"
                                        VerticalTextAlignment="Center" />
 
-                                <Label Text="{Binding Amount, StringFormat='{0:N2}'}"
+                                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}}"
                                        Grid.Column="1"
                                        IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}"
                                        Margin="15,0,15,0"
@@ -277,9 +278,9 @@
                                        VerticalTextAlignment="Center">
                                     <Label.FormattedText>
                                         <FormattedString>
-                                            <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P0}'}" />
+                                            <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P2}'}" />
                                             <Span Text=" = " />
-                                            <Span Text="{Binding Amount, StringFormat='{0:N2}'}" />
+                                            <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
                                         </FormattedString>
                                     </Label.FormattedText>
                                 </Label>
@@ -379,7 +380,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <Label Text="{Binding Amount}"
+                                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}}"
                                        Grid.Column="0"
                                        Margin="15,0,15,0"
                                        VerticalTextAlignment="Center" />

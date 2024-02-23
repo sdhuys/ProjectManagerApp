@@ -11,298 +11,294 @@
              x:Name="SpendingOverview">
 
     <ContentPage.Resources>
-        <ResourceDictionary>
-            <DataTemplate x:Key="RedTemplate">
-                <Grid x:Name="ConversionGrid">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
-                                            CommandParameter="{Binding .}" />
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="10" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="50" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+        <DataTemplate x:Key="RedTemplate">
+            <Grid x:Name="ConversionGrid">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                    <Label Text="-"
-                           TextColor="Red"
-                           Grid.Column="0" />
-                    <Label TextColor="Red"
-                           Grid.Column="1">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="{Binding FromCurrency}" />
-                                <Span Text="{Binding Amount, StringFormat=' {0:N2}'}" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label"
-                                         Binding="{Binding IsFromSavings}"
-                                         Value="true">
-                                <Setter Property="TextDecorations"
-                                        Value="Underline" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                    <Label Grid.Column="2"
-                           Text="to"
-                           Margin="5,0,0,0" />
+                <Label Text="-"
+                       TextColor="Red"
+                       Grid.Column="0" />
+                <Label TextColor="Red"
+                       Grid.Column="1">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding FromCurrency}" />
+                            <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}, StringFormat='&#160; {0}'}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                     Binding="{Binding IsFromSavings}"
+                                     Value="true">
+                            <Setter Property="TextDecorations"
+                                    Value="Underline" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Grid.Column="2"
+                       Text="to"
+                       Margin="5,0,0,0" />
 
-                    <Label Grid.Column="3">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="{Binding ToCurrency}" />
-                                <Span Text="{Binding ToAmount, StringFormat=' {0:N2}'}" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label"
-                                         Binding="{Binding IsToSavings}"
-                                         Value="true">
-                                <Setter Property="TextDecorations"
-                                        Value="Underline" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="4"
-                           HorizontalTextAlignment="Center" />
-                </Grid>
-            </DataTemplate>
+                <Label Grid.Column="3">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding ToCurrency}" />
+                            <Span Text="{Binding ToAmount, Converter={StaticResource DecimalFormat}, StringFormat='&#160; {0}'}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                     Binding="{Binding IsToSavings}"
+                                     Value="true">
+                            <Setter Property="TextDecorations"
+                                    Value="Underline" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="4"
+                       HorizontalTextAlignment="Center" />
+            </Grid>
+        </DataTemplate>
 
-            <DataTemplate x:Key="GreenTemplate">
-                <Grid x:Name="ConversionGrid">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
-                                            CommandParameter="{Binding .}" />
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="10" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="50" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+        <DataTemplate x:Key="GreenTemplate">
+            <Grid x:Name="ConversionGrid">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                    <Label Text="+"
-                           TextColor="Green"
-                           Grid.Column="0" />
-                    <Label TextColor="Green"
-                           Grid.Column="1">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="{Binding ToCurrency}" />
-                                <Span Text="{Binding ToAmount, StringFormat=' {0:N2}'}" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label"
-                                         Binding="{Binding IsToSavings}"
-                                         Value="true">
-                                <Setter Property="TextDecorations"
-                                        Value="Underline" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                    <Label Grid.Column="2"
-                           Text="from"
-                           Margin="5,0,0,0" />
+                <Label Text="+"
+                       TextColor="Green"
+                       Grid.Column="0" />
+                <Label TextColor="Green"
+                       Grid.Column="1">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding ToCurrency}" />
+                            <Span Text="{Binding ToAmount, Converter={StaticResource DecimalFormat}, StringFormat='&#160; {0}'}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                     Binding="{Binding IsToSavings}"
+                                     Value="true">
+                            <Setter Property="TextDecorations"
+                                    Value="Underline" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Grid.Column="2"
+                       Text="from"
+                       Margin="5,0,0,0" />
 
-                    <Label Grid.Column="3">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="{Binding FromCurrency}" />
-                                <Span Text="{Binding Amount, StringFormat=' {0:N2}'}" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label"
-                                         Binding="{Binding IsFromSavings}"
-                                         Value="true">
-                                <Setter Property="TextDecorations"
-                                        Value="Underline" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="4"
-                           HorizontalTextAlignment="Center" />
-                </Grid>
-            </DataTemplate>
+                <Label Grid.Column="3">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding FromCurrency}" />
+                            <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}, StringFormat='&#160; {0}'}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                     Binding="{Binding IsFromSavings}"
+                                     Value="true">
+                            <Setter Property="TextDecorations"
+                                    Value="Underline" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="4"
+                       HorizontalTextAlignment="Center" />
+            </Grid>
+        </DataTemplate>
 
-            <selector:CurrencyConversionTemplateSelector x:Key="ConversionTemplateSelector"
-                                                         FromCurrentCurrencyTemplate="{x:StaticResource RedTemplate}"
-                                                         ToCurrentCurrencyTemplate="{x:StaticResource GreenTemplate}" />
+        <selector:CurrencyConversionTemplateSelector x:Key="ConversionTemplateSelector"
+                                                     FromCurrentCurrencyTemplate="{x:StaticResource RedTemplate}"
+                                                     ToCurrentCurrencyTemplate="{x:StaticResource GreenTemplate}" />
 
-            <DataTemplate x:Key="ExpenseTemplate">
-                <Grid BackgroundColor="HotPink">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
-                                            CommandParameter="{Binding .}" />
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+        <DataTemplate x:Key="ExpenseTemplate">
+            <Grid BackgroundColor="HotPink">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                    <Label Text="{Binding Amount, StringFormat='{0:N}'}"
-                           Grid.Column="0" />
-
-
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="1"
-                           HorizontalOptions="Center" />
-
-                </Grid>
-            </DataTemplate>
-            <DataTemplate x:Key="ToSavingsTransferTemplate">
-                <Grid BackgroundColor="Green">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
-                                            CommandParameter="{Binding .}" />
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Label Text="{Binding Amount, StringFormat='&#x1F4B0; {0:N}'}"
-                           Grid.Column="0" />
+                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}}"
+                       Grid.Column="0" />
 
 
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="1"
-                           HorizontalOptions="Center" />
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="1"
+                       HorizontalOptions="Center" />
 
-                </Grid>
-            </DataTemplate>
-            <selector:SpendingTransactionsTemplateSelector x:Key="TransactionTemplateSelector"
-                                                           ExpenseTemplate="{x:StaticResource ExpenseTemplate}"
-                                                           TransferToSavingsTemplate="{x:StaticResource ToSavingsTransferTemplate}" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="ToSavingsTransferTemplate">
+            <Grid BackgroundColor="Green">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <DataTemplate x:Key="SavingsExpenseTemplate">
-                <Grid BackgroundColor="HotPink">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
-                                            CommandParameter="{Binding .}" />
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="2*" />
-                    </Grid.ColumnDefinitions>
+                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}, StringFormat='&#x1F4B0; {0}'}"
+                       Grid.Column="0" />
 
-                    <Label Text="{Binding Amount, StringFormat='- {0:N2}'}"
-                           Grid.Column="0" />
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="1"
+                       HorizontalOptions="Center" />
 
-                    <Label Text="{Binding Description}"
-                           Grid.Column="1" />
+            </Grid>
+        </DataTemplate>
+        <selector:SpendingTransactionsTemplateSelector x:Key="TransactionTemplateSelector"
+                                                       ExpenseTemplate="{x:StaticResource ExpenseTemplate}"
+                                                       TransferToSavingsTemplate="{x:StaticResource ToSavingsTransferTemplate}" />
 
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="2"
-                           HorizontalOptions="Center" />
+        <DataTemplate x:Key="SavingsExpenseTemplate">
+            <Grid BackgroundColor="HotPink">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
 
-                </Grid>
-            </DataTemplate>
-            <DataTemplate x:Key="SavingsTransferTemplate">
-                <Grid BackgroundColor="Green">
-                    <FlyoutBase.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Delete"
-                                            Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
-                                            CommandParameter="{Binding .}" />
-                        </MenuFlyout>
-                    </FlyoutBase.ContextFlyout>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="2*" />
-                    </Grid.ColumnDefinitions>
+                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}, StringFormat='- {0}'}"
+                       Grid.Column="0" />
 
-                    <Label Text="{Binding Amount, StringFormat='+ {0:N2}'}"
-                           Grid.Column="0" />
+                <Label Text="{Binding Description}"
+                       Grid.Column="1" />
+
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="2"
+                       HorizontalOptions="Center" />
+
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="SavingsTransferTemplate">
+            <Grid BackgroundColor="Green">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}, StringFormat='+ {0}'}"
+                       Grid.Column="0" />
 
 
-                    <Label Text="{Binding Source}"
-                           Grid.Column="1">
-                    </Label>
+                <Label Text="{Binding Source}"
+                       Grid.Column="1">
+                </Label>
 
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="2"
-                           HorizontalOptions="Center" />
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="2"
+                       HorizontalOptions="Center" />
 
-                </Grid>
-            </DataTemplate>
-            <DataTemplate x:Key="IncomingSavingsConversionTemplate">
-                <Grid BackgroundColor="Green">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="2*" />
-                    </Grid.ColumnDefinitions>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="IncomingSavingsConversionTemplate">
+            <Grid BackgroundColor="Green">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
 
-                    <Label Text="{Binding ToAmount, StringFormat='+ {0:N2}'}"
-                           Grid.Column="0" />
+                <Label Text="{Binding ToAmount, Converter={StaticResource DecimalFormat}, StringFormat='+ {0}'}"
+                       Grid.Column="0" />
 
-                    <Label Text="Currency Conversion"
-                           Grid.Column="1">
-                    </Label>
+                <Label Text="Currency Conversion"
+                       Grid.Column="1">
+                </Label>
 
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="2"
-                           HorizontalOptions="Center" />
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="2"
+                       HorizontalOptions="Center" />
 
-                </Grid>
-            </DataTemplate>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="OutgoingSavingsConversionTemplate">
+            <Grid BackgroundColor="HotPink">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
 
-            <DataTemplate x:Key="OutgoingSavingsConversionTemplate">
-                <Grid BackgroundColor="HotPink">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="2*" />
-                    </Grid.ColumnDefinitions>
+                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}, StringFormat='- {0}'}"
+                       Grid.Column="0" />
 
-                    <Label Text="{Binding Amount, StringFormat='- {0:N2}'}"
-                           Grid.Column="0" />
+                <Label Text="Currency Conversion"
+                       Grid.Column="1">
+                </Label>
 
-                    <Label Text="Currency Conversion"
-                           Grid.Column="1">
-                    </Label>
+                <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
+                       Grid.Column="2"
+                       HorizontalOptions="Center" />
 
-                    <Label Text="{Binding Date, StringFormat='{0:MMM yy}'}"
-                           Grid.Column="2"
-                           HorizontalOptions="Center" />
+            </Grid>
+        </DataTemplate>
+        <selector:SavingsTransactionsTemplateSelector x:Key="SavingsTransactionsTemplateSelector"
+                                                      SavingsExpenseTemplate="{x:StaticResource SavingsExpenseTemplate}"
+                                                      SavingsTransferTemplate="{x:StaticResource SavingsTransferTemplate}"
+                                                      IncomingSavingsConversionTemplate="{x:StaticResource IncomingSavingsConversionTemplate}"
+                                                      OutgoingSavingsConversionTemplate="{x:StaticResource OutgoingSavingsConversionTemplate}" />
 
-                </Grid>
-            </DataTemplate>
-            <selector:SavingsTransactionsTemplateSelector x:Key="SavingsTransactionsTemplateSelector"
-                                                          SavingsExpenseTemplate="{x:StaticResource SavingsExpenseTemplate}"
-                                                          SavingsTransferTemplate="{x:StaticResource SavingsTransferTemplate}"
-                                                          IncomingSavingsConversionTemplate="{x:StaticResource IncomingSavingsConversionTemplate}"
-                                                          OutgoingSavingsConversionTemplate="{x:StaticResource OutgoingSavingsConversionTemplate}" />
-
-        </ResourceDictionary>
         <conv:DateFormatConverter x:Key="DateFormat" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-
+        <conv:DecimalFormatConverter x:Key="DecimalFormat" />
     </ContentPage.Resources>
 
 
@@ -824,7 +820,7 @@
                         <Label Text="Savings Goal: "
                                VerticalOptions="CenterAndExpand" />
 
-                        <Entry Text="{Binding SelectedSavingsCategoryViewModel.Percentage}"
+                        <Entry Text="{Binding SelectedSavingsCategoryViewModel.Percentage, StringFormat='{0:G}'}"
                                IsEnabled="{Binding EditMode}"
                                VerticalTextAlignment="Center"
                                MaximumWidthRequest="50">
