@@ -123,7 +123,6 @@ public partial class SavingsCategoryViewModel : ObservableObject
 
 
     public bool IsSavingsGoalTransferred => SelectedMonthTransactions.Any(x => x is TransferTransaction t && t.Date == _selectedDate && t.Source == "Savings Goal Portion");
-    private decimal _budget;
     private DateTime _selectedDate;
 
     public SavingsCategoryViewModel(SpendingCategory category)
@@ -139,20 +138,18 @@ public partial class SavingsCategoryViewModel : ObservableObject
         if (Name != "Name") Name = "Savings";
     }
 
-    public void SetBudget(decimal budget)
+    public void CalculateSavingsGoal()
     {
-        _budget = budget;
         OnPropertyChanged(nameof(CumulativeSavingsGoal));
     }
 
-    public void SetBudgetAndDate(decimal budget, DateTime date)
+    public void SetAndApplyDate(decimal budget, DateTime date)
     {
-        _budget = budget;
         _selectedDate = date;
         Percentage = GetDatePercentage(_selectedDate);
         GetMonthTransactions(date);
 
-        OnPropertyChanged(nameof(CumulativeSavingsGoal));
+        CalculateSavingsGoal();
         OnPropertyChanged(nameof(SelectedMonthSavings));
         OnPropertyChanged(nameof(TotalSavingsUpToSelectedDate));
         OnPropertyChanged(nameof(IsSavingsGoalTransferred));
