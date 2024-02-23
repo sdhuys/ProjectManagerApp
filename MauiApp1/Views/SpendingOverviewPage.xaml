@@ -921,7 +921,7 @@
 
                     <HorizontalStackLayout x:Name="totalRemainingBudget"
                                            Grid.Row="1">
-                        <Label Text="Total Remaining Budgets: &#160;" />
+                        <Label Text="Total Cumul. Remaining Budgets: &#160;" />
                         <Label>
                             <Label.FormattedText>
                                 <FormattedString>

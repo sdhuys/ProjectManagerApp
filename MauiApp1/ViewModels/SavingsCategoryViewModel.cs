@@ -48,7 +48,6 @@ public partial class SavingsCategoryViewModel : ObservableObject
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CumulativeSavingsGoal));
             }
-
         }
     }
     private Dictionary<DateTime, decimal> PercentageHistory => Category.PercentageHistory;
