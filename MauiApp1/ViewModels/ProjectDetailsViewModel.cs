@@ -318,7 +318,18 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand(CanExecute = nameof(CanAddExpense))]
     void AddExpense()
     {
-        Expenses.Add(new(NewExpenseName, NewExpenseIsRelative, Convert.ToDecimal(NewExpenseValue), NewExpenseDate));
+        ProjectExpense newExpense = new(NewExpenseName, NewExpenseIsRelative, Convert.ToDecimal(NewExpenseValue), NewExpenseDate);
+
+        if (Expenses.Any(x => x.Date > newExpense.Date))
+        {
+            var index = Expenses.Where(x => x.Date < newExpense.Date).Count();
+            Expenses.Insert(index, newExpense);
+        }
+        else
+        {
+            Expenses.Add(newExpense);
+        }
+
         CalculateRelativeExpenseAmounts();
 
         NewExpenseIsRelative = false;
@@ -337,15 +348,19 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     void AddPayment()
     {
         Payment newPayment;
-        if (EditMode)
+
+        newPayment = EditMode ? new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date, selectedProjectVM.Id) 
+                              : new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date);
+
+        if (Payments.Any(x => x.Date > newPayment.Date))
         {
-            newPayment = new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date, selectedProjectVM.Id);
+            var index = Payments.Where(x => x.Date < newPayment.Date).Count();
+            Payments.Insert(index, newPayment);
         }
         else
         {
-            newPayment = new Payment(Convert.ToDecimal(NewPaymentAmount), NewPaymentDate.Date);
+            Payments.Add(newPayment);
         }
-        Payments.Add(newPayment);
 
         // Calculate rel expenses if project is not ongoing (=> calculation based on actual payments)
         if ((int)Status > 1)
