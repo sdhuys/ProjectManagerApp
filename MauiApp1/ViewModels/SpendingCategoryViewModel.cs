@@ -14,6 +14,11 @@ public partial class SpendingCategoryViewModel : ObservableObject
         set
         {
             Category.Name = value.Trim();
+
+            foreach (var t in Transfers)
+            {
+                t.Source = Name;
+            }
             OnPropertyChanged();
         }
     }
@@ -135,6 +140,10 @@ public partial class SpendingCategoryViewModel : ObservableObject
         }
     }
 
+    public IEnumerable<Transaction> GetMonthTransactions(DateTime date)
+    {
+        return AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year);
+    }
     public void AddNewExpense(string spendingDescription)
     {
         if (NewTransactionAmount == 0) return;
@@ -216,7 +225,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         }
     }
     
-    private decimal GetCumulativeRemainingBudget(DateTime date)
+    public decimal GetCumulativeRemainingBudget(DateTime date)
     {
         if (PercentageHistory.Keys.Count == 0 || date < PercentageHistory.Keys.Min()) return 0;
 

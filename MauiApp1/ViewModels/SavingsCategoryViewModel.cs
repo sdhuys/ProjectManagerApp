@@ -137,7 +137,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
         if (Name != "Name") Name = "Savings";
     }
 
-    public void CalculateSavingsGoal()
+    public void UpdateSavingsGoalUI()
     {
         OnPropertyChanged(nameof(CumulativeSavingsGoal));
         OnPropertyChanged(nameof(LastMonthSavingsGoalDeficit));
@@ -147,9 +147,9 @@ public partial class SavingsCategoryViewModel : ObservableObject
     {
         _selectedDate = date;
         Percentage = GetDatePercentage(_selectedDate);
-        GetMonthTransactions(date);
+        PopulateSelectedMonthTransactions(date);
 
-        CalculateSavingsGoal();
+        UpdateSavingsGoalUI();
         OnPropertyChanged(nameof(SelectedMonthSavings));
         OnPropertyChanged(nameof(TotalSavingsUpToSelectedDate));
         OnPropertyChanged(nameof(IsSavingsGoalTransferred));
@@ -166,8 +166,12 @@ public partial class SavingsCategoryViewModel : ObservableObject
         var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
         return previousOrCurrentDateKeys.Any() ? PercentageHistory[previousOrCurrentDateKeys.Max()] : 100;
     }
+    public IEnumerable<Transaction> GetMonthTransactions(DateTime date)
+    {
+        return AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year);
+    }
 
-    public void GetMonthTransactions(DateTime date)
+    public void PopulateSelectedMonthTransactions(DateTime date)
     {
         SelectedMonthTransactions.Clear();
 
@@ -292,7 +296,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
         OnPropertyChanged(nameof(TotalSavingsUpToSelectedDate));
     }
 
-    private decimal CalculateCumulSavingsGoal(DateTime date)
+    public decimal CalculateCumulSavingsGoal(DateTime date)
     {
         if (date == DateTime.MinValue) return 0;
 

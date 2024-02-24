@@ -50,10 +50,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     [ObservableProperty]
     ObservableCollection<CurrencyConversion> selectedCurrencyConversions;
-
-    public decimal SelectedCurrencyNetSavingsConversions => ToSelectedCurrencySavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencySavingsConversions.Sum(x => x.Amount);
-    public decimal SelectedCurrencyNetNonSavingsConversions => ToSelectedCurrencyNonSavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencyNonSavingsConversions.Sum(x => x.Amount);
-
+    public decimal SelectedCurrencyNetNonSavingsConversions => GetNetNonSavingsConversionsAmount(SelectedDate);
     public decimal ActualProfitForCurrency => ProjectsQuery.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency);
     public decimal TotalSpendingBudget => ActualProfitForCurrency + SelectedCurrencyNetNonSavingsConversions;
     public decimal TotalCumulRemainingBudget => SelectedCurrencySpendingCategoryViewModels.Sum(cat => cat.CumulativeRemainingBudget);
@@ -211,55 +208,88 @@ public partial class SpendingOverviewViewModel : ObservableObject
         // If set to Finalised transfer as much as possible of SavingsGoal to savings
         if (newValue)
         {
-            if (TotalSpendingBudget < 0)
-            {
-                var monthLossExpense = new ExpenseTransaction(Math.Abs(TotalSpendingBudget), SelectedDate, "Overall Loss Coverage");
-                SelectedSavingsCategoryViewModel.AddIncomingSavingsExpense(monthLossExpense);
-            }
-            decimal savingsGoal = SelectedSavingsCategoryViewModel.CumulativeSavingsGoal;
-
-            // 2 == SavingsGoalReachedStatus.Zero
-            if ((int)IsSavingsGoalReached < 2)
-            {
-                var amountToTransfer = Math.Min(savingsGoal, savingsGoal + TotalCumulRemainingBudget);
-                if (amountToTransfer == 0) return;
-
-                var savingsGoalTransfer = new TransferTransaction("Savings Goal Portion", amountToTransfer, SelectedDate, "Savings");
-                SelectedSavingsCategoryViewModel.AddIncomingSavingsTransfer(savingsGoalTransfer);
-            }
-
-            else if ((int)IsSavingsGoalReached > 2)
-            {
-                var monthSavingsGoal = SelectedSavingsCategoryViewModel.SavingsGoal;
-                var amountToCoverFromSavings = monthSavingsGoal + TotalCumulRemainingBudget;
-                var newExpense = new ExpenseTransaction(Math.Abs(amountToCoverFromSavings), SelectedDate, "Spendings Overdraft Coverage");
-                SelectedSavingsCategoryViewModel.AddIncomingSavingsExpense(newExpense);
-            }
+            HandleExpensesFinalisation(SelectedDate);
         }
-
         else
         {
-            var manualExtraSavingsTransfers = SelectedCurrencySpendingCategoryViewModels.SelectMany(x => x.SelectedMonthTransactions)
-                                                                                        .OfType<TransferTransaction>()
-                                                                                        .ToList();
-            foreach (var transfer in manualExtraSavingsTransfers)
-            {
-                var spendingCat = SelectedCurrencySpendingCategoryViewModels.Where(x => x.Name == transfer.Source).FirstOrDefault();
-                spendingCat.RemoveTransaction(transfer);
-                SelectedSavingsCategoryViewModel.RemoveTransaction(transfer);
-            }
-
-            var lossExpense = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is ExpenseTransaction e && e.Description == "Overall Loss Coverage").FirstOrDefault();
-            var overdraftExpense = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is ExpenseTransaction e && e.Description == "Spendings Overdraft Coverage").FirstOrDefault();
-            var goalTransfer = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Source == "Savings Goal Portion").FirstOrDefault();
-            SelectedSavingsCategoryViewModel.RemoveTransaction(lossExpense);
-            SelectedSavingsCategoryViewModel.RemoveTransaction(goalTransfer);
-            SelectedSavingsCategoryViewModel.RemoveTransaction(overdraftExpense);
+            HandleExpensesUnFinalistation(SelectedDate);
         }
-
         var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate.ToString("Y")}";
         _finalizedMonthsDictionary[currencyMonthKey] = newValue;
     }
+           
+    private void HandleExpensesFinalisation(DateTime month)
+    {
+        var spendingBudet = ProjectsQuery.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency) + GetNetNonSavingsConversionsAmount(month);
+
+        if (TotalSpendingBudget < 0)
+        {
+            AddOverallLossAsExpenseTransaction(spendingBudet, month);
+        }
+
+        var savingsGoal = SelectedSavingsCategoryViewModel.CalculateCumulSavingsGoal(month);
+        var totalCumulRemainingBudget = month == SelectedDate ? TotalCumulRemainingBudget : CalculateTotalCumulRemainingBudget(month);
+
+        // Savings Goal is partly or fully reached
+        if (totalCumulRemainingBudget >= 0 || Math.Abs(totalCumulRemainingBudget) < savingsGoal && savingsGoal != 0)
+        {
+            var amountToTransfer = Math.Min(savingsGoal, savingsGoal + totalCumulRemainingBudget);
+            AddReachedSavingsGoalPortionToSavings(amountToTransfer, month);
+        }
+
+        // Expenses exceed budget
+        else if (Math.Abs(totalCumulRemainingBudget) > savingsGoal)
+        {
+            var amountToCoverFromSavings = Math.Abs(totalCumulRemainingBudget + savingsGoal);
+            AddSpendingOverdraftToSavingsExpenses(amountToCoverFromSavings, month);
+        }
+
+        void AddOverallLossAsExpenseTransaction(decimal loss, DateTime month)
+        {
+            var monthLossExpense = new ExpenseTransaction(loss, month, "Overall Loss Coverage");
+            SelectedSavingsCategoryViewModel.AddIncomingSavingsExpense(monthLossExpense);
+        }
+        void AddReachedSavingsGoalPortionToSavings(decimal amount, DateTime month)
+        {
+            var savingsGoalTransfer = new TransferTransaction("Savings Goal Portion", amount, month, "Savings");
+            SelectedSavingsCategoryViewModel.AddIncomingSavingsTransfer(savingsGoalTransfer);
+        }
+        void AddSpendingOverdraftToSavingsExpenses(decimal amount, DateTime month)
+        {
+            var newExpense = new ExpenseTransaction(amount, month, "Spendings Overdraft Coverage");
+            SelectedSavingsCategoryViewModel.AddIncomingSavingsExpense(newExpense);
+        }
+
+    }
+    private void HandleExpensesUnFinalistation(DateTime month)
+    {
+        var manualExtraSavingsTransfers = SelectedCurrencySpendingCategoryViewModels.SelectMany(x => x.GetMonthTransactions(month))
+                                                                                    .OfType<TransferTransaction>()
+                                                                                    .ToList();            
+        foreach (var transfer in manualExtraSavingsTransfers)
+        {
+            RemoveTransaction(transfer);
+        }
+
+        var lossExpense = SelectedSavingsCategoryViewModel.GetMonthTransactions(month).Where(x => x is ExpenseTransaction e && e.Description == "Overall Loss Coverage").FirstOrDefault();
+        var overdraftExpense = SelectedSavingsCategoryViewModel.GetMonthTransactions(month).Where(x => x is ExpenseTransaction e && e.Description == "Spendings Overdraft Coverage").FirstOrDefault();
+        var goalTransfer = SelectedSavingsCategoryViewModel.GetMonthTransactions(month).Where(x => x is TransferTransaction t && t.Source == "Savings Goal Portion").FirstOrDefault();
+        RemoveTransaction(lossExpense);
+        RemoveTransaction(overdraftExpense);
+        RemoveTransaction(goalTransfer);
+    }
+    private decimal CalculateTotalCumulRemainingBudget(DateTime month)
+    {
+        var result = 0m;
+
+        foreach (var cat in SelectedCurrencySpendingCategoryViewModels)
+        {
+            result += cat.GetCumulativeRemainingBudget(month);
+        }
+
+        return result;
+    }
+
     private void SetExpensesAreFinalisedFromDictionary()
     {
         // Set to true so OnExpensesAreFinalisedChanged immidiately returns
@@ -407,6 +437,15 @@ public partial class SpendingOverviewViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanAddCurrencyConversion))]
     public void AddCurrencyConversion()
     {
+        decimal budgetLimit = IsFromSavingsConversion ? SelectedSavingsCategoryViewModel.TotalSavingsUpToSelectedDate : TotalSpendingBudget;
+        string balance = IsFromSavingsConversion ? "Savings" : "Total Budget";
+
+        if (NewFromAmountEntry > budgetLimit)
+        {
+            Application.Current.MainPage.DisplayAlert("Insufficient Balance", $"You cannot convert more than the {balance} balance!", "Ok");
+            return;
+        }
+
         var newConversion = new CurrencyConversion(SelectedCurrency, IsFromSavingsConversion, NewToCurrencyEntry, IsToSavingsConversion, NewFromAmountEntry, NewToAmountEntry, SelectedDate);
 
         if (CurrencyConversions.Any(x => x.Date > SelectedDate))
@@ -452,7 +491,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
             category.SetBudget(TotalSpendingBudget);
         }
 
-        SelectedSavingsCategoryViewModel.CalculateSavingsGoal();
+        SelectedSavingsCategoryViewModel.UpdateSavingsGoalUI();
     }
     private void SetCategoriesBudgetandDate()
     {
@@ -481,6 +520,13 @@ public partial class SpendingOverviewViewModel : ObservableObject
                                                                                 .OrderBy(x => x.Date));
     }
 
+    private decimal GetNetNonSavingsConversionsAmount(DateTime date)
+    {
+        var outgoing = CurrencyConversions.Where(c => c.Date == date && c.FromCurrency == SelectedCurrency && !c.IsFromSavings).Sum(c => c.Amount);
+        var incoming = CurrencyConversions.Where(c => c.Date == date && c.ToCurrency == SelectedCurrency && !c.IsToSavings).Sum(c => c.ToAmount);
+
+        return incoming - outgoing;
+    }
     private async void CheckPercentages()
     {
         if (!PercentageSumEquals100())
