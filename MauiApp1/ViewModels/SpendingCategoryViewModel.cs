@@ -74,6 +74,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
     public ObservableCollection<Transaction> AllTransactions { get; set; }
     public ObservableCollection<Transaction> SelectedMonthTransactions { get; set; }
+    public ObservableCollection<Transaction> TransactionsToDisplay { get; set; }
 
     [ObservableProperty]
     decimal newTransactionAmount;
@@ -89,12 +90,14 @@ public partial class SpendingCategoryViewModel : ObservableObject
         Category = category;
         AllTransactions = new(Category.Expenses.Cast<Transaction>().Union(Category.Transfers.Cast<Transaction>()));
         SelectedMonthTransactions = new();
+        TransactionsToDisplay = SelectedMonthTransactions;
     }
 
 
     public void SetBudgetAndDate(decimal budget, DateTime date)
     {
-        _budget = budget;
+        _budget = budget > 0 ? budget : 0;
+        //_budget = budget;
         _selectedDate = date;
 
         Percentage = GetDatePercentage(_selectedDate);
@@ -105,12 +108,17 @@ public partial class SpendingCategoryViewModel : ObservableObject
     }
     public void SetBudget(decimal budget)
     {
-        _budget = budget;
+        _budget = budget > 0 ? budget : 0;
         OnPropertyChanged(nameof(MonthSpendingLimit));
         OnPropertyChanged(nameof(RemainingBudget));
         OnPropertyChanged(nameof(CumulativeRemainingBudget));
     }
 
+    public void SetTransactionsCollectionToDisplay(bool all)
+    {
+        TransactionsToDisplay = all ? AllTransactions : SelectedMonthTransactions;
+        OnPropertyChanged(nameof(TransactionsToDisplay));
+    }
     private decimal GetDatePercentage(DateTime date)
     {
         var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
@@ -223,12 +231,12 @@ public partial class SpendingCategoryViewModel : ObservableObject
     private decimal GetRemainingBudget(DateTime date)
     {
         var percentage = GetDatePercentage(date);
-        var spendingBudget = MonthlyProfitCalculator.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        var spendingBudget = ProfitCalculator.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        spendingBudget = Math.Max(spendingBudget, 0);
 
         var monthTransactionsAmount = AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(x => x.Amount);
 
         return (spendingBudget * percentage / 100m) - monthTransactionsAmount;
-
     }
 
     private decimal GetNetCurrencyConversionsAmount(DateTime date)

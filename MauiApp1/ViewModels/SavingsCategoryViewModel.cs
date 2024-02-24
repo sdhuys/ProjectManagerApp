@@ -76,6 +76,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
 
     public ObservableCollection<Transaction> AllTransactions { get; set; }
     public ObservableCollection<Transaction> SelectedMonthTransactions { get; set; }
+    public ObservableCollection<Transaction> TransactionsToDisplay { get; set; }
 
     [ObservableProperty]
     decimal newTransactionAmount;
@@ -119,8 +120,6 @@ public partial class SavingsCategoryViewModel : ObservableObject
     public decimal LastMonthSavingsGoalDeficit => _selectedDate == DateTime.MinValue ? 0 : GetMissedSavingsGoalAmount(_selectedDate.AddMonths(-1));
     public decimal CumulativeSavingsGoal => SavingsGoal + LastMonthSavingsGoalDeficit;
     public bool IsLastMonthSavingsGoalReached => SavingsGoal == CumulativeSavingsGoal;
-
-
     public bool IsSavingsGoalTransferred => SelectedMonthTransactions.Any(x => x is TransferTransaction t && t.Date == _selectedDate && t.Source == "Savings Goal Portion");
     private DateTime _selectedDate;
 
@@ -129,6 +128,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
         Category = category;
         AllTransactions = new(Expenses.Cast<Transaction>().Union(Transfers.Cast<Transaction>()));
         SelectedMonthTransactions = new();
+        TransactionsToDisplay = SelectedMonthTransactions;
         Conversions = new();
 
         selectedTransactionType = TransactionTypes[0];
@@ -140,6 +140,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
     public void CalculateSavingsGoal()
     {
         OnPropertyChanged(nameof(CumulativeSavingsGoal));
+        OnPropertyChanged(nameof(LastMonthSavingsGoalDeficit));
     }
 
     public void SetAndApplyDate(decimal budget, DateTime date)
@@ -155,6 +156,11 @@ public partial class SavingsCategoryViewModel : ObservableObject
         OnPropertyChanged(nameof(IsLastMonthSavingsGoalReached));
     }
 
+    public void SetTransactionsCollectionToDisplay(bool all)
+    {
+        TransactionsToDisplay = all ? AllTransactions : SelectedMonthTransactions;
+        OnPropertyChanged(nameof(TransactionsToDisplay));
+    }
     private decimal GetDatePercentage(DateTime date)
     {
         var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
@@ -207,14 +213,14 @@ public partial class SavingsCategoryViewModel : ObservableObject
     {
         if (NewTransactionAmount == 0) return;
 
-        var newTransfer = new TransferTransaction(NewTransactionDescription, NewTransactionAmount, _selectedDate, Name);
+        var newTransfer = new TransferTransaction($"External Transfer: {NewTransactionDescription}", NewTransactionAmount, _selectedDate, Name);
         AddOrInsertTransaction(Transfers, newTransfer);
     }
     public void AddNewSavingsExpense()
     {
         if (NewTransactionAmount == 0) return;
 
-        ExpenseTransaction newExpense = new(NewTransactionAmount, _selectedDate, NewTransactionDescription);
+        ExpenseTransaction newExpense = new(NewTransactionAmount, _selectedDate, $"External Expense: {NewTransactionDescription}");
         AddOrInsertTransaction(Expenses, newExpense);
     }
 
@@ -308,7 +314,8 @@ public partial class SavingsCategoryViewModel : ObservableObject
     private decimal GetMonthSavingsGoal(DateTime date)
     {
         var percentage = GetDatePercentage(date);
-        var spendingBudget = MonthlyProfitCalculator.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        var spendingBudget = ProfitCalculator.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        spendingBudget = Math.Max(spendingBudget, 0);
 
         return (spendingBudget * percentage / 100m);
     }

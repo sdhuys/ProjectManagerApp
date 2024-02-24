@@ -514,20 +514,10 @@
                                                  Margin="10" />
 
                                         <CollectionView x:Name="expenseCollection"
-                                                        ItemsSource="{Binding SelectedMonthTransactions}"
+                                                        ItemsSource="{Binding TransactionsToDisplay}"
                                                         ItemTemplate="{x:StaticResource TransactionTemplateSelector}"
                                                         Margin="15"
                                                         HeightRequest="175">
-                                            <CollectionView.Triggers>
-                                                <DataTrigger TargetType="CollectionView"
-                                                             Binding="{Binding Source={x:Reference SpendingOverview}, Path=BindingContext.ShowAllTransactions}"
-                                                             Value="true">
-                                                    <Setter Property="ItemsSource"
-                                                            Value="{Binding AllTransactions}" />
-
-                                                </DataTrigger>
-
-                                            </CollectionView.Triggers>
                                             <CollectionView.ItemsLayout>
                                                 <LinearItemsLayout Orientation="Vertical" />
                                             </CollectionView.ItemsLayout>
@@ -701,20 +691,10 @@
                                      Margin="10" />
 
                             <CollectionView x:Name="savingsTransactionsCollection"
-                                            ItemsSource="{Binding SelectedSavingsCategoryViewModel.SelectedMonthTransactions}"
+                                            ItemsSource="{Binding SelectedSavingsCategoryViewModel.TransactionsToDisplay}"
                                             ItemTemplate="{x:StaticResource SavingsTransactionsTemplateSelector}"
                                             Margin="15"
                                             HeightRequest="300">
-                                <CollectionView.Triggers>
-                                    <DataTrigger TargetType="CollectionView"
-                                                 Binding="{Binding Source={x:Reference SpendingOverview}, Path=BindingContext.ShowAllTransactions}"
-                                                 Value="true">
-                                        <Setter Property="ItemsSource"
-                                                Value="{Binding SelectedSavingsCategoryViewModel.AllTransactions}" />
-
-                                    </DataTrigger>
-                                </CollectionView.Triggers>
-
                                 <CollectionView.ItemsLayout>
                                     <LinearItemsLayout Orientation="Vertical" />
                                 </CollectionView.ItemsLayout>

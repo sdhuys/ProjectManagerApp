@@ -54,7 +54,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public decimal SelectedCurrencyNetSavingsConversions => ToSelectedCurrencySavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencySavingsConversions.Sum(x => x.Amount);
     public decimal SelectedCurrencyNetNonSavingsConversions => ToSelectedCurrencyNonSavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencyNonSavingsConversions.Sum(x => x.Amount);
 
-    public decimal ActualProfitForCurrency => MonthlyProfitCalculator.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency);
+    public decimal ActualProfitForCurrency => ProfitCalculator.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency);
     public decimal TotalSpendingBudget => ActualProfitForCurrency + SelectedCurrencyNetNonSavingsConversions;
     public decimal TotalCumulRemainingBudget => SelectedCurrencySpendingCategoryViewModels.Sum(cat => cat.CumulativeRemainingBudget);
     public SavingsGoalReachedStatus IsSavingsGoalReached
@@ -154,9 +154,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         if (value == null) return;
 
-        // If new currency gets displayed with this bool = true, switching values will not correctly display selected-month/all transactions
-        ShowAllTransactions = false;
-
         PopulateSelectedCurrencyConversions();
         PopulateSelectedCurrencySpendingCategories();
         OnPropertyChanged(nameof(SelectedSavingsCategoryViewModel));
@@ -171,7 +168,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
     partial void OnSelectedDateChanged(DateTime oldValue, DateTime newValue)
     {
         SelectedDate = new DateTime(newValue.Year, newValue.Month, 1);
-        ShowAllTransactions = false;
 
         if (newValue.Month != oldValue.Month || newValue.Year != oldValue.Year)
         {
@@ -194,6 +190,11 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     partial void OnShowAllTransactionsChanged(bool value)
     {
+        foreach (var cat in SelectedCurrencySpendingCategoryViewModels)
+        {
+            cat.SetTransactionsCollectionToDisplay(value);
+        }
+        SelectedSavingsCategoryViewModel.SetTransactionsCollectionToDisplay(value);
         PopulateSelectedCurrencyConversions();
     }
 
@@ -210,14 +211,18 @@ public partial class SpendingOverviewViewModel : ObservableObject
         // If set to Finalised transfer as much as possible of SavingsGoal to savings
         if (newValue)
         {
+            if (TotalSpendingBudget < 0)
+            {
+                var monthLossExpense = new ExpenseTransaction(Math.Abs(TotalSpendingBudget), SelectedDate, "Overall Loss Coverage");
+                SelectedSavingsCategoryViewModel.AddIncomingSavingsExpense(monthLossExpense);
+            }
             decimal savingsGoal = SelectedSavingsCategoryViewModel.CumulativeSavingsGoal;
-
-            if (savingsGoal == 0) return;
 
             // 2 == SavingsGoalReachedStatus.Zero
             if ((int)IsSavingsGoalReached < 2)
             {
                 var amountToTransfer = Math.Min(savingsGoal, savingsGoal + TotalCumulRemainingBudget);
+                if (amountToTransfer == 0) return;
 
                 var savingsGoalTransfer = new TransferTransaction("Savings Goal Portion", amountToTransfer, SelectedDate, "Savings");
                 SelectedSavingsCategoryViewModel.AddIncomingSavingsTransfer(savingsGoalTransfer);
@@ -244,10 +249,12 @@ public partial class SpendingOverviewViewModel : ObservableObject
                 SelectedSavingsCategoryViewModel.RemoveTransaction(transfer);
             }
 
-            var expense = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is ExpenseTransaction e && e.Description == "Spendings Overdraft Coverage").FirstOrDefault();
+            var lossExpense = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is ExpenseTransaction e && e.Description == "Overall Loss Coverage").FirstOrDefault();
+            var overdraftExpense = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is ExpenseTransaction e && e.Description == "Spendings Overdraft Coverage").FirstOrDefault();
             var goalTransfer = SelectedSavingsCategoryViewModel.SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Source == "Savings Goal Portion").FirstOrDefault();
+            SelectedSavingsCategoryViewModel.RemoveTransaction(lossExpense);
             SelectedSavingsCategoryViewModel.RemoveTransaction(goalTransfer);
-            SelectedSavingsCategoryViewModel.RemoveTransaction(expense);
+            SelectedSavingsCategoryViewModel.RemoveTransaction(overdraftExpense);
         }
 
         var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate.ToString("Y")}";
