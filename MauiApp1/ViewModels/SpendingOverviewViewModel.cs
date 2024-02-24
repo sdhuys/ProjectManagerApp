@@ -54,7 +54,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public decimal SelectedCurrencyNetSavingsConversions => ToSelectedCurrencySavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencySavingsConversions.Sum(x => x.Amount);
     public decimal SelectedCurrencyNetNonSavingsConversions => ToSelectedCurrencyNonSavingsConversions.Sum(x => x.ToAmount) - FromSelectedCurrencyNonSavingsConversions.Sum(x => x.Amount);
 
-    public decimal ActualProfitForCurrency => ProfitCalculator.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency);
+    public decimal ActualProfitForCurrency => ProjectsQuery.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency);
     public decimal TotalSpendingBudget => ActualProfitForCurrency + SelectedCurrencyNetNonSavingsConversions;
     public decimal TotalCumulRemainingBudget => SelectedCurrencySpendingCategoryViewModels.Sum(cat => cat.CumulativeRemainingBudget);
     public SavingsGoalReachedStatus IsSavingsGoalReached

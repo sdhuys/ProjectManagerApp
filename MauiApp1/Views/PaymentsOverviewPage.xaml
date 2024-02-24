@@ -182,7 +182,7 @@
                                 Grid.Row="1"
                                 VerticalScrollBarVisibility="Always">
                     <CollectionView.EmptyView>
-                        <Label Text="No Matching Payments"
+                        <Label Text="No Matching Projects With Any Payments or Expenses"
                                FontAttributes="Italic"
                                VerticalTextAlignment="Center"
                                HorizontalTextAlignment="Center"/>

@@ -314,7 +314,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
     private decimal GetMonthSavingsGoal(DateTime date)
     {
         var percentage = GetDatePercentage(date);
-        var spendingBudget = ProfitCalculator.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        var spendingBudget = ProjectsQuery.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
         spendingBudget = Math.Max(spendingBudget, 0);
 
         return (spendingBudget * percentage / 100m);

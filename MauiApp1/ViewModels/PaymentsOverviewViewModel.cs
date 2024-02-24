@@ -94,17 +94,22 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     {
         CurrencyIncomeDetailsCollection.Clear();
 
-        var queriedPayments = !EnableFilters ? ProjectManager.AllProjects.SelectMany(p => p.Payments).Select(p => new PaymentViewModel(p)) : GetQueriedPayments();
+        var queriedProjects = !EnableFilters ? ProjectManager.AllProjects : GetQueriedProjects();
 
         // Group of PaymentViewModels by associated Currency, ProjectType, Client and Agent
-        var groupedData = queriedPayments
-            .GroupBy(payment => new { payment.Currency, payment.Type, payment.Client, payment.Agent })
+        var groupedData = queriedProjects
+            .GroupBy(project => new { project.Currency, project.Type, project.Client, project.Agent })
             .Select(group =>
             {
-                decimal totalIncome = group.Sum(payment => payment.Amount);
-                decimal totalExpenses = FilterDates ? PaymentsRelatedExpensesCalculator.CalculateRelatedExpenses(group.Select(x => x), QueryStartDate, QueryEndDate)
-                                                    : PaymentsRelatedExpensesCalculator.CalculateRelatedExpenses(group.Select(x => x));
-                decimal totalVat = group.Sum(payment => payment.VatAmount);
+                var startDateToQuery = FilterDates ? QueryStartDate : DateTime.MinValue;
+                var endDateToQuery = FilterDates ? QueryEndDate : DateTime.MaxValue;
+
+                IEnumerable<PaymentViewModel> payments = ProjectsQuery.GetProjectPaymentsWithinDates(group, QueryStartDate, QueryEndDate);
+                IEnumerable<ProjectExpense> expenses = ProjectsQuery.GetProjectExpensesWithinDates(group, QueryStartDate, QueryEndDate);
+
+                decimal totalIncome = payments.Sum(payment => payment.Amount);
+                decimal totalVat = payments.Sum(payment => payment.VatAmount);
+                decimal totalExpenses = expenses.Sum(expense => expense.Amount);
 
                 return new
                 {
@@ -119,7 +124,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                 };
             });
 
-        var uniqueCurrencies = queriedPayments.Select(payment => payment.Currency).Distinct();
+        var uniqueCurrencies = queriedProjects.Select(payment => payment.Currency).Distinct();
 
         // Prepare data for each CurrencyIncomeDetails
         var dataForCharts = new Dictionary<string, Dictionary<string, decimal>>();
@@ -132,6 +137,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             var totalVat = totalCurrencyData.Sum(x => x.TotalVat);
             var totalProfit = totalCurrencyData.Sum(x => x.TotalProfit);
             var totalExpenses = totalCurrencyData.Sum(x => x.TotalExpenses);
+
+            if (totalIncome == 0 && totalExpenses == 0) return;
 
             // Prepare data for charts
             var typeData = groupedData
@@ -171,18 +178,13 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             });
         }
     }
-    private List<PaymentViewModel> GetQueriedPayments()
+    private IEnumerable<Project> GetQueriedProjects()
     {
         var currencies = FilterCurrencies ? QueryCurrencies.OfType<string>() : CurrencyList;
         var types = FilterTypes ? QueryTypes.OfType<string>() : TypeList;
         var agents = FilterAgents ? QueryAgents.OfType<AgentWrapper>() : AgentList;
 
-        var startDateToQuery = FilterDates ? QueryStartDate : DateTime.MinValue;
-        var endDateToQuery = FilterDates ? QueryEndDate : DateTime.MaxValue;
-
-        return PaymentQueryManager.QueryByCurrenciesTypesAgentsAndDate(currencies, types, agents.Select(x => x.Agent), startDateToQuery, endDateToQuery)
-                                                                   .Select(x => new PaymentViewModel(x))
-                                                                   .ToList();
+        return ProjectsQuery.ByCurrencyTypeAndAgent(currencies, types, agents.Select(x => x.Agent));
     }
 
     private List<ChartWithHeader> CreateCharts(Dictionary<string, Dictionary<string, decimal>> dataForCharts)

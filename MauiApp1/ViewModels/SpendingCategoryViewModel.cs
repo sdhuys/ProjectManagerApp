@@ -231,7 +231,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
     private decimal GetRemainingBudget(DateTime date)
     {
         var percentage = GetDatePercentage(date);
-        var spendingBudget = ProfitCalculator.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        var spendingBudget = ProjectsQuery.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
         spendingBudget = Math.Max(spendingBudget, 0);
 
         var monthTransactionsAmount = AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(x => x.Amount);
