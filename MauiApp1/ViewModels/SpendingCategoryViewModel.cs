@@ -148,7 +148,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         if (NewTransactionAmount == 0) return;
         if (NewTransactionAmount > CumulativeRemainingBudget)
         {
-            Application.Current.MainPage.DisplayAlert("Insufficient Balance", "You cannot transfer more than the remaining budget balance!", "Ok");
+            Application.Current.MainPage.DisplayAlert("Insufficient Balance", "You cannot transfer more than the remaining cumulative budget balance!", "Ok");
             return;
         }
         TransferTransaction newTransfer = new(Name, NewTransactionAmount, _selectedDate, destinationViewModel.Name);

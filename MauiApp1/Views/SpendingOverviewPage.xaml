@@ -250,6 +250,13 @@
         </DataTemplate>
         <DataTemplate x:Key="IncomingSavingsConversionTemplate">
             <Grid BackgroundColor="Green">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="3*" />
@@ -271,6 +278,13 @@
         </DataTemplate>
         <DataTemplate x:Key="OutgoingSavingsConversionTemplate">
             <Grid BackgroundColor="HotPink">
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        CommandParameter="{Binding .}" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="3*" />
