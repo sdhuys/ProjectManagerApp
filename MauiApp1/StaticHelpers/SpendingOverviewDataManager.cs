@@ -1,4 +1,5 @@
-﻿using MauiApp1.Models;
+﻿using MauiApp1.Converters;
+using MauiApp1.Models;
 using Newtonsoft.Json;
 
 namespace MauiApp1.StaticHelpers;
@@ -42,7 +43,12 @@ public static class SpendingOverviewDataManager
 
         IEnumerable<SpendingCategory> DeserializeCategories(string json)
         {
-            return string.IsNullOrWhiteSpace(json) ? Enumerable.Empty<SpendingCategory>() : JsonConvert.DeserializeObject<IEnumerable<SpendingCategory>>(json);
+            var settings = new JsonSerializerSettings
+            {
+                Converters = new List<JsonConverter> { new TransferTransactionJsonConverter() }
+            };
+
+            return string.IsNullOrWhiteSpace(json) ? Enumerable.Empty<SpendingCategory>() : JsonConvert.DeserializeObject<IEnumerable<SpendingCategory>>(json, settings);
         }
 
         Dictionary<string, bool> DeserializeDictionary(string json)

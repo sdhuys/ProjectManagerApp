@@ -5,7 +5,7 @@ namespace MauiApp1.Models;
 
 public class Project
 {
-    public Guid Id { get; private set; }
+    public string Id { get; private set; }
     public string Client { get; set; }
     public string Type { get; set; }
     public string Description { get; set; }
@@ -22,7 +22,7 @@ public class Project
 
     public Project(string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, ProjectStatus status)
     {
-        Id = Guid.NewGuid();
+        Id = Guid.NewGuid().ToString();
         Client = client;
         Type = type;
         Description = description;
@@ -44,7 +44,7 @@ public class Project
     }
 
     [JsonConstructor]
-    public Project(Guid id, string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, ProjectStatus status)
+    public Project(string id, string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, ProjectStatus status)
     {
         Id = id;
         Client = client;

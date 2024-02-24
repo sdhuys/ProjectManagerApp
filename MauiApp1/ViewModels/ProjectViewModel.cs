@@ -7,7 +7,7 @@ namespace MauiApp1.ViewModels;
 public class ProjectViewModel : ObservableObject
 {
     public Project Project { get; }
-    public Guid Id => Project.Id;
+    public string Id => Project.Id;
     public string Client
     {
         get => Project.Client;

@@ -7,10 +7,10 @@ namespace MauiApp1.Models
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
         [JsonIgnore]
-        public Guid AssociatedProjectID { get; set; }
+        public string AssociatedProjectID { get; set; }
 
         //Constructor to be called when adding payment to existing project
-        public Payment(decimal amount, DateTime date, Guid projectID)
+        public Payment(decimal amount, DateTime date, string projectID)
         {
             Amount = amount;
             Date = date;
