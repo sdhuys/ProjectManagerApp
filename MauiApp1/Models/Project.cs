@@ -20,10 +20,33 @@ public class Project
     public List<Payment> Payments { get; set; }
     public ProjectStatus Status { get; set; }
 
-
     public Project(string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, ProjectStatus status)
     {
         Id = Guid.NewGuid();
+        Client = client;
+        Type = type;
+        Description = description;
+        Date = date;
+        Currency = currency;
+        Fee = fee;
+        IsVatIncluded = vatIncluded;
+        VatRateDecimal = vat_RateDecimal;
+        Agent = agent;
+        Expenses = expenses;
+        AgencyFeeDecimal = agencyFeeDecimal;
+        Payments = payments;
+        foreach (var payment in Payments)
+        {
+            payment.AssociatedProjectID = Id;
+        }
+        Status = status;
+        ProjectManager.AllProjects.Add(this);
+    }
+
+    [JsonConstructor]
+    public Project(Guid id, string client, string type, string description, DateTime date, string currency, decimal fee, bool vatIncluded, decimal vat_RateDecimal, Agent agent, decimal agencyFeeDecimal, List<ProjectExpense> expenses, List<Payment> payments, ProjectStatus status)
+    {
+        Id = id;
         Client = client;
         Type = type;
         Description = description;
