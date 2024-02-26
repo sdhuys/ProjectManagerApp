@@ -144,7 +144,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
     public void SetAndApplyDate(decimal budget, DateTime date)
     {
         _selectedDate = date;
-        Percentage = GetDatePercentage(_selectedDate);
+        Percentage = GetDatePercentageAndAddToDictWhenMissing(_selectedDate);
         PopulateSelectedMonthTransactions(date);
 
         UpdateSavingsGoalUI();
@@ -157,6 +157,19 @@ public partial class SavingsCategoryViewModel : ObservableObject
     {
         TransactionsToDisplay = all ? AllTransactions : SelectedMonthTransactions;
         OnPropertyChanged(nameof(TransactionsToDisplay));
+    }
+
+    // Called on UI date selection
+    public decimal GetDatePercentageAndAddToDictWhenMissing(DateTime date)
+    {
+        var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
+        if (!previousOrCurrentDateKeys.Any())
+        {
+            PercentageHistory[date] = 100;
+            return 100;
+        }
+
+        return PercentageHistory[previousOrCurrentDateKeys.Max()];
     }
     public decimal GetDatePercentage(DateTime date)
     {
