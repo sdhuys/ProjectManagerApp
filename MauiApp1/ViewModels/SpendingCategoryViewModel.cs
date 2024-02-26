@@ -59,7 +59,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
         }
     }
-    private Dictionary<DateTime, decimal> PercentageHistory => Category.PercentageHistory;
+    public Dictionary<DateTime, decimal> PercentageHistory => Category.PercentageHistory;
 
     public List<ExpenseTransaction> Expenses
     {
@@ -170,7 +170,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         if (NewTransactionAmount == 0) return;
         if (NewTransactionAmount > CumulativeRemainingBudget)
         {
-            Application.Current.MainPage.DisplayAlert("Insufficient Balance", "You cannot transfer more than the remaining cumulative budget balance!", "Ok");
+            Application.Current.MainPage.DisplayAlert($"Insufficient {Name} Balance", "You cannot transfer more than the remaining cumulative budget balance!", "Ok");
             return;
         }
         string source = $"Remaining {Name} Balance";
