@@ -358,6 +358,7 @@
                         <DatePicker Date="{Binding SelectedDate}"
                                     Format="MMM yy"
                                     MaximumDate="{x:Static sys:DateTime.Now}"
+                                    MinimumDate="{Binding MinDate}"
                                     IsEnabled="{Binding EditMode, Converter={StaticResource InvertedBoolConverter}}"
                                     Margin="0,0,10,0" />
 
@@ -663,7 +664,7 @@
 
                             <HorizontalStackLayout>
                                 <CheckBox IsChecked="{Binding ExpensesAreFinalised}"
-                                          IsEnabled="{Binding EditMode, Converter={StaticResource InvertedBoolConverter}}" />
+                                          IsEnabled="{Binding CanFinaliseExpenses}" />
                                 <VerticalStackLayout VerticalOptions="CenterAndExpand">
                                     <Label Text="Expenses"
                                            VerticalTextAlignment="Center" />
@@ -831,7 +832,14 @@
                                              Binding="{Binding SelectedSavingsCategoryViewModel.IsLastMonthSavingsGoalReached}"
                                              Value="false">
                                     <Setter Property="Text"
-                                            Value="{Binding SelectedSavingsCategoryViewModel.LastMonthSavingsGoalDeficit, StringFormat='% &#160; + &#160; {0} &#160; ='}" />
+                                            Value="{Binding SelectedSavingsCategoryViewModel.LastMonthSavingsGoalDeficit, StringFormat='% &#160; + &#160; {0:N2} &#160; ='}" />
+                                </DataTrigger>
+
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding SelectedSavingsCategoryViewModel.IsLastMonthSavingsGoalReached}"
+                                             Value="false">
+                                    <Setter Property="ToolTipProperties.Text"
+                                            Value="+ Previous Month's Savings Goal Deficit" />
                                 </DataTrigger>
                             </Label.Triggers>
                         </Label>

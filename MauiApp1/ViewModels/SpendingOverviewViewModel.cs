@@ -16,7 +16,36 @@ public partial class SpendingOverviewViewModel : ObservableObject
     string selectedViewOption;
 
     [ObservableProperty]
-    DateTime selectedDate = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+    DateTime selectedDate = new (DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    public DateTime MinDate
+    {
+        get
+        {
+            DateTime today = DateTime.Today;
+
+            DateTime minProjectDate = ProjectManager.AllProjects
+                .SelectMany(project => project.Expenses.Select(e => e.Date).Union(project.Payments.Select(p => p.Date)))
+                .DefaultIfEmpty(today)
+                .Min();
+
+            DateTime minCatsDictDate = SelectedCurrencySpendingCategoryViewModels
+                .SelectMany(x => x.PercentageHistory?.Keys ?? Enumerable.Empty<DateTime>())
+                .DefaultIfEmpty(today)
+                .Min();
+
+            DateTime minSavingsDictDate = SelectedSavingsCategoryViewModel?.PercentageHistory?.Keys?.Min() ?? today;
+
+            DateTime minDate = new[]
+            {
+                minProjectDate,
+                minCatsDictDate,
+                minSavingsDictDate
+            }.Min();
+
+            return new DateTime(minDate.Year, minDate.Month, 1);
+        }
+    }
 
     [ObservableProperty]
     string selectedCurrency;
@@ -74,9 +103,22 @@ public partial class SpendingOverviewViewModel : ObservableObject
         }
     }
 
+    public bool CanFinaliseExpenses
+    {
+        get
+        {
+            if (SelectedDate == MinDate) return true;
+
+            var lastMonth = SelectedDate.AddMonths(-1);
+            var key = GenerateFinalisedMonthsDictKey(lastMonth);
+
+            return _finalisedMonthsDictionary.TryGetValue(key, out bool result) && result && !EditMode;
+        }
+    }
+
 
     // Dictionary containing keys in "CURRENCY:MM/YY" format, values representing whether or not that months' accounting is finalized
-    private Dictionary<string, bool> _finalizedMonthsDictionary;
+    private Dictionary<string, bool> _finalisedMonthsDictionary;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
@@ -111,8 +153,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
         var (spendings, savings, dict) = SpendingOverviewDataManager.LoadFromJson();
         SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x)).ToList();
         SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x)).ToList();
-        _finalizedMonthsDictionary = dict;
-
+        _finalisedMonthsDictionary = dict;
+        
         CurrencyConversions = CurrencyConversionManager.LoadFromJson();
         SelectedCurrencyConversions = new();
         SelectedCurrencySpendingCategoryViewModels = new();
@@ -145,6 +187,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         _currencyList = ProjectManager.AllProjects.Select(p => p.Currency).Distinct().ToList();
         OnPropertyChanged(nameof(CurrencyList));
+        OnPropertyChanged(nameof(MinDate));
 
         CheckForAndCreateMissingSavingsViewModels();
 
@@ -165,6 +208,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(NonSelectedCurrencies));
         SetExpensesAreFinalisedFromDictionary();
         CheckCurrentMonthPercentages();
+        OnPropertyChanged(nameof(CanFinaliseExpenses));
+        SelectedDate = GetEarliestUnfinalisedMonth();
     }
 
     partial void OnSelectedDateChanged(DateTime oldValue, DateTime newValue)
@@ -178,11 +223,13 @@ public partial class SpendingOverviewViewModel : ObservableObject
             OnPropertyChanged(nameof(TotalSpendingBudget));
             SetExpensesAreFinalisedFromDictionary();
             CheckCurrentMonthPercentages();
+            OnPropertyChanged(nameof(CanFinaliseExpenses));
         }
     }
 
     partial void OnEditModeChanged(bool value)
     {
+        OnPropertyChanged(nameof(CanFinaliseExpenses));
         if (!value)
         {
             CheckCategoryNamesAreUnique();
@@ -206,23 +253,67 @@ public partial class SpendingOverviewViewModel : ObservableObject
     // When expenses are set back to Unfinalised, remove automatically added transfer or expenses
     //
     // Immidiately return if value if value is not changed by UI click
-    partial void OnExpensesAreFinalisedChanged(bool oldValue, bool newValue)
+    async partial void OnExpensesAreFinalisedChanged(bool value)
     {
         if (_blockOnExpensesFinalisedChanged) return;
 
         // If set to Finalised transfer as much as possible of SavingsGoal to savings
-        if (newValue)
+        if (value)
         {
             FinaliseMonth(SelectedDate);
         }
+
         else
         {
-            UnFinaliseMonth(SelectedDate, false);
+            bool confirm = !IsNextMonthFinalised() || await ConfirmUnfinalise();
+
+            if (confirm)
+            {
+                UnFinaliseMonth(SelectedDate, false);
+            }
+            else
+            {
+                _blockOnExpensesFinalisedChanged = true;
+                ExpensesAreFinalised = true;
+                _blockOnExpensesFinalisedChanged = false;
+                return;
+            }
         }
-        var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate.ToString("Y")}";
-        _finalizedMonthsDictionary[currencyMonthKey] = newValue;
+
+        UpdateFinalizedMonthsDictionary(SelectedDate, value);
     }
 
+    private async Task<bool> ConfirmUnfinalise()
+    {
+        return await Application.Current.MainPage.DisplayAlert(
+            "Are you sure you want to unfinalise expenses?",
+            "This will unfinalise all subsequent months' expenses as well and you will have to manually finalise them again.",
+            "Go ahead",
+            "Undo"
+        );
+    }
+
+    private void UpdateFinalizedMonthsDictionary(DateTime selectedDate, bool value)
+    {
+        var currencyMonthKey = GenerateFinalisedMonthsDictKey(selectedDate);
+        _finalisedMonthsDictionary[currencyMonthKey] = value;
+    }
+
+    private bool IsNextMonthFinalised()
+    {
+        var startOfCurrentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var nextMonth = SelectedDate.AddMonths(1);
+        var key = GenerateFinalisedMonthsDictKey(nextMonth);
+
+        if (_finalisedMonthsDictionary.TryGetValue(key, out bool final) && final)
+            return true;
+        else
+            return false;
+    }
+    private string GenerateFinalisedMonthsDictKey(DateTime date)
+    {
+        return $"{SelectedCurrency}:{date.ToString("Y")}";
+    }
     private void AddFinalisationTransactions(DateTime month)
     {
         var spendingBudet = ProjectsQuery.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency) + GetNetNonSavingsConversionsAmount(month);
@@ -236,7 +327,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         var totalCumulRemainingBudget = month == SelectedDate ? TotalCumulRemainingBudget : CalculateTotalCumulRemainingBudget(month);
 
         // Savings Goal is partly or fully reached
-        if (totalCumulRemainingBudget >= 0 || Math.Abs(totalCumulRemainingBudget) < savingsGoal && savingsGoal != 0)
+        if ((totalCumulRemainingBudget >= 0 || Math.Abs(totalCumulRemainingBudget) < savingsGoal) && savingsGoal != 0)
         {
             var amountToTransfer = Math.Min(savingsGoal, savingsGoal + totalCumulRemainingBudget);
             AddReachedSavingsGoalPortionToSavings(amountToTransfer, month);
@@ -274,20 +365,16 @@ public partial class SpendingOverviewViewModel : ObservableObject
         var transactionsToRemove = manualExtraSavingsTransfers.Union(finalisationTransactions).ToList();
         RemoveTransactions(transactionsToRemove);
     }
-
     private void FinaliseMonth(DateTime month)
     {
         AddFinalisationTransactions(month);
-        var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate.ToString("Y")}";
-        _finalizedMonthsDictionary[currencyMonthKey] = true;
+        UpdateFinalizedMonthsDictionary(SelectedDate, true);
 
     }
-
     private void UnFinaliseMonth(DateTime month, bool recursiveCall)
     {
         RemoveFinalisationTransactions(month);
-        var currencyMonthKey = $"{SelectedCurrency}:{month.ToString("Y")}";
-        _finalizedMonthsDictionary[currencyMonthKey] = false;
+        UpdateFinalizedMonthsDictionary(month, false);
 
         if (!recursiveCall)
         {
@@ -300,13 +387,29 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
             for (var dateToCheck = month; dateToCheck <= startOfCurrentMonth; dateToCheck = dateToCheck.AddMonths(1))
             {
-                var key = $"{SelectedCurrency}:{dateToCheck.ToString("Y")}";
-                if (_finalizedMonthsDictionary.ContainsKey(key) && _finalizedMonthsDictionary[key] == true)
+                var key = GenerateFinalisedMonthsDictKey(dateToCheck);
+
+                if (_finalisedMonthsDictionary.TryGetValue(key, out bool final) && final)
                 {
                     UnFinaliseMonth(dateToCheck, true);
                 }
             }
         }
+    }
+    private DateTime GetEarliestUnfinalisedMonth()
+    {
+        var today = DateTime.Today;
+        var startCurrentMonth = new DateTime(today.Year, today.Month, 1);
+        for (var date = MinDate; date < startCurrentMonth; date = date.AddMonths(1))
+        {
+            var key = GenerateFinalisedMonthsDictKey(date);
+            if (_finalisedMonthsDictionary.TryGetValue(key, out bool result) && !result)
+            {
+                return date;
+            }
+        }
+
+        return startCurrentMonth;
     }
     private decimal CalculateTotalCumulRemainingBudget(DateTime month)
     {
@@ -324,10 +427,11 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         // Set to true so OnExpensesAreFinalisedChanged immidiately returns
         _blockOnExpensesFinalisedChanged = true;
-        var currencyMonthKey = $"{SelectedCurrency}:{SelectedDate:Y}";
-        if (_finalizedMonthsDictionary.ContainsKey(currencyMonthKey))
+        var currencyMonthKey = GenerateFinalisedMonthsDictKey(SelectedDate);
+
+        if (_finalisedMonthsDictionary.TryGetValue(currencyMonthKey, out bool result))
         {
-            ExpensesAreFinalised = _finalizedMonthsDictionary[currencyMonthKey];
+            ExpensesAreFinalised = result;
         }
 
         else
@@ -337,7 +441,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         _blockOnExpensesFinalisedChanged = false;
     }
     [RelayCommand]
-    public void AddNewTransactionToAllSpendingCategories()
+    public async Task AddNewTransactionToAllSpendingCategories()
     {
         //Add expense if expenses aren't finalised yet
         if (!ExpensesAreFinalised)
@@ -351,15 +455,32 @@ public partial class SpendingOverviewViewModel : ObservableObject
         //Transfer from remaining balance to savings if expenses are finalised
         else
         {
-            foreach (var cat in SelectedCurrencySpendingCategoryViewModels)
+            bool validTransfers = SelectedCurrencySpendingCategoryViewModels.Any(x => x.NewTransactionAmount > 0 && x.NewTransactionAmount <= x.CumulativeRemainingBudget);
+
+            bool confirm = !validTransfers || !IsNextMonthFinalised() || await ConfirmSavingsTransfers();
+            if (confirm)
             {
-                cat.AddNewsTransfer(SelectedSavingsCategoryViewModel);
+                foreach (var cat in SelectedCurrencySpendingCategoryViewModels)
+                {
+                    cat.AddNewsTransfer(SelectedSavingsCategoryViewModel);
+                }
             }
         }
 
         OnPropertyChanged(nameof(TotalCumulRemainingBudget));
         OnPropertyChanged(nameof(IsSavingsGoalReached));
     }
+
+    private async Task<bool> ConfirmSavingsTransfers()
+    {
+        return await Application.Current.MainPage.DisplayAlert(
+            "Are you sure you want to transfer extra budget to savings?",
+            "This will impact future cumulative budgets and therefore unfinalise all subsequent months.\nIf you go ahead you will have to manually finalise them again.",
+            "Go ahead",
+            "Cancel"
+        );
+    }
+
 
     [RelayCommand]
     public void AddNewSavingsTransaction()
@@ -371,6 +492,18 @@ public partial class SpendingOverviewViewModel : ObservableObject
     // Removes transaction from all associated categories
     public void RemoveTransaction(Transaction transaction)
     {
+        if (transaction.IsFinalisationTransaction && ExpensesAreFinalised)
+        {
+            Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "This transaction is the automatically calculated result based on the Savings Goal and the Total Cumulative Remaining Budget.\n\nThis can only be automatically removed by setting the month as Unfinalised.", "Ok.");
+            return;
+        }
+
+        if (transaction is ExpenseTransaction && ExpensesAreFinalised)
+        {
+            Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "Expenses for this month have been finalised and cannot be deleted.\nSet the current month to unfinalised if you want to edit expenses.", "Ok.");
+            return;
+        }
+
         if (transaction is CurrencyConversion conv)
         {
             CurrencyConversions.Remove(conv);
@@ -391,6 +524,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
                     s.RemoveTransaction(conv);
                 }
             }
+            return;
         }
 
         else
@@ -622,7 +756,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         if (PercentageSumEquals100(SelectedDate))
         {
             SaveAllCurrencyConversions();
-            await SpendingOverviewDataManager.WriteToJson(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalizedMonthsDictionary);
+            await SpendingOverviewDataManager.WriteToJsonAsync(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalisedMonthsDictionary);
         }
 
     }
