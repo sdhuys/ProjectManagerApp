@@ -16,7 +16,7 @@ public static class SpendingOverviewDataManager
     // Writes SpendingCategories on the first line
     // SpendingCategories on the second line
     // Dictionary for FinalizedMonthsDictionary on the third line
-    public static async Task WriteToJson(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, bool> dict)
+    public static async Task WriteToJsonAsync(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, bool> dict)
     {
         string spendingsJson = JsonConvert.SerializeObject(spendings);
         string savingsJson = JsonConvert.SerializeObject(savings);
@@ -56,4 +56,33 @@ public static class SpendingOverviewDataManager
             return string.IsNullOrWhiteSpace(json) ? new Dictionary<string, bool>() : JsonConvert.DeserializeObject<Dictionary<string, bool>>(json);
         }
     }
+    public static async Task<(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, bool> dict)> LoadFromJsonAsync()
+    {
+        if (!File.Exists(filePath))
+            return (Enumerable.Empty<SpendingCategory>(), Enumerable.Empty<SpendingCategory>(), new());
+
+        var lines = await File.ReadAllLinesAsync(filePath);
+
+        return (
+            lines.Length > 0 ? await DeserializeCategories(lines[0]) : null,
+            lines.Length > 1 ? await DeserializeCategories(lines[1]) : null,
+            lines.Length > 2 ? await DeserializeDictionary(lines[2]) : null
+        );
+
+        async Task<IEnumerable<SpendingCategory>> DeserializeCategories(string json)
+        {
+            var settings = new JsonSerializerSettings
+            {
+                Converters = new List<JsonConverter> { new TransferTransactionJsonConverter() }
+            };
+
+            return string.IsNullOrWhiteSpace(json) ? Enumerable.Empty<SpendingCategory>() : await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<IEnumerable<SpendingCategory>>(json, settings));
+        }
+
+        async Task<Dictionary<string, bool>> DeserializeDictionary(string json)
+        {
+            return string.IsNullOrWhiteSpace(json) ? new Dictionary<string, bool>() : await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<Dictionary<string, bool>>(json));
+        }
+    }
+
 }
