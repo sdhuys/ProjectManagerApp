@@ -4,6 +4,21 @@ namespace MauiApp1.Models;
 
 public abstract class Transaction
 {
+    public const string LossExpenseDescription = "Overall Loss Coverage";
+    public const string SavingsGoalTransferSource = "Savings Goal Portion";
+    public const string SpendingsOverdraftExpenseDescription = "Spendings Overdraft Coverage";
+
+    // returns true for transactions that have been automatically created on expenses finalisation
+    // returns false for transfers to savings manually added after finaisation
+    public bool IsFinalisationTransaction
+    {
+        get
+        {
+            if (this is ExpenseTransaction e && (e.Description == LossExpenseDescription || e.Description == SpendingsOverdraftExpenseDescription)) return true;
+            if (this is TransferTransaction t && t.Source == SavingsGoalTransferSource) return true;
+            return false;
+        }
+    }
     public decimal Amount { get; set; }
     public DateTime Date { get; set; }
 
@@ -53,7 +68,6 @@ public class TransferTransaction : Transaction
             existingTransfers[Id] = this;
         }
     }
-
 
     public static TransferTransaction GetExistingTransfer(string id)
     {

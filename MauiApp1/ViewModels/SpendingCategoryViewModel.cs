@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using MauiApp1.StaticHelpers;
+using Newtonsoft.Json;
 
 namespace MauiApp1.ViewModels;
 public partial class SpendingCategoryViewModel : ObservableObject
@@ -17,7 +18,8 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
             foreach (var t in Transfers)
             {
-                t.Source = Name;
+                string source = $"Remaining {Name} Balance";
+                t.Source = source;
             }
             OnPropertyChanged();
         }
@@ -90,6 +92,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
     private decimal _budget;
     private DateTime _selectedDate;
 
+    [JsonConstructor]
     public SpendingCategoryViewModel(SpendingCategory category)
     {
         Category = category;
@@ -98,11 +101,20 @@ public partial class SpendingCategoryViewModel : ObservableObject
         TransactionsToDisplay = SelectedMonthTransactions;
     }
 
+    // Constructor to be called when manually creating new Category on UI
+    // Sets date as starting point for PercentageHistory
+    public SpendingCategoryViewModel(SpendingCategory category, DateTime date)
+    {
+        Category = category;
+        PercentageHistory[date] = 0;
+        AllTransactions = new();
+        SelectedMonthTransactions = new();
+        TransactionsToDisplay = SelectedMonthTransactions;
+    }
 
     public void SetBudgetAndDate(decimal budget, DateTime date)
     {
         _budget = budget > 0 ? budget : 0;
-        //_budget = budget;
         _selectedDate = date;
 
         Percentage = GetDatePercentage(_selectedDate);
@@ -124,7 +136,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
         TransactionsToDisplay = all ? AllTransactions : SelectedMonthTransactions;
         OnPropertyChanged(nameof(TransactionsToDisplay));
     }
-    private decimal GetDatePercentage(DateTime date)
+    public decimal GetDatePercentage(DateTime date)
     {
         var previousOrCurrentDateKeys = PercentageHistory.Keys.Where(x => x <= date);
         return previousOrCurrentDateKeys.Any() ? PercentageHistory[previousOrCurrentDateKeys.Max()] : 0;
@@ -144,6 +156,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
     {
         return AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year);
     }
+
     public void AddNewExpense(string spendingDescription)
     {
         if (NewTransactionAmount == 0) return;
@@ -160,7 +173,8 @@ public partial class SpendingCategoryViewModel : ObservableObject
             Application.Current.MainPage.DisplayAlert("Insufficient Balance", "You cannot transfer more than the remaining cumulative budget balance!", "Ok");
             return;
         }
-        TransferTransaction newTransfer = new(Name, NewTransactionAmount, _selectedDate, destinationViewModel.Name);
+        string source = $"Remaining {Name} Balance";
+        TransferTransaction newTransfer = new(source, NewTransactionAmount, _selectedDate, destinationViewModel.Name);
 
         // Add the transfer to both the SpendingCategory and the SavingsCategory
         AddOrInsertTransaction(Transfers, newTransfer);
@@ -205,6 +219,13 @@ public partial class SpendingCategoryViewModel : ObservableObject
     {
         if (add)
         {
+            // If transaction date is earlier than cumul calculations starting point
+            // Add key to register current month as starting point
+            if (transaction.Date <= PercentageHistory.Keys.Min())
+            {
+                PercentageHistory[transaction.Date] = Percentage;
+            }
+
             SelectedMonthTransactions.Add(transaction);
             if (AllTransactions.Any(x => x.Date > transaction.Date))
             {
@@ -227,12 +248,11 @@ public partial class SpendingCategoryViewModel : ObservableObject
     
     public decimal GetCumulativeRemainingBudget(DateTime date)
     {
-        if (PercentageHistory.Keys.Count == 0 || date < PercentageHistory.Keys.Min()) return 0;
-
-        if (date == PercentageHistory.Keys.Min())
+        if (PercentageHistory.Keys.Count == 0 || date <= PercentageHistory.Keys.Min())
         {
             return GetRemainingBudget(date);
         }
+
         var previousMonth = date.AddMonths(-1);
         return GetCumulativeRemainingBudget(previousMonth) + GetRemainingBudget(date);
     }

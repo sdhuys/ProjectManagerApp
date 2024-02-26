@@ -938,7 +938,7 @@
                                              Binding="{Binding IsSavingsGoalReached}"
                                              Value="{x:Static local:SpendingOverviewViewModel+SavingsGoalReachedStatus.Negative}">
                                     <Setter Property="Text"
-                                            Value="&#x274C; &#x1F4B0; &#x1F4C9;" />
+                                            Value="&#x1F4B0; &#x1F4C9;" />
 
                                 </DataTrigger>
                             </Label.Triggers>
