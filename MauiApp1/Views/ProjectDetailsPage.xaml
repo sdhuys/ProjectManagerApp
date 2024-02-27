@@ -250,6 +250,13 @@
                                 MinimumHeightRequest="140"
                                 MaximumHeightRequest="140">
 
+                    <CollectionView.EmptyView>
+                        <Label Text="None"
+                               FontAttributes="Italic"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center" />
+                    </CollectionView.EmptyView>
+
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0,0,50,0">
@@ -370,6 +377,14 @@
                                 MinimumHeightRequest="140"
                                 MaximumHeightRequest="140"
                                 ItemSizingStrategy="MeasureAllItems">
+
+                    <CollectionView.EmptyView>
+                        <Label Text="None"
+                               FontAttributes="Italic"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center" />
+                    </CollectionView.EmptyView>
+
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>

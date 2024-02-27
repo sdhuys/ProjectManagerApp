@@ -18,15 +18,32 @@ internal class PercentageInputValidationBehavior : Behavior<Entry>
 
     private void OnEntryTextChanged(object sender, TextChangedEventArgs e)
     {
-        if (String.IsNullOrEmpty(e.NewTextValue))
+        var entry = (Entry)sender;
+
+        if (e.NewTextValue.Length > 6)
         {
-            ((Entry)sender).Text = "0";
+            entry.Text = e.OldTextValue;
+        }
+
+        if (string.IsNullOrEmpty(e.NewTextValue))
+        {
+            entry.Text = "0";
             return;
         }
 
-        if (!(decimal.TryParse(e.NewTextValue, NumberStyles.AllowDecimalPoint, CultureInfo.CurrentCulture, out decimal newValue) && newValue >= 0 && newValue <= 100))
+        string newString = e.NewTextValue;
+        if (newString.Contains('.'))
         {
-            ((Entry)sender).Text = e.OldTextValue;
+            newString = newString.Replace('.', ',');
+        }
+
+        if (!(decimal.TryParse(newString, NumberStyles.AllowDecimalPoint, CultureInfo.CurrentCulture, out decimal newValue) && newValue >= 0 && newValue <= 100))
+        {
+            entry.Text = e.OldTextValue;
+        }
+        else if (newString != e.NewTextValue)
+        {
+            entry.Text = newString;
         }
     }
 }

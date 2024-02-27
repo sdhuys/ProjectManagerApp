@@ -205,12 +205,15 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             return;
         }
 
+        newValue = newValue.Replace('.', ',');
+
         if (!decimal.TryParse(newValue, out decimal result))
         {
             Fee = oldValue;
             return;
         }
         CalculateRelativeExpenseAmounts();
+        Fee = newValue;
     }
 
     partial void OnVatRatePercentChanged(string oldValue, string newValue)
@@ -221,12 +224,15 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             return;
         }
 
+        newValue = newValue.Replace('.', ',');
+
         if (!decimal.TryParse(newValue, out decimal result) || result < 0 || result > 100)
         {
             VatRatePercent = oldValue;
             return;
         }
         CalculateRelativeExpenseAmounts();
+        VatRatePercent = newValue;
     }
 
     partial void OnNewExpenseValueChanged(string oldValue, string newValue)
@@ -234,8 +240,14 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         if (string.IsNullOrEmpty(newValue))
             return;
 
+        newValue = newValue.Replace('.', ',');
+
         if (!decimal.TryParse(newValue, out decimal result) || (NewExpenseIsRelative && (result < 0 || result > 100)))
+        {
             NewExpenseValue = oldValue;
+            return;
+        }
+        NewExpenseValue = newValue;
     }
 
     partial void OnNewExpenseIsRelativeChanged(bool value)
@@ -258,12 +270,14 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             CalculateRelativeExpenseAmounts();
             return;
         }
+        newValue = newValue.Replace('.', ',');
 
         if (!decimal.TryParse(newValue, out decimal result) || result < 0 || result > 100)
         {
             CustomAgencyFeePercent = oldValue;
             return;
         }
+        CustomAgencyFeePercent = newValue;
         CalculateRelativeExpenseAmounts();
     }
 
@@ -271,10 +285,14 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     {
         if (string.IsNullOrWhiteSpace(newValue)) return;
 
+        newValue = newValue.Replace('.', ',');
+
         if (!decimal.TryParse(newValue, out decimal result))
         {
             NewPaymentAmount = oldValue;
+            return;
         }
+        NewPaymentAmount = newValue;
     }
 
     partial void OnStatusChanged(Project.ProjectStatus value)
