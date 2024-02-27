@@ -8,6 +8,8 @@ namespace MauiApp1.ViewModels;
 
 public partial class SpendingOverviewViewModel : ObservableObject
 {
+    bool CanSave => !EditMode;
+
     [ObservableProperty]
     bool showAllTransactions;
     public string[] ViewOptions { get; }
@@ -18,34 +20,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     [ObservableProperty]
     DateTime selectedDate = new (DateTime.Today.Year, DateTime.Today.Month, 1);
 
-    public DateTime MinDate
-    {
-        get
-        {
-            DateTime today = DateTime.Today;
-
-            DateTime minProjectDate = ProjectManager.AllProjects
-                .SelectMany(project => project.Expenses.Select(e => e.Date).Union(project.Payments.Select(p => p.Date)))
-                .DefaultIfEmpty(today)
-                .Min();
-
-            DateTime minCatsDictDate = SelectedCurrencySpendingCategoryViewModels
-                .SelectMany(x => x.PercentageHistory?.Keys ?? Enumerable.Empty<DateTime>())
-                .DefaultIfEmpty(today)
-                .Min();
-
-            DateTime minSavingsDictDate = SelectedSavingsCategoryViewModel?.PercentageHistory?.Keys?.Min() ?? today;
-
-            DateTime minDate = new[]
-            {
-                minProjectDate,
-                minCatsDictDate,
-                minSavingsDictDate
-            }.Min();
-
-            return new DateTime(minDate.Year, minDate.Month, 1);
-        }
-    }
+    public DateTime MinDate => GetCurrencyMinDate(SelectedCurrency);
 
     [ObservableProperty]
     string selectedCurrency;
@@ -128,6 +103,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     private bool _blockOnExpensesFinalisedChanged;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveSpendingCategoriesAndCurrencyConversionsCommand))]
     bool editMode;
 
     [ObservableProperty]
@@ -188,12 +164,11 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         _currencyList = ProjectManager.AllProjects.Select(p => p.Currency).Distinct().ToList();
         OnPropertyChanged(nameof(CurrencyList));
-        OnPropertyChanged(nameof(MinDate));
-
         CheckForAndCreateMissingSavingsViewModels();
 
-        // Set selected currency to the one with highest payments received amount
+        // Set selected currency to the one with highest project count
         SelectedCurrency = CurrencyList.OrderByDescending(c => ProjectManager.AllProjects.Where(p => p.Currency == c).Count()).FirstOrDefault();
+        OnPropertyChanged(nameof(MinDate));
     }
 
     partial void OnSelectedCurrencyChanged(string value)
@@ -209,8 +184,9 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(NonSelectedCurrencies));
         SetExpensesAreFinalisedFromDictionary();
         CheckCurrentMonthPercentages();
-        SelectedDate = GetEarliestUnfinalisedMonth();
         OnPropertyChanged(nameof(CanFinaliseExpenses));
+        OnPropertyChanged(nameof(MinDate));
+        SelectedDate = GetEarliestUnfinalisedMonth();
     }
 
     partial void OnSelectedDateChanged(DateTime oldValue, DateTime newValue)
@@ -288,7 +264,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         return await Application.Current.MainPage.DisplayAlert(
             "Are you sure you want to unfinalise expenses?",
-            "This will unfinalise all subsequent months' expenses as well and you will have to manually finalise them again.",
+            "This will unfinalise all subsequent months' expenses as well.\n\n If you go ahead you will have to manually finalise them again.",
             "Go ahead",
             "Undo"
         );
@@ -738,11 +714,11 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         return incoming - outgoing;
     }
-    private async void CheckCurrentMonthPercentages()
+    private void CheckCurrentMonthPercentages()
     {
         if (!PercentageSumEquals100(SelectedDate))
         {
-            await Application.Current.MainPage.DisplayAlert("Invalid Percentages Total", "Category percentages + Savings Goal must add up to 100%", "Ok");
+            Application.Current.MainPage.DisplayAlert("Invalid Percentages Total", "Category percentages + Savings Goal must add up to 100%", "Ok");
             if (EditMode == false)
             {
                 EditMode = true;
@@ -752,7 +728,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
         {
             OnPropertyChanged(nameof(TotalCumulRemainingBudget));
             OnPropertyChanged(nameof(IsSavingsGoalReached));
-            await SaveAllSpendingCategoriesAndCurrencyConversions();
         }
     }
     private bool PercentageSumEquals100(DateTime date)
@@ -779,18 +754,58 @@ public partial class SpendingOverviewViewModel : ObservableObject
             SavingsCategoryViewModels.Add(newSavingsVM);
         }
     }
-    private async Task SaveAllSpendingCategoriesAndCurrencyConversions()
+    private DateTime GetCurrencyMinDate(string currency)
     {
-        if (PercentageSumEquals100(SelectedDate))
-        {
-            SaveAllCurrencyConversions();
-            await SpendingOverviewDataManager.WriteToJsonAsync(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalisedMonthsDictionary);
-        }
+        DateTime today = DateTime.Today;
 
+        DateTime minProjectDate = ProjectManager.AllProjects
+            .Where(p => p.Currency == currency)
+            .SelectMany(project => project.Expenses.Select(e => e.Date).Union(project.Payments.Select(p => p.Date)))
+            .DefaultIfEmpty(today)
+            .Min();
+
+        DateTime minSpendingsTransferDate = SpendingCategoryViewModels
+            ?.Where(c => c.Currency == currency)
+            ?.SelectMany(x => x.AllTransactions)
+            ?.Select(t => t.Date)
+            ?.DefaultIfEmpty(today)
+            .Min() ?? today;
+
+        DateTime minSavingsTransfersDate = SavingsCategoryViewModels
+            ?.Where(c => c.Currency == currency)
+            ?.FirstOrDefault()
+            ?.AllTransactions
+            ?.Select(t => t.Date)
+            ?.DefaultIfEmpty(today)
+            ?.Min()
+            ?? today;
+
+        DateTime minDate = new[]
+        {
+                minProjectDate,
+                minSpendingsTransferDate,
+                minSavingsTransfersDate
+            }.Min();
+
+        return new DateTime(minDate.Year, minDate.Month, 1);
     }
-    private void SaveAllCurrencyConversions()
+
+    [RelayCommand(CanExecute = (nameof(CanSave)))]
+    private async Task SaveSpendingCategoriesAndCurrencyConversions()
     {
         CurrencyConversionManager.WriteToJson();
+        await SpendingOverviewDataManager.WriteToJsonAsync(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalisedMonthsDictionary);
+    }
+
+    [RelayCommand]
+    private void ReloadFromJson()
+    {
+        var (spendings, savings, dict) = SpendingOverviewDataManager.LoadFromJson();
+        SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x)).ToList();
+        SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x)).ToList();
+        _finalisedMonthsDictionary = dict;
+
+        OnSelectedCurrencyChanged(SelectedCurrency);
     }
 
     public enum SavingsGoalReachedStatus

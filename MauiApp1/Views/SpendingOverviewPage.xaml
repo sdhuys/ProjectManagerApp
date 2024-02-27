@@ -314,7 +314,15 @@
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
         <conv:DecimalFormatConverter x:Key="DecimalFormat" />
     </ContentPage.Resources>
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Save Changes"
+                     IconImageSource="{FontImage Glyph='&#x1F4BE;', Color=Green}"
+                     Command="{Binding SaveSpendingCategoriesAndCurrencyConversionsCommand}" />
+        <ToolbarItem Text="Revert Changes"
+                     IconImageSource="{FontImage Glyph='&#x21A9;', Color=Red}"
+                     Command="{Binding ReloadFromJsonCommand}" />
 
+    </ContentPage.ToolbarItems>
 
     <ScrollView>
         <Grid x:Name="OuterGrid">
