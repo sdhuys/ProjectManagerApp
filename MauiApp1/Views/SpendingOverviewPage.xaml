@@ -638,20 +638,18 @@
                                              VerticalOptions="EndAndExpand"
                                              Margin="10"
                                              Spacing="10">
-                            <VerticalStackLayout.Triggers>
-                                <DataTrigger TargetType="VerticalStackLayout"
-                                             Binding="{Binding SelectedCurrencySpendingCategoryViewModels.Count}"
-                                             Value="0">
-                                    <Setter Property="IsVisible"
-                                            Value="False" />
-                                </DataTrigger>
-                            </VerticalStackLayout.Triggers>
 
                             <Button Command="{Binding AddNewTransactionToAllSpendingCategoriesCommand}"
                                     HeightRequest="44"
                                     Text="Add Expenses"
                                     IsEnabled="{Binding EditMode, Converter={StaticResource InvertedBoolConverter}}">
                                 <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedCurrencySpendingCategoryViewModels.Count}"
+                                                     Value="0">
+                                            <Setter Property="IsVisible"
+                                                    Value="False" />
+                                        </DataTrigger>
 
                                     <DataTrigger TargetType="Button"
                                                  Binding="{Binding ExpensesAreFinalised}"

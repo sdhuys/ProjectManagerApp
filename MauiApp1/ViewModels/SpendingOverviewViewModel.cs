@@ -107,7 +107,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         get
         {
-            if (SelectedDate == MinDate) return true;
+            if (SelectedDate == MinDate) return !EditMode;
+            if (ExpensesAreFinalised) return true;
 
             var lastMonth = SelectedDate.AddMonths(-1);
             var key = GenerateFinalisedMonthsDictKey(lastMonth);
@@ -208,8 +209,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(NonSelectedCurrencies));
         SetExpensesAreFinalisedFromDictionary();
         CheckCurrentMonthPercentages();
-        OnPropertyChanged(nameof(CanFinaliseExpenses));
         SelectedDate = GetEarliestUnfinalisedMonth();
+        OnPropertyChanged(nameof(CanFinaliseExpenses));
     }
 
     partial void OnSelectedDateChanged(DateTime oldValue, DateTime newValue)
@@ -456,13 +457,20 @@ public partial class SpendingOverviewViewModel : ObservableObject
         else
         {
             bool validTransfers = SelectedCurrencySpendingCategoryViewModels.Any(x => x.NewTransactionAmount > 0 && x.NewTransactionAmount <= x.CumulativeRemainingBudget);
+            bool nextMonthFinalised = IsNextMonthFinalised();
 
-            bool confirm = !validTransfers || !IsNextMonthFinalised() || await ConfirmSavingsTransfers();
+            bool confirm = !validTransfers || !nextMonthFinalised || await ConfirmSavingsTransfers(true);
             if (confirm)
             {
                 foreach (var cat in SelectedCurrencySpendingCategoryViewModels)
                 {
                     cat.AddNewsTransfer(SelectedSavingsCategoryViewModel);
+                }
+
+                if (nextMonthFinalised)
+                {
+                    var nextMonth = SelectedDate.AddMonths(1);
+                    UnFinaliseMonth(nextMonth, false);
                 }
             }
         }
@@ -471,11 +479,13 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(IsSavingsGoalReached));
     }
 
-    private async Task<bool> ConfirmSavingsTransfers()
+    private async Task<bool> ConfirmSavingsTransfers(bool add)
     {
+        string title = add ? "Are you sure you want to transfer extra budget to savings?" : "Are you sure you want to delete this Savings Transfer?";
+
         return await Application.Current.MainPage.DisplayAlert(
-            "Are you sure you want to transfer extra budget to savings?",
-            "This will impact future cumulative budgets and therefore unfinalise all subsequent months.\nIf you go ahead you will have to manually finalise them again.",
+            title,
+            "This will impact future cumulative budgets and all subsequent months will be unfinalised.\n\nIf you go ahead you will have to manually finalise them again.",
             "Go ahead",
             "Cancel"
         );
@@ -490,18 +500,36 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     [RelayCommand]
     // Removes transaction from all associated categories
-    public void RemoveTransaction(Transaction transaction)
+    public async Task RemoveTransaction(Transaction transaction)
     {
-        if (transaction.IsFinalisationTransaction && ExpensesAreFinalised)
+        // If manual removal from UI
+        if (transaction.Date == SelectedDate)
         {
-            Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "This transaction is the automatically calculated result based on the Savings Goal and the Total Cumulative Remaining Budget.\n\nThis can only be automatically removed by setting the month as Unfinalised.", "Ok.");
-            return;
-        }
+            if (transaction.IsFinalisationTransaction && ExpensesAreFinalised)
+            {
+                Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "This transaction is the automatically calculated result based on the Savings Goal and the Total Cumulative Remaining Budget.\n\nThis can only be automatically removed by setting the month as Unfinalised.", "Ok.");
+                return;
+            }
 
-        if (transaction is ExpenseTransaction && ExpensesAreFinalised)
-        {
-            Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "Expenses for this month have been finalised and cannot be deleted.\nSet the current month to unfinalised if you want to edit expenses.", "Ok.");
-            return;
+            if (transaction is ExpenseTransaction && ExpensesAreFinalised)
+            {
+                Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "Expenses for this month have been finalised and cannot be deleted.\nSet the current month to unfinalised if you want to edit expenses.", "Ok.");
+                return;
+            }
+
+            if (transaction is TransferTransaction && !transaction.IsFinalisationTransaction && ExpensesAreFinalised)
+            {
+                bool nextMonthFinalised = IsNextMonthFinalised();
+
+                bool confirm = !nextMonthFinalised || await ConfirmSavingsTransfers(false);
+                if (!confirm) return;
+
+                if (nextMonthFinalised)
+                {
+                    var nextMonth = SelectedDate.AddMonths(1);
+                    UnFinaliseMonth(nextMonth, false);
+                }
+            }
         }
 
         if (transaction is CurrencyConversion conv)
@@ -538,11 +566,11 @@ public partial class SpendingOverviewViewModel : ObservableObject
         }
     }
 
-    private void RemoveTransactions(IEnumerable<Transaction> transactions)
+    private async Task RemoveTransactions(IEnumerable<Transaction> transactions)
     {
         foreach (var t in transactions)
         {
-            RemoveTransaction(t);
+            await RemoveTransaction(t);
         }
     }
 
