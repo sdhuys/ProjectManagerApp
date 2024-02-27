@@ -586,7 +586,11 @@
                                         <Entry Placeholder="New Expense"
                                                Text="{Binding NewTransactionAmount}"
                                                Margin="10"
-                                               VerticalOptions="EndAndExpand" />
+                                               VerticalOptions="EndAndExpand">
+                                            <Entry.Behaviors>
+                                                <behaviors:NumericInputValidationBehavior />
+                                            </Entry.Behaviors>
+                                        </Entry>
 
                                     </VerticalStackLayout>
                                 </ScrollView>

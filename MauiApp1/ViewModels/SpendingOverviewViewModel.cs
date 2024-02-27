@@ -93,7 +93,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
         }
     }
 
-
     // Dictionary containing keys in "CURRENCY:MM/YY" format, values representing whether or not that months' accounting is finalized
     private Dictionary<string, (bool, decimal)> _finalisedMonthsDictionary;
 

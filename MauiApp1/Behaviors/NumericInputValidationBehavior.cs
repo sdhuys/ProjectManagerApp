@@ -1,8 +1,9 @@
-﻿using System.Globalization;
+﻿
+using System.Globalization;
 
 namespace MauiApp1.Behaviors;
 
-internal class PercentageInputValidationBehavior : Behavior<Entry>
+internal class NumericInputValidationBehavior : Behavior<Entry>
 {
     protected override void OnAttachedTo(Entry entry)
     {
@@ -15,20 +16,14 @@ internal class PercentageInputValidationBehavior : Behavior<Entry>
         entry.TextChanged -= OnEntryTextChanged;
         base.OnDetachingFrom(entry);
     }
-
     private void OnEntryTextChanged(object sender, TextChangedEventArgs e)
     {
         var entry = (Entry)sender;
 
         if (string.IsNullOrEmpty(e.NewTextValue))
         {
-            entry.Text = "0";
+            entry.Text = null;
             return;
-        }
-
-        if (e.NewTextValue.Length > 6)
-        {
-            entry.Text = e.OldTextValue;
         }
 
         string newString = e.NewTextValue;
@@ -37,7 +32,7 @@ internal class PercentageInputValidationBehavior : Behavior<Entry>
             newString = newString.Replace('.', ',');
         }
 
-        if (!(decimal.TryParse(newString, NumberStyles.AllowDecimalPoint, CultureInfo.CurrentCulture, out decimal newValue) && newValue >= 0 && newValue <= 100))
+        if (!(decimal.TryParse(newString, NumberStyles.AllowDecimalPoint, CultureInfo.CurrentCulture, out decimal newValue)))
         {
             entry.Text = e.OldTextValue;
         }
