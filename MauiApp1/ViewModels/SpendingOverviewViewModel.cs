@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MauiApp1.Models;
 using MauiApp1.StaticHelpers;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace MauiApp1.ViewModels;
 
@@ -18,7 +19,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     string selectedViewOption;
 
     [ObservableProperty]
-    DateTime selectedDate = new (DateTime.Today.Year, DateTime.Today.Month, 1);
+    DateTime selectedDate = new(DateTime.Today.Year, DateTime.Today.Month, 1);
 
     public DateTime MinDate => GetCurrencyMinDate(SelectedCurrency);
 
@@ -88,13 +89,13 @@ public partial class SpendingOverviewViewModel : ObservableObject
             var lastMonth = SelectedDate.AddMonths(-1);
             var key = GenerateFinalisedMonthsDictKey(lastMonth);
 
-            return _finalisedMonthsDictionary.TryGetValue(key, out bool result) && result && !EditMode;
+            return _finalisedMonthsDictionary.TryGetValue(key, out (bool, decimal) result) && result.Item1 && !EditMode;
         }
     }
 
 
     // Dictionary containing keys in "CURRENCY:MM/YY" format, values representing whether or not that months' accounting is finalized
-    private Dictionary<string, bool> _finalisedMonthsDictionary;
+    private Dictionary<string, (bool, decimal)> _finalisedMonthsDictionary;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
@@ -131,7 +132,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x)).ToList();
         SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x)).ToList();
         _finalisedMonthsDictionary = dict;
-        
+
         CurrencyConversions = CurrencyConversionManager.LoadFromJson();
         SelectedCurrencyConversions = new();
         SelectedCurrencySpendingCategoryViewModels = new();
@@ -171,9 +172,41 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(MinDate));
     }
 
+    private void CheckForFinalisedMonthsBudgetChanges()
+    {
+        foreach (var kvp in _finalisedMonthsDictionary)
+        {
+            var currencyKey = kvp.Key.Split(':')[0];
+            if (currencyKey == SelectedCurrency && kvp.Value.Item1)
+            {
+                var savedBudget = kvp.Value.Item2;
+                var date = GetDateFromKey(kvp.Key);
+
+                //if (date < MinDate) return;
+
+                var currentBudget = ProjectsQuery.CalculateMonthProfitForCurrency(date, SelectedCurrency) + GetNetNonSavingsConversionsAmount(date);
+
+                if (currentBudget != savedBudget)
+                {
+                    Application.Current.MainPage.DisplayAlert($"Total budget change since finalisation!", $"All months starting from {date.ToString("Y")} have been unfinalised because of its total budget change from {savedBudget:N2} to {currentBudget:N2}", "Ok");
+                    UnFinaliseMonth(date, false);
+                    return;
+                }
+            }
+        }
+
+        DateTime GetDateFromKey(string key)
+        {
+            string dateString = key.Split(':')[1];
+            var date = DateTime.ParseExact(dateString, "Y", CultureInfo.CurrentCulture);
+            return date;
+        }
+    }
+
     partial void OnSelectedCurrencyChanged(string value)
     {
         if (value == null) return;
+        CheckForFinalisedMonthsBudgetChanges();
 
         PopulateSelectedCurrencyConversions();
         PopulateSelectedCurrencySpendingCategories();
@@ -272,8 +305,9 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     private void UpdateFinalizedMonthsDictionary(DateTime selectedDate, bool value)
     {
+        var budget = value ? TotalSpendingBudget : 0;
         var currencyMonthKey = GenerateFinalisedMonthsDictKey(selectedDate);
-        _finalisedMonthsDictionary[currencyMonthKey] = value;
+        _finalisedMonthsDictionary[currencyMonthKey] = (value, budget);
     }
 
     private bool IsNextMonthFinalised()
@@ -282,7 +316,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         var nextMonth = SelectedDate.AddMonths(1);
         var key = GenerateFinalisedMonthsDictKey(nextMonth);
 
-        if (_finalisedMonthsDictionary.TryGetValue(key, out bool final) && final)
+        if (_finalisedMonthsDictionary.TryGetValue(key, out (bool, decimal) final) && final.Item1)
             return true;
         else
             return false;
@@ -291,13 +325,18 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         return $"{SelectedCurrency}:{date.ToString("Y")}";
     }
+    private string GenerateFinalisedMonthsDictKey(DateTime date, string currency)
+    {
+        return $"{currency}:{date.ToString("Y")}";
+
+    }
     private void AddFinalisationTransactions(DateTime month)
     {
-        var spendingBudet = ProjectsQuery.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency) + GetNetNonSavingsConversionsAmount(month);
+        var spendingBudget = ProjectsQuery.CalculateMonthProfitForCurrency(SelectedDate, SelectedCurrency) + GetNetNonSavingsConversionsAmount(month);
 
-        if (TotalSpendingBudget < 0)
+        if (spendingBudget < 0)
         {
-            AddOverallLossAsExpenseTransaction(spendingBudet, month);
+            AddOverallLossAsExpenseTransaction(Math.Abs(spendingBudget), month);
         }
 
         var savingsGoal = SelectedSavingsCategoryViewModel.CalculateCumulSavingsGoal(month);
@@ -366,7 +405,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
             {
                 var key = GenerateFinalisedMonthsDictKey(dateToCheck);
 
-                if (_finalisedMonthsDictionary.TryGetValue(key, out bool final) && final)
+                if (_finalisedMonthsDictionary.TryGetValue(key, out (bool, decimal) final) && final.Item1)
                 {
                     UnFinaliseMonth(dateToCheck, true);
                 }
@@ -380,7 +419,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         for (var date = MinDate; date < startCurrentMonth; date = date.AddMonths(1))
         {
             var key = GenerateFinalisedMonthsDictKey(date);
-            if (_finalisedMonthsDictionary.TryGetValue(key, out bool result) && !result)
+            if (!_finalisedMonthsDictionary.TryGetValue(key, out (bool, decimal) result) || !result.Item1)
             {
                 return date;
             }
@@ -406,9 +445,9 @@ public partial class SpendingOverviewViewModel : ObservableObject
         _blockOnExpensesFinalisedChanged = true;
         var currencyMonthKey = GenerateFinalisedMonthsDictKey(SelectedDate);
 
-        if (_finalisedMonthsDictionary.TryGetValue(currencyMonthKey, out bool result))
+        if (_finalisedMonthsDictionary.TryGetValue(currencyMonthKey, out (bool, decimal) result))
         {
-            ExpensesAreFinalised = result;
+            ExpensesAreFinalised = result.Item1;
         }
 
         else
@@ -476,38 +515,74 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     [RelayCommand]
     // Removes transaction from all associated categories
-    public async Task RemoveTransaction(Transaction transaction)
+    public async Task RemoveTransactionIfAllowed(Transaction transaction)
     {
-        // If manual removal from UI
-        if (transaction.Date == SelectedDate)
+        if (transaction.Date != SelectedDate)
         {
-            if (transaction.IsFinalisationTransaction && ExpensesAreFinalised)
-            {
-                Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "This transaction is the automatically calculated result based on the Savings Goal and the Total Cumulative Remaining Budget.\n\nThis can only be automatically removed by setting the month as Unfinalised.", "Ok.");
-                return;
-            }
+            await Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", $"You can only delete transactions made in the currently selected month.\n\nIf you want to delete this transaction, go to the {transaction.Date:Y} overview", "Ok.");
+        }
 
-            if (transaction is ExpenseTransaction && ExpensesAreFinalised)
-            {
-                Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "Expenses for this month have been finalised and cannot be deleted.\nSet the current month to unfinalised if you want to edit expenses.", "Ok.");
-                return;
-            }
+        if (transaction.IsFinalisationTransaction && ExpensesAreFinalised)
+        {
+            await Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "This transaction is the automatically calculated result based on the Savings Goal and the Total Cumulative Remaining Budget.\n\nThis can only be automatically removed by setting the month as Unfinalised.", "Ok.");
+            return;
+        }
+        // SpendingCategories Expenses.Description are set to "", so only savings expenses can be deleted.
+        if (transaction is ExpenseTransaction e && String.IsNullOrEmpty(e.Description) && ExpensesAreFinalised)
+        {
+            await Application.Current.MainPage.DisplayAlert("Unable to delete transaction!", "Expenses for this month have been finalised and cannot be deleted.\nSet the current month to unfinalised if you want to edit expenses.", "Ok.");
+            return;
+        }
 
-            if (transaction is TransferTransaction && !transaction.IsFinalisationTransaction && ExpensesAreFinalised)
-            {
-                bool nextMonthFinalised = IsNextMonthFinalised();
+        if (transaction is CurrencyConversion conv && ((conv.ToCurrency != SelectedCurrency && !conv.IsToSavings) || (conv.FromCurrency != SelectedCurrency && !conv.IsFromSavings)))
+        {
+            var otherCur = conv.ToCurrency != SelectedCurrency ? conv.ToCurrency : conv.FromCurrency;
+            var date = conv.Date;
 
-                bool confirm = !nextMonthFinalised || await ConfirmSavingsTransfers(false);
+            var key = GenerateFinalisedMonthsDictKey(date, otherCur);
+            if (_finalisedMonthsDictionary.TryGetValue(key, out var result) && result.Item1)
+            {
+                bool confirm = await Application.Current.MainPage.DisplayAlert("Are you sure you want to delete this Currency Conversion?", $"This action will alter the Total Budget of a finalised month.\n\nIf you go ahead {otherCur} {date:Y} and all subsequent {otherCur} months will be unfinalised.", "Go Ahead", "Cancel");
                 if (!confirm) return;
-
-                if (nextMonthFinalised)
-                {
-                    var nextMonth = SelectedDate.AddMonths(1);
-                    UnFinaliseMonth(nextMonth, false);
-                }
             }
         }
 
+        if (transaction is CurrencyConversion c && ((c.FromCurrency == SelectedCurrency && !c.IsFromSavings) || (c.ToCurrency == SelectedCurrency && !c.IsToSavings)) && ExpensesAreFinalised)
+        {
+            await Application.Current.MainPage.DisplayAlert("Unable to delete currency conversion!", "This month's total budget and expenses have been finalised.\n\nDeleting this currency conversion would alter the budget. Set the current month to unfinalised if you want to edit non-savings conversions.", "Ok.");
+            return;
+        }
+
+
+
+        // Removing transfer to savings unfinalises next month!
+        if (transaction is TransferTransaction && !transaction.IsFinalisationTransaction && ExpensesAreFinalised)
+        {
+            bool nextMonthFinalised = IsNextMonthFinalised();
+
+            bool confirm = !nextMonthFinalised || await ConfirmSavingsTransfers(false);
+            if (!confirm) return;
+
+            if (nextMonthFinalised)
+            {
+                var nextMonth = SelectedDate.AddMonths(1);
+                UnFinaliseMonth(nextMonth, false);
+            }
+        }
+
+        RemoveTransaction(transaction);
+    }
+
+    private void RemoveTransactions(IEnumerable<Transaction> transactions)
+    {
+        foreach (var t in transactions)
+        {
+            RemoveTransaction(t);
+        }
+    }
+
+    private void RemoveTransaction(Transaction transaction)
+    {
         if (transaction is CurrencyConversion conv)
         {
             CurrencyConversions.Remove(conv);
@@ -539,14 +614,6 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
             OnPropertyChanged(nameof(TotalCumulRemainingBudget));
             OnPropertyChanged(nameof(IsSavingsGoalReached));
-        }
-    }
-
-    private async Task RemoveTransactions(IEnumerable<Transaction> transactions)
-    {
-        foreach (var t in transactions)
-        {
-            await RemoveTransaction(t);
         }
     }
 
@@ -714,11 +781,11 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         return incoming - outgoing;
     }
-    private void CheckCurrentMonthPercentages()
+    private async void CheckCurrentMonthPercentages()
     {
         if (!PercentageSumEquals100(SelectedDate))
         {
-            Application.Current.MainPage.DisplayAlert("Invalid Percentages Total", "Category percentages + Savings Goal must add up to 100%", "Ok");
+            await Application.Current.MainPage.DisplayAlert("Invalid Percentages Total", "Category percentages + Savings Goal must add up to 100%", "Ok");
             if (EditMode == false)
             {
                 EditMode = true;
@@ -780,12 +847,20 @@ public partial class SpendingOverviewViewModel : ObservableObject
             ?.Min()
             ?? today;
 
+        DateTime minCurrencyConversionDate = CurrencyConversions
+            ?.Where(c => c.ToCurrency == currency || c.FromCurrency == currency)
+            ?.Select(x => x.Date)
+            ?.DefaultIfEmpty(today)
+            ?.Min()
+            ?? today;
+
         DateTime minDate = new[]
         {
                 minProjectDate,
                 minSpendingsTransferDate,
-                minSavingsTransfersDate
-            }.Min();
+                minSavingsTransfersDate,
+                minCurrencyConversionDate
+        }.Min();
 
         return new DateTime(minDate.Year, minDate.Month, 1);
     }
@@ -805,6 +880,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x)).ToList();
         _finalisedMonthsDictionary = dict;
 
+        CheckForAndCreateMissingSavingsViewModels();
         OnSelectedCurrencyChanged(SelectedCurrency);
     }
 

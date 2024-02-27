@@ -16,7 +16,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -79,7 +79,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -146,7 +146,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -170,7 +170,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -197,7 +197,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -224,7 +224,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -253,7 +253,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -281,7 +281,7 @@
                 <FlyoutBase.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Delete"
-                                        Command="{Binding Path=BindingContext.RemoveTransactionCommand, Source={x:Reference SpendingOverview}}"
+                                        Command="{Binding Path=BindingContext.RemoveTransactionIfAllowedCommand, Source={x:Reference SpendingOverview}}"
                                         CommandParameter="{Binding .}" />
                     </MenuFlyout>
                 </FlyoutBase.ContextFlyout>
@@ -799,6 +799,17 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
+
+                        <HorizontalStackLayout Margin="10">
+                            <CheckBox IsChecked="{Binding ExpensesAreFinalised}"
+                                      IsEnabled="{Binding CanFinaliseExpenses}" />
+                            <VerticalStackLayout VerticalOptions="CenterAndExpand">
+                                <Label Text="Expenses"
+                                       VerticalTextAlignment="Center" />
+                                <Label Text="Finalised"
+                                       VerticalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
 
                     </VerticalStackLayout>
 

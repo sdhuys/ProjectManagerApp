@@ -16,7 +16,7 @@ public static class SpendingOverviewDataManager
     // Writes SpendingCategories on the first line
     // SpendingCategories on the second line
     // Dictionary for FinalizedMonthsDictionary on the third line
-    public static async Task WriteToJsonAsync(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, bool> dict)
+    public static async Task WriteToJsonAsync(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict)
     {
         string spendingsJson = JsonConvert.SerializeObject(spendings);
         string savingsJson = JsonConvert.SerializeObject(savings);
@@ -28,7 +28,7 @@ public static class SpendingOverviewDataManager
         await File.WriteAllTextAsync(filePath, combinedJson);
     }
 
-    public static (IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, bool> dict) LoadFromJson()
+    public static (IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict) LoadFromJson()
     {
         if (!File.Exists(filePath))
             return (Enumerable.Empty<SpendingCategory>(), Enumerable.Empty<SpendingCategory>(), new());
@@ -51,12 +51,12 @@ public static class SpendingOverviewDataManager
             return string.IsNullOrWhiteSpace(json) ? Enumerable.Empty<SpendingCategory>() : JsonConvert.DeserializeObject<IEnumerable<SpendingCategory>>(json, settings);
         }
 
-        Dictionary<string, bool> DeserializeDictionary(string json)
+        Dictionary<string, (bool, decimal)> DeserializeDictionary(string json)
         {
-            return string.IsNullOrWhiteSpace(json) ? new Dictionary<string, bool>() : JsonConvert.DeserializeObject<Dictionary<string, bool>>(json);
+            return string.IsNullOrWhiteSpace(json) ? new Dictionary<string, (bool, decimal)>() : JsonConvert.DeserializeObject<Dictionary<string, (bool, decimal)>>(json);
         }
     }
-    public static async Task<(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, bool> dict)> LoadFromJsonAsync()
+    public static async Task<(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict)> LoadFromJsonAsync()
     {
         if (!File.Exists(filePath))
             return (Enumerable.Empty<SpendingCategory>(), Enumerable.Empty<SpendingCategory>(), new());
@@ -79,9 +79,9 @@ public static class SpendingOverviewDataManager
             return string.IsNullOrWhiteSpace(json) ? Enumerable.Empty<SpendingCategory>() : await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<IEnumerable<SpendingCategory>>(json, settings));
         }
 
-        async Task<Dictionary<string, bool>> DeserializeDictionary(string json)
+        async Task<Dictionary<string, (bool, decimal)>> DeserializeDictionary(string json)
         {
-            return string.IsNullOrWhiteSpace(json) ? new Dictionary<string, bool>() : await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<Dictionary<string, bool>>(json));
+            return string.IsNullOrWhiteSpace(json) ? new Dictionary<string, (bool, decimal)>() : await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<Dictionary<string, (bool, decimal)>>(json));
         }
     }
 
