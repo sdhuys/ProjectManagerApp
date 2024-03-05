@@ -59,11 +59,11 @@
                                            Grid.Column="1"
                                            IsVisible="{Binding EnableFilters}"
                                            Margin="10">
-                        
+
                         <CheckBox IsChecked="{Binding FilterCurrencies}" />
-                        <Label Text="Currencies" 
-                               VerticalOptions="CenterAndExpand"/>
-                        
+                        <Label Text="Currencies"
+                               VerticalOptions="CenterAndExpand" />
+
                     </HorizontalStackLayout>
 
 
@@ -172,8 +172,8 @@
                             Command="{Binding GetIncomeDataAndCreateChartsCommand}"
                             IsVisible="{Binding EnableFilters}"
                             Grid.Row="1"
-                            Grid.Column="6" 
-                            HorizontalOptions="Center"/>
+                            Grid.Column="6"
+                            HorizontalOptions="Center" />
 
                 </Grid>
 
@@ -185,7 +185,7 @@
                         <Label Text="No Matching Projects With Any Payments or Expenses"
                                FontAttributes="Italic"
                                VerticalTextAlignment="Center"
-                               HorizontalTextAlignment="Center"/>
+                               HorizontalTextAlignment="Center" />
                     </CollectionView.EmptyView>
 
                     <CollectionView.ItemTemplate>
@@ -201,41 +201,46 @@
                                     </Label.FormattedText>
                                 </Label>
 
-                                <Label>
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="Total Income Received: " />
-                                            <Span Text="{Binding IncomeAmount, StringFormat='{0:N2}'}" />
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    
+                                    <Label Grid.Row="0"
+                                           Grid.Column="0"
+                                           Text="Total Income Recieved: " />
+                                    <Label Grid.Row="0"
+                                           Grid.Column="1"
+                                           Text="{Binding IncomeAmount, StringFormat='{0:N2}'}" />
 
-                                <Label>
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="Total VAT Received: " />
-                                            <Span Text="{Binding VatAmount, StringFormat='{0:N2}'}" />
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
+                                    <Label Grid.Row="1"
+                                           Grid.Column="0"
+                                           Text="Total VAT Received: " />
+                                    <Label Grid.Row="1"
+                                           Grid.Column="1"
+                                           Text="{Binding VatAmount, StringFormat='{0:N2}'}" />
 
-                                <Label>
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="Total Associated Expenses: " />
-                                            <Span Text="{Binding ExpensesAmount, StringFormat='{0:N2}'}" />
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
+                                    <Label Grid.Row="2"
+                                           Grid.Column="0"
+                                           Text="Total Associated Expenses: &#160; " />
+                                    <Label Grid.Row="2"
+                                           Grid.Column="1"
+                                           Text="{Binding ExpensesAmount, StringFormat='{0:N2}'}" />
 
-                                <Label>
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="Total Profit: " />
-                                            <Span Text="{Binding ProfitAmount, StringFormat='{0:N2}'}" />
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
+                                    <Label Grid.Row="3"
+                                           Grid.Column="0"
+                                           Text="Total Profit: " />
+                                    <Label Grid.Row="3"
+                                           Grid.Column="1"
+                                           Text="{Binding ProfitAmount, StringFormat='{0:N2}'}" />
+                                </Grid>
 
                                 <CollectionView ItemsSource="{Binding Charts}"
                                                 SelectionMode="None">
@@ -273,24 +278,23 @@
                    Margin="0,0,10,0" />
 
             <CollectionView ItemsSource="{Binding CurrencyExpectedIncome}"
-                      SelectionMode="None">
+                            SelectionMode="None">
                 <CollectionView.EmptyView>
                     <Label Text="None"
                            FontAttributes="Italic" />
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <ViewCell>
-                            <Label>
-                                <Label.FormattedText>
-                                    <FormattedString>
-                                        <Span Text="{Binding Currency}" />
-                                        <Span Text=" " />
-                                        <Span Text="{Binding Amount, StringFormat='{0:N2}'}" />
-                                    </FormattedString>
-                                </Label.FormattedText>
-                            </Label>
-                        </ViewCell>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label Text="{Binding Currency}" />
+                            <Label Text="{Binding Amount, StringFormat='&#160; {0}'}"
+                                   Grid.Column="1" />
+                        </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

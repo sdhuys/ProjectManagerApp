@@ -747,7 +747,11 @@
                                 <Entry Placeholder="New Expense"
                                        Text="{Binding SelectedSavingsCategoryViewModel.NewTransactionAmount}"
                                        Margin="10"
-                                       Grid.Column="0" />
+                                       Grid.Column="0">
+                                    <Entry.Behaviors>
+                                        <behaviors:NumericInputValidationBehavior />
+                                    </Entry.Behaviors>
+                                </Entry>
 
                                 <Entry Placeholder="Description"
                                        Text="{Binding SelectedSavingsCategoryViewModel.NewTransactionDescription}"
@@ -1091,7 +1095,11 @@
                                    HorizontalOptions="FillAndExpand" />
                         </HorizontalStackLayout>
                         <Entry Text="{Binding NewFromAmountEntry}"
-                               Margin="0,5,0,0" />
+                               Margin="0,5,0,0">
+                            <Entry.Behaviors>
+                                <behaviors:NumericInputValidationBehavior />
+                            </Entry.Behaviors>
+                        </Entry>
 
                         <Label Text="to"
                                Margin="0,5,0,0" />
@@ -1109,7 +1117,12 @@
                         </HorizontalStackLayout>
 
                         <Entry Text="{Binding NewToAmountEntry}"
-                               Margin="0,5,0,0" />
+                               Margin="0,5,0,0">
+                            <Entry.Behaviors>
+                                <behaviors:NumericInputValidationBehavior />
+                            </Entry.Behaviors>
+                        </Entry>
+
                         <Button Text="Add Conversion"
                                 MaximumHeightRequest="75"
                                 Command="{Binding Path=BindingContext.AddCurrencyConversionCommand, Source={x:Reference SpendingOverview}}"
@@ -1117,8 +1130,6 @@
 
                     </VerticalStackLayout>
                 </VerticalStackLayout>
-
-
             </Grid>
         </Grid>
     </ScrollView>

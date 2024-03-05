@@ -9,23 +9,15 @@ namespace MauiApp1
         public App()
         {
             InitializeComponent();
-
-            if (SettingsManager.FileExists)
+            MainPage = new AppShell();
+            if (!SettingsManager.FileExists)
             {
-                MainPage = new AppShell();
+                Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(3);
             }
-
             else
             {
-                SettingsViewModel vm = new();
-                MainPage = new NavigationPage(new SettingsPage(vm, true));
+                Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
             }
-
-        }
-
-        public void SetMainPageToAppShell()
-        {
-            MainPage = new AppShell();
         }
     }
 }

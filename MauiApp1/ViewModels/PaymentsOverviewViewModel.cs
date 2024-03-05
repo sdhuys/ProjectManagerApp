@@ -235,6 +235,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         var projects = ProjectManager.AllProjects.Select(x => new ProjectViewModel(x));
 
         var activeAndInvoicedProjects = projects.Where(x => x.Status == Project.ProjectStatus.Active || x.Status == Project.ProjectStatus.Invoiced);
+
+        if (!activeAndInvoicedProjects.Any()) return;
         var currencies = projects.Select(x => x.Currency).Distinct();
 
         foreach (var currency in currencies)

@@ -67,10 +67,13 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
             if (TotalCumulRemainingBudget >= 0 && cumulSavingsGoal != 0)
                 return SavingsGoalReachedStatus.Fully;
+
             else if (TotalCumulRemainingBudget >= 0 && cumulSavingsGoal == 0)
                 return SavingsGoalReachedStatus.Zero;
+
             else if (Math.Abs(TotalCumulRemainingBudget) < cumulSavingsGoal)
                 return SavingsGoalReachedStatus.Partly;
+
             else if (Math.Abs(TotalCumulRemainingBudget) == cumulSavingsGoal)
                 return SavingsGoalReachedStatus.Zero;
             else
@@ -125,7 +128,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(AddCurrencyConversionCommand))]
     decimal newFromAmountEntry;
 
-    public SpendingOverviewViewModel()
+    private SettingsViewModel _settings;
+    public SpendingOverviewViewModel(SettingsViewModel settings)
     {
         var (spendings, savings, dict) = SpendingOverviewDataManager.LoadFromJson();
         SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x)).ToList();
@@ -142,6 +146,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         CheckForAndCreateMissingSavingsViewModels();
         AddSavingsConversionsToSavingsViewModels();
+        _settings = settings;
     }
     private void AddSavingsConversionsToSavingsViewModels()
     {
@@ -162,6 +167,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     public void OnAppearing()
     {
+        CreateCurrencyList();
         _currencyList = ProjectManager.AllProjects.Select(p => p.Currency).Distinct().ToList();
         OnPropertyChanged(nameof(CurrencyList));
         CheckForAndCreateMissingSavingsViewModels();
@@ -171,6 +177,12 @@ public partial class SpendingOverviewViewModel : ObservableObject
         OnPropertyChanged(nameof(MinDate));
     }
 
+    private void CreateCurrencyList()
+    {
+        var settingsCurrencies = _settings.Currencies;
+        var projectCurrencies = ProjectManager.AllProjects.Select(p => p.Currency).Distinct().ToList();
+        _currencyList = new(settingsCurrencies.Union(projectCurrencies));
+    }
     private void CheckForFinalisedMonthsBudgetChanges()
     {
         foreach (var kvp in _finalisedMonthsDictionary)

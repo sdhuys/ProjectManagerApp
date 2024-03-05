@@ -11,6 +11,7 @@ public partial class SettingsViewModel : ObservableObject
     ObservableCollection<string> projectTypes;
 
     [ObservableProperty]
+
     ObservableCollection<Agent> agents;
 
     [ObservableProperty]
@@ -18,6 +19,34 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     ObservableCollection<string> currencies;
+
+    public bool CanSave
+    {
+        get
+        {
+            var settingsOK = (ProjectTypes?.Any() == true && Currencies?.Any() == true);
+
+            if (!settingsOK && !WelcomeTextVisible)
+            {
+                Shell.Current.FlyoutIsPresented = false;
+            }
+            else if (!WelcomeTextVisible)
+            {
+                Shell.Current.FlyoutIsPresented = true;
+                Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
+            }
+
+            return settingsOK;
+        }
+    }
+
+    public bool InstructionsVisible
+    {
+        get
+        {
+            return WelcomeTextVisible ? true : !CanSave;
+        }
+    }
 
     [ObservableProperty]
     bool welcomeTextVisible;
@@ -51,6 +80,7 @@ public partial class SettingsViewModel : ObservableObject
             {
                 AgentsIncludingNull.Add(new(agent));
             }
+            WelcomeTextVisible = false;
         }
 
         else
@@ -59,6 +89,7 @@ public partial class SettingsViewModel : ObservableObject
             Currencies = new();
             AgentsIncludingNull = new();
             Agents = new();
+            WelcomeTextVisible = true;
         }
     }
 
@@ -66,12 +97,16 @@ public partial class SettingsViewModel : ObservableObject
     public void DeleteType(string type)
     {
         ProjectTypes.Remove(type);
+        OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(InstructionsVisible));
     }
 
     [RelayCommand]
     public void DeleteCurrency(string currency)
     {
         Currencies.Remove(currency);
+        OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(InstructionsVisible));
     }
 
     [RelayCommand]
@@ -97,6 +132,8 @@ public partial class SettingsViewModel : ObservableObject
         {
             ProjectTypes.Add(TypeEntry);
             TypeEntry = null;
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(InstructionsVisible));
         }
 
         else if (containsIgnoreCase)
@@ -109,10 +146,14 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(newValue)) return;
 
+        newValue = newValue.Replace('.', ',');
+
         if (!decimal.TryParse(newValue, out decimal result) || result < 0 || result > 100)
         {
             AgentFeeEntry = oldValue;
+            return;
         }
+        AgentFeeEntry = newValue;
     }
 
     [RelayCommand(CanExecute = nameof(CanAddAgent))]
@@ -152,6 +193,8 @@ public partial class SettingsViewModel : ObservableObject
         {
             Currencies.Add(CurrencyEntry);
             CurrencyEntry = null;
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(InstructionsVisible));
         }
 
         else if (containsIgnoreCase)
@@ -176,27 +219,16 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     // Called on "get started" button press during setup, and inside OnDisappearing
-    [RelayCommand]
-    private async Task SaveSettings()
+    public void SaveSettings()
     {
-        if (ProjectTypes?.Any() != true || Currencies?.Any() != true)
-        {
-            await Application.Current.MainPage.DisplayAlert("Alert", "Make sure to set at least one currency and one project type!", "Ok");
+        SettingsManager.Save(new(ProjectTypes), new(Currencies), new(Agents));
+    }
 
-            // Return to Settings Page
-            if (SettingsManager.FileExists)
-                Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(3);
-        }
-
-        else
-        {
-            // After first time saving settings load appshell
-            if (!SettingsManager.FileExists)
-            {
-                ((App)Application.Current).SetMainPageToAppShell();
-            }
-
-            SettingsManager.Save(new(ProjectTypes), new(Currencies), new(Agents));
-        }
+    [RelayCommand(CanExecute = nameof(CanSave))]
+    public void GetStarted()
+    {
+        Shell.Current.FlyoutIsPresented = true;
+        Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
+        Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(0);
     }
 }

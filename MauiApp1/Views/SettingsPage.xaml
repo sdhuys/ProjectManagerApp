@@ -10,19 +10,21 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <Label Grid.Row="0"
-                   Text="Welcome to Protject Management"
+                   Text="Welcome to Project Management"
                    IsVisible="{Binding WelcomeTextVisible}"
                    FontSize="55"
                    VerticalOptions="Center"
                    HorizontalOptions="Center" />
 
             <Label Grid.Row="1"
-                   Text="Please fill out the types of projects you work on, the currencies you earn in (EUR, USD, INR, etc format), and your agents (if any)."
-                   IsVisible="{Binding WelcomeTextVisible}"
+                   Text="Please fill out at least one Type of project you work on, one Currency you earn in (EUR, USD, etc format), and any Agents (+ fee) you work with, if applicable."
+                   IsVisible="{Binding InstructionsVisible}"
                    VerticalOptions="Start"
                    HorizontalOptions="Center"
                    Margin="10" />
@@ -31,18 +33,28 @@
                   Margin="70">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <VerticalStackLayout Grid.Column="0">
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
                     <Label Text="Project Types"
-                           FontSize="20" />
+                           FontSize="Title"
+                           FontAttributes="Bold"
+                           Grid.Row="0" />
 
                     <CollectionView x:Name="projectTypeList"
                                     ItemsSource="{Binding ProjectTypes}"
                                     Margin="10"
-                                    HeightRequest="250">
+                                    Grid.Row="1">
 
                         <CollectionView.ItemsLayout>
                             <GridItemsLayout Orientation="Vertical" />
@@ -72,24 +84,45 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Entry x:Name="NewTypeEntry"
+                               Placeholder="New Project Type"
+                               Text="{Binding TypeEntry}"
+                               Grid.Column="0" />
 
-                    <Entry x:Name="NewTypeEntry"
-                           Placeholder="New Project Type"
-                           Text="{Binding TypeEntry}" />
+                        <Button Text="Add Project Type"
+                                Command="{Binding AddTypeCommand}"
+                                VerticalOptions="FillAndExpand"
+                                Grid.Column="1" />
+                    </Grid>
+                </Grid>
 
-                    <Button Text="Add Project Type"
-                            Command="{Binding AddTypeCommand}" />
+                <BoxView WidthRequest="1"
+                         Grid.Column="1"
+                         Margin="40,20,40,20"
+                         VerticalOptions="FillAndExpand"
+                         Color="DodgerBlue" />
 
-                </VerticalStackLayout>
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <VerticalStackLayout Grid.Column="1">
                     <Label Text="Currencies"
-                           FontSize="20" />
+                           FontSize="Title"
+                           FontAttributes="Bold"
+                           Grid.Row="0" />
 
                     <CollectionView x:Name="currencyList"
                                     ItemsSource="{Binding Currencies}"
                                     Margin="10"
-                                    HeightRequest="250">
+                                    Grid.Row="1">
 
                         <CollectionView.ItemsLayout>
                             <GridItemsLayout Orientation="Vertical" />
@@ -119,26 +152,46 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                    <Entry x:Name="NewCurrencyEntry"
-                           Placeholder="New Currency"
-                           Text="{Binding CurrencyEntry}"
-                           TextTransform="Uppercase"/>
+                        <Entry x:Name="NewCurrencyEntry"
+                               Placeholder="New Currency"
+                               Text="{Binding CurrencyEntry}"
+                               TextTransform="Uppercase"
+                               Grid.Column="0" />
 
-                    <Button Text="Add Currency"
-                            Command="{Binding AddCurrencyCommand}" />
+                        <Button Text="Add Currency"
+                                Command="{Binding AddCurrencyCommand}"
+                                Grid.Column="1" />
+                    </Grid>
+                </Grid>
 
+                <BoxView WidthRequest="1"
+                         Grid.Column="3"
+                         Margin="40,20,40,20"
+                         VerticalOptions="FillAndExpand"
+                         Color="DodgerBlue" />
 
-                </VerticalStackLayout>
+                <Grid Grid.Column="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <VerticalStackLayout Grid.Column="2">
                     <Label Text="Agents"
-                           FontSize="20" />
+                           FontSize="Title"
+                           FontAttributes="Bold"
+                           Grid.Row="0" />
 
                     <CollectionView x:Name="agentsList"
                                     ItemsSource="{Binding Agents}"
                                     Margin="10"
-                                    HeightRequest="250">
+                                    Grid.Row="1">
 
                         <CollectionView.ItemsLayout>
                             <GridItemsLayout Orientation="Vertical" />
@@ -172,10 +225,11 @@
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
-                    <Grid>
+                    <Grid Grid.Row="2">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="2*" />
                         </Grid.ColumnDefinitions>
 
                         <Entry Grid.Column="0"
@@ -185,25 +239,25 @@
 
                         <Entry Grid.Column="1"
                                x:Name="NewAgentFeeEntry"
-                               Placeholder="Percentage Fee"
+                               Placeholder="Fee %"
                                Text="{Binding AgentFeeEntry}" />
 
+                        <Button Text="Add Agent + Fee"
+                                Command="{Binding AddAgentCommand}"
+                                Grid.Column="2" />
+
                     </Grid>
-
-                    <Button Text="Add Agent"
-                            Command="{Binding AddAgentCommand}"
-                            VerticalOptions="End" />
-
-                </VerticalStackLayout>
+                </Grid>
             </Grid>
 
             <Button Grid.Row="3"
+                    Command="{Binding GetStartedCommand}"
+                    IsEnabled="{Binding CanSave}"
                     Text="Get Started!"
-                    Command="{Binding SaveSettingsCommand}"
                     VerticalOptions="End"
+                    HorizontalOptions="EndAndExpand"
                     Margin="25"
                     IsVisible="{Binding WelcomeTextVisible}" />
-
         </Grid>
     </ScrollView>
 </ContentPage>
