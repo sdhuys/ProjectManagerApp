@@ -4,7 +4,8 @@
              x:Class="MauiApp1.Views.SettingsPage"
              xmlns:local="clr-namespace:MauiApp1.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             Title="Configuration">
+             Title="Configuration"
+             x:Name="Config">
 
     <ScrollView>
         <Grid>
@@ -23,11 +24,12 @@
                    HorizontalOptions="Center" />
 
             <Label Grid.Row="1"
-                   Text="Please fill out at least one Type of project you work on, one Currency you earn in (EUR, USD, etc format), and any Agents (+ fee) you work with, if applicable."
+                   Text="Please fill out at least one Project Type, one Currency (EUR, USD, etc format), and any Agents (+ fee) you work with, if any."
+                   FontAttributes="Bold"
                    IsVisible="{Binding InstructionsVisible}"
                    VerticalOptions="Start"
                    HorizontalOptions="Center"
-                   Margin="10" />
+                   Margin="20" />
 
             <Grid Grid.Row="2"
                   Margin="70">
@@ -62,25 +64,17 @@
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                                <Label Text="{Binding}"
+                                       VerticalTextAlignment="Center">
 
-                                    <Label Text="{Binding}"
-                                           VerticalTextAlignment="Center" />
-
-                                    <Button Text="X"
-                                            Grid.Column="2"
-                                            BackgroundColor="Red"
-                                            TextColor="White"
-                                            Command="{Binding BindingContext.DeleteTypeCommand, Source={x:Reference projectTypeList}}"
-                                            CommandParameter="{Binding .}"
-                                            HorizontalOptions="StartAndExpand"
-                                            Margin="0, 0, 10, 0">
-                                    </Button>
-                                </Grid>
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Delete"
+                                                            Command="{Binding BindingContext.DeleteTypeCommand, Source={x:Reference Config}}"
+                                                            CommandParameter="{Binding .}" />
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
+                                </Label>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
@@ -92,7 +86,8 @@
                         <Entry x:Name="NewTypeEntry"
                                Placeholder="New Project Type"
                                Text="{Binding TypeEntry}"
-                               Grid.Column="0" />
+                               Grid.Column="0" 
+                               Margin="0,0,10,0" />
 
                         <Button Text="Add Project Type"
                                 Command="{Binding AddTypeCommand}"
@@ -130,25 +125,17 @@
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Label Text="{Binding}"
-                                           VerticalTextAlignment="Center" />
+                                <Label Text="{Binding}"
+                                       VerticalTextAlignment="Center">
 
-                                    <Button Text="X"
-                                            Grid.Column="2"
-                                            BackgroundColor="Red"
-                                            TextColor="White"
-                                            Command="{Binding BindingContext.DeleteCurrencyCommand, Source={x:Reference currencyList}}"
-                                            CommandParameter="{Binding .}"
-                                            HorizontalOptions="StartAndExpand"
-                                            Margin="0, 0, 10, 0">
-                                    </Button>
-                                </Grid>
-
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Delete"
+                                                            Command="{Binding BindingContext.DeleteCurrencyCommand, Source={x:Reference Config}}"
+                                                            CommandParameter="{Binding .}" />
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
+                                </Label>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
@@ -162,7 +149,8 @@
                                Placeholder="New Currency"
                                Text="{Binding CurrencyEntry}"
                                TextTransform="Uppercase"
-                               Grid.Column="0" />
+                               Grid.Column="0"
+                               Margin="0,0,10,0" />
 
                         <Button Text="Add Currency"
                                 Command="{Binding AddCurrencyCommand}"
@@ -203,23 +191,20 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Delete"
+                                                            Command="{Binding BindingContext.DeleteAgentCommand, Source={x:Reference Config}}"
+                                                            CommandParameter="{Binding .}" />
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
                                     <Label Text="{Binding Name}"
                                            VerticalTextAlignment="Center"
                                            Grid.Column="0" />
                                     <Label Text="{Binding FeeDecimal, StringFormat='{0:P2}'}"
                                            VerticalTextAlignment="Center"
                                            Grid.Column="1" />
-                                    <Button Text="X"
-                                            Grid.Column="2"
-                                            BackgroundColor="Red"
-                                            TextColor="White"
-                                            Command="{Binding BindingContext.DeleteAgentCommand, Source={x:Reference agentsList}}"
-                                            CommandParameter="{Binding .}"
-                                            HorizontalOptions="StartAndExpand"
-                                            Margin="0, 0, 10, 0">
-                                    </Button>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -240,7 +225,8 @@
                         <Entry Grid.Column="1"
                                x:Name="NewAgentFeeEntry"
                                Placeholder="Fee %"
-                               Text="{Binding AgentFeeEntry}" />
+                               Text="{Binding AgentFeeEntry}"
+                               Margin="0,0,10,0" />
 
                         <Button Text="Add Agent + Fee"
                                 Command="{Binding AddAgentCommand}"
