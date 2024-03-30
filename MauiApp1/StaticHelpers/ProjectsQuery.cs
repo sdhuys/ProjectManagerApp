@@ -7,7 +7,7 @@ static class ProjectsQuery
 {
     public static IEnumerable<Project> ByCurrencyTypeAndAgent(IEnumerable<string> currencies, IEnumerable<string> types, IEnumerable<Agent> agents)
     {
-        return ProjectManager.AllProjects.Where(p => currencies.Contains(p.Currency) && types.Contains(p.Type) && agents.Contains(p.Agent));
+        return ProjectManager.AllProjects.Where(p => currencies.Contains(p.Currency) && types.Contains(p.Type) && (agents.Contains(p.Agent) || agents.FirstOrDefault(a => a?.Name == p.Agent?.Name) != null));
     }
 
     public static IEnumerable<PaymentViewModel> GetProjectPaymentsWithinDates(IEnumerable<Project> projects, DateTime startDate, DateTime endDate)
