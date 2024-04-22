@@ -282,6 +282,8 @@ public partial class ProjectsViewModel : ObservableObject
         {
             Projects.Add(p);
         }
+        
+        QueryProjects();         // call to make sure sorting is up consistent between Projects and QueriedProjects
 
         OnPropertyChanged(nameof(SortIndicatorColumn));
         OnPropertyChanged(nameof(SortIndicatorText));
@@ -324,6 +326,7 @@ public partial class ProjectsViewModel : ObservableObject
     {
         QueryString = null;
         IsQueryStringEmpty = true;
+        QueriedProjects.Clear();
     }
     private async Task<bool> DisplayConfirmationDialog(string title, string message)
     {
