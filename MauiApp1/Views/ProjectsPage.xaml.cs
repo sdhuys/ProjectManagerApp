@@ -1,5 +1,4 @@
 using MauiApp1.ViewModels;
-using System.Diagnostics;
 
 namespace MauiApp1.Views;
 
@@ -13,11 +12,6 @@ public partial class ProjectsPage : ContentPage
         BindingContext = vm;
         SizeChanged += OnPageSizeChanged;
         InitializeComponent();
-    }
-
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
     }
 
     private async void OnPageSizeChanged(object sender, EventArgs e)
