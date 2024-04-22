@@ -210,7 +210,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private bool CanAddCurrency()
     {
-        return !(String.IsNullOrWhiteSpace(CurrencyEntry)) && CurrencyEntry.Length == 3;
+        return !(String.IsNullOrWhiteSpace(CurrencyEntry)) && !CurrencyEntry.Any(char.IsDigit) && CurrencyEntry.Length == 3;
     }
 
     private bool CanAddType()
