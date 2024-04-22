@@ -418,17 +418,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         {
             Project newProject = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), IsVatIncluded, vatRateDecimal, Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
             ProjectViewModel projectVM = new(newProject);
-
-            if (Projects.Any(x => x.Date > projectVM.Date))
-            {
-                var index = Projects.Where(x => x.Date < projectVM.Date).Count();
-                Projects.Insert(index, projectVM);
-            }
-            else
-            {
-                Projects.Add(projectVM);
-
-            }
+            Projects.Add(projectVM);
         }
 
         //Save edits
@@ -453,13 +443,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             selectedProjectVM.Expenses = Expenses.ToList();
             selectedProjectVM.Payments = Payments.ToList();
             selectedProjectVM.Status = Status;
-
-            if (Projects.Any(x => x.Date > selectedProjectVM.Date))
-            {
-                var index = Projects.Where(x => x.Date < selectedProjectVM.Date).Count();
-                Projects.Remove(selectedProjectVM); 
-                Projects.Insert(index, selectedProjectVM);
-            }
         }
         ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         await Shell.Current.GoToAsync("..");
