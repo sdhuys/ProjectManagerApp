@@ -190,7 +190,7 @@
 
                     <CheckBox IsChecked="{Binding HasCustomAgencyFee}" />
 
-                    <Label Text="Custom %"
+                    <Label Text="Custom Fee"
                            VerticalOptions="CenterAndExpand"
                            Margin="-5,0,10,0"
                            FontSize="12" />
