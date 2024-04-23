@@ -98,7 +98,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
         // Group of PaymentViewModels by associated Currency, ProjectType, Client and Agent
         var groupedData = queriedProjects
-            .GroupBy(project => new { project.Currency, project.Type, project.Client, project.Agent })
+            .GroupBy(project => new { project.Currency, project.Type, project.Client, project.Agent?.Name })
             .Select(group =>
             {
                 var startDateToQuery = FilterDates ? QueryStartDate : DateTime.MinValue;
@@ -116,7 +116,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                     Currency = group.Key.Currency,
                     Type = group.Key.Type,
                     Client = group.Key.Client,
-                    Agent = group.Key.Agent,
+                    AgentName = group.Key.Name,
                     TotalIncome = totalIncome,
                     TotalExpenses = totalExpenses,
                     TotalVat = totalVat,
@@ -157,9 +157,9 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
             var agentData = groupedData
                 .Where(item => item.Currency == currency)
-                .GroupBy(item => item.Agent)
+                .GroupBy(item => item.AgentName)
                 .ToDictionary(
-                    group => group.Key != null ? group.Key.Name : "None",
+                    group => group.Key != null ? group.Key : "None",
                     group => group.Sum(item => item.TotalProfit));
 
             dataForCharts.Add($"{currency} Profit Per Project Type", typeData);
@@ -178,6 +178,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             });
         }
     }
+
     private IEnumerable<Project> GetQueriedProjects()
     {
         var currencies = FilterCurrencies ? QueryCurrencies.OfType<string>() : CurrencyList;

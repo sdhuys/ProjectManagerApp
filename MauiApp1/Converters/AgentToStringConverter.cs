@@ -15,7 +15,7 @@ internal class AgentToStringConverter : IValueConverter
             else
             {
                 var percentage = agent.FeeDecimal * 100;
-                return $"{agent.Name}: {percentage:F1}%";
+                return $"{agent.Name}: {percentage:G2}%";
             }
         }
 

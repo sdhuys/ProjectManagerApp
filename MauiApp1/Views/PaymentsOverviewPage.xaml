@@ -292,7 +292,7 @@
                             </Grid.ColumnDefinitions>
 
                             <Label Text="{Binding Currency}" />
-                            <Label Text="{Binding Amount, StringFormat='&#160; {0}'}"
+                            <Label Text="{Binding Amount, StringFormat='&#160; {0:N2}'}"
                                    Grid.Column="1" />
                         </Grid>
                     </DataTemplate>

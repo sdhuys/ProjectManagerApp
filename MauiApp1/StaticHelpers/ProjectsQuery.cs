@@ -7,7 +7,10 @@ static class ProjectsQuery
 {
     public static IEnumerable<Project> ByCurrencyTypeAndAgent(IEnumerable<string> currencies, IEnumerable<string> types, IEnumerable<Agent> agents)
     {
-        return ProjectManager.AllProjects.Where(p => currencies.Contains(p.Currency) && types.Contains(p.Type) && (agents.Contains(p.Agent) || agents.FirstOrDefault(a => a?.Name == p.Agent?.Name) != null));
+        return ProjectManager.AllProjects.Where(p => currencies.Contains(p.Currency) && types.Contains(p.Type) 
+                                                && (agents.Contains(p.Agent) 
+                                                    || agents.FirstOrDefault(a => a?.Name == p.Agent?.Name) != null)); // check for agent with same name (if multiple with diff % are saved in settings)
+
     }
 
     public static IEnumerable<PaymentViewModel> GetProjectPaymentsWithinDates(IEnumerable<Project> projects, DateTime startDate, DateTime endDate)
