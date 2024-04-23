@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Views;
 using MauiApp1.StaticHelpers;
+using System.Diagnostics;
 
 namespace MauiApp1.ViewModels;
 public partial class ProjectsViewModel : ObservableObject
@@ -282,8 +283,11 @@ public partial class ProjectsViewModel : ObservableObject
         {
             Projects.Add(p);
         }
-        
-        QueryProjects();         // call to make sure sorting is up consistent between Projects and QueriedProjects
+
+        if (!SetAndGetQueryStringIsEmpty())
+        {
+            QueryProjects();         // call to make sure sorting is up consistent between Projects and QueriedProjects
+        }
 
         OnPropertyChanged(nameof(SortIndicatorColumn));
         OnPropertyChanged(nameof(SortIndicatorText));
@@ -291,34 +295,43 @@ public partial class ProjectsViewModel : ObservableObject
 
     public void QueryProjects()
     {
-        if (String.IsNullOrEmpty(QueryString))
-        {
-            IsQueryStringEmpty = true;
-            return;
-        }
+        QueriedProjects.Clear();
+        var queryWords = QueryString?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        IsQueryStringEmpty = false;
-
-        List<ProjectViewModel> temp = new();
-        
         foreach (var p in Projects)
         {
-            if (p.Client?.IndexOf(QueryString, StringComparison.OrdinalIgnoreCase) >= 0 || (p.Description?.IndexOf(QueryString, StringComparison.OrdinalIgnoreCase) >= 0))
+            bool match = true;
+            foreach (var w in queryWords)
             {
-                temp.Add(p);
+                if (p.Client.IndexOf(w, StringComparison.OrdinalIgnoreCase) < 0
+                    && p.Description?.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0 == false
+                    && p.Type.IndexOf(w, StringComparison.OrdinalIgnoreCase) < 0
+                    && p.Currency.IndexOf(w, StringComparison.OrdinalIgnoreCase) < 0
+                    && (p.Agent?.Name.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0 == false) && !(p.Agent == null && "none".IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0))
+                {
+                    match = false;
+                    break;
+                }
             }
-        }
-
-        QueriedProjects.Clear();
-        foreach (var p in temp)
-        {
-            QueriedProjects.Add(p);
+            if (match)
+            {
+                QueriedProjects.Add(p);
+            }
         }
     }
 
     partial void OnQueryStringChanged(string value)
     {
-        QueryProjects();
+        if (!SetAndGetQueryStringIsEmpty())
+        {
+            QueryProjects();
+        }
+    }
+
+    private bool SetAndGetQueryStringIsEmpty()
+    {
+        IsQueryStringEmpty = String.IsNullOrEmpty(QueryString);
+        return IsQueryStringEmpty;
     }
 
     [RelayCommand]

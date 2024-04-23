@@ -383,9 +383,10 @@
         <HorizontalStackLayout Grid.Row="2"
                                HorizontalOptions="EndAndExpand"
                                Margin="10">
-            <Entry Placeholder="Search Projects (Client/Description)"
+            <Entry Placeholder="Search Projects"
                    Text="{Binding QueryString}"
-                   MinimumWidthRequest="250" />
+                   MinimumWidthRequest="250"
+                   ToolTipProperties.Text="Match if each word is contained in either the project's Client or Type or Description or Agent Name"/>
             <Button Text="x"
                     Command="{Binding ClearQueryCommand}"
                     MaximumHeightRequest="30" />
