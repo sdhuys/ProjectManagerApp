@@ -255,11 +255,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Profit":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Currency).ThenBy(p => p.Profit).ToList();
+                    temp = Projects.OrderBy(p => p.Currency).ThenBy(p => p.ExpectedProfit).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.Profit).ToList();
+                    temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.ExpectedProfit).ToList();
                 }
                 SortIndicatorColumn = 10;
                 break;

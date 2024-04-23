@@ -358,7 +358,7 @@
                                    Margin="0,0,10,0"
                                    VerticalOptions="CenterAndExpand"
                                    IsVisible="{Binding IsOnGoing}"
-                                   Text="{Binding Profit, Converter={StaticResource DecimalFormat}}" />
+                                   Text="{Binding ExpectedProfit, Converter={StaticResource DecimalFormat}}" />
 
                             <Label Grid.Column="10"
                                    Margin="0,0,10,0"
@@ -389,7 +389,8 @@
                    ToolTipProperties.Text="Match if each word is contained in either the project's Client or Type or Description or Agent Name"/>
             <Button Text="x"
                     Command="{Binding ClearQueryCommand}"
-                    MaximumHeightRequest="30" />
+                    MaximumHeightRequest="30"
+                    IsEnabled="{Binding IsQueryStringEmpty, Converter={StaticResource InvertedBoolConverter}}"/>
         </HorizontalStackLayout>
         <HorizontalStackLayout Grid.Row="3"
                                HorizontalOptions="EndAndExpand"

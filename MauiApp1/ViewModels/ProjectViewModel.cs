@@ -60,7 +60,7 @@ public class ProjectViewModel : ObservableObject
         {
             Project.Fee = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(Profit));
+            OnPropertyChanged(nameof(ExpectedProfit));
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
@@ -102,7 +102,7 @@ public class ProjectViewModel : ObservableObject
             Project.Expenses = value.ToList();
             OnPropertyChanged();
             OnPropertyChanged(nameof(TotalExpenses));
-            OnPropertyChanged(nameof(Profit));
+            OnPropertyChanged(nameof(ExpectedProfit));
             OnPropertyChanged(nameof(ActualProfit));
         }
     }
@@ -114,7 +114,7 @@ public class ProjectViewModel : ObservableObject
         {
             Project.Agent = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(Profit));
+            OnPropertyChanged(nameof(ExpectedProfit));
             OnPropertyChanged(nameof(ManagedByAgent));
         }
     }
@@ -126,12 +126,12 @@ public class ProjectViewModel : ObservableObject
         {
             Project.AgencyFeeDecimal = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(Profit));
+            OnPropertyChanged(nameof(ExpectedProfit));
             OnPropertyChanged(nameof(PaidPercentage));
         }
     }
     // Expected profit
-    public decimal Profit => FeeExcludingVat - TotalExpenses - (FeeExcludingVat * AgencyFeeDecimal);
+    public decimal ExpectedProfit => FeeExcludingVat - TotalExpenses - (FeeExcludingVat * AgencyFeeDecimal);
 
     // Actual profit based on payments received
     public decimal ActualProfit => (1 - VatRateDecimal) * PaidAmount - TotalExpenses; 
