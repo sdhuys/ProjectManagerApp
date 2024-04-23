@@ -7,7 +7,8 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              Title="{Binding PageTitle}"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             NavigationPage.HasBackButton="false">
+             NavigationPage.HasBackButton="false"
+             x:Name="ProjectDetails">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False"
@@ -35,162 +36,157 @@
     </ContentPage.ToolbarItems>
 
     <ScrollView>
-        <Grid>
+
+        <Grid Margin="30">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Grid Margin="30"
-                  Grid.Row="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <Label Text="Client"
+                   FontSize="Title"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
 
-                <Label Text="Client"
-                       FontSize="Title"
-                       Grid.Row="0"
-                       Grid.Column="0"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="20" />
+            <Entry Text="{Binding Client}"
+                   Placeholder="Enter Client"
+                   Grid.Row="0"
+                   Grid.Column="1"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="10" />
 
-                <Entry Text="{Binding Client}"
-                       Placeholder="Enter Client"
-                       Grid.Row="1"
-                       Grid.Column="0"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="10" />
+            <Label Text="Type"
+                   FontSize="Title"
+                   Grid.Row="1"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
 
-                <Label Text="Type"
-                       FontSize="Title"
-                       Grid.Row="0"
-                       Grid.Column="1"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="20" />
+            <Picker ItemsSource="{Binding TypesList}"
+                    SelectedItem="{Binding Type}"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    VerticalOptions="CenterAndExpand"
+                    HorizontalOptions="StartAndExpand"
+                    MaximumWidthRequest="250"
+                    Margin="10" />
 
-                <Picker ItemsSource="{Binding TypesList}"
-                        SelectedItem="{Binding Type}"
-                        Grid.Row="1"
+            <Label Text="Description"
+                   FontSize="Title"
+                   Grid.Row="2"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
+
+            <Entry Text="{Binding Description}"
+                   Placeholder="Enter Description"
+                   Grid.Row="2"
+                   Grid.Column="1"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="10" />
+
+            <Label Text="Date"
+                   FontSize="Title"
+                   Grid.Row="3"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
+
+            <DatePicker Date="{Binding Date}"
+                        Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
+                        Grid.Row="3"
                         Grid.Column="1"
                         VerticalOptions="CenterAndExpand"
-                        HorizontalOptions="StartAndExpand"
-                        MaximumWidthRequest="250"
                         Margin="10" />
 
-                <Label Text="Description"
-                       FontSize="Title"
-                       Grid.Row="0"
-                       Grid.Column="2"
+            <Label Text="Currency"
+                   FontSize="Title"
+                   Grid.Row="4"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
+
+            <Picker ItemsSource="{Binding CurrencyList}"
+                    SelectedItem="{Binding Currency}"
+                    Grid.Row="4"
+                    Grid.Column="1"
+                    VerticalOptions="CenterAndExpand"
+                    Margin="10" />
+
+            <Label Text="Fee + VAT Rate"
+                   FontSize="Title"
+                   Grid.Row="5"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
+
+            <StackLayout Grid.Row="5"
+                         Grid.Column="1"
+                         Orientation="Horizontal"
+                         Margin="10">
+
+                <Entry Text="{Binding Fee}"
+                       Placeholder="Enter Fee"
+                       WidthRequest="150"
+                       Margin="0,0,20,0"
+                       VerticalOptions="CenterAndExpand" />
+
+                <CheckBox IsChecked="{Binding IsVatIncluded}"
+                          VerticalOptions="CenterAndExpand" />
+
+                <Label Text="VAT Included"
+                       FontSize="12"
                        VerticalOptions="CenterAndExpand"
-                       Margin="20" />
+                       Margin="0,0,10,0" />
 
-                <Entry Text="{Binding Description}"
-                       Placeholder="Enter Description"
-                       Grid.Row="1"
-                       Grid.Column="2"
+                <Entry Placeholder="Rate"
+                       Text="{Binding VatRatePercent}"
                        VerticalOptions="CenterAndExpand"
-                       Margin="10" />
-
-                <Label Text="Date"
-                       FontSize="Title"
-                       Grid.Row="0"
-                       Grid.Column="3"
+                       Margin="0,0,5,0"/>
+                
+                <Label Text="%"
                        VerticalOptions="CenterAndExpand"
-                       Margin="20" />
+                       Margin="0,0,10,0" />
+            </StackLayout>
 
-                <DatePicker Date="{Binding Date}"
-                            Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
-                            Grid.Row="1"
-                            Grid.Column="3"
-                            VerticalOptions="CenterAndExpand"
-                            Margin="10" />
-
-                <Label Text="Currency"
-                       FontSize="Title"
-                       Grid.Row="2"
-                       Grid.Column="0"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="20" />
-
-                <Picker ItemsSource="{Binding CurrencyList}"
-                        SelectedItem="{Binding Currency}"
-                        Grid.Row="3"
-                        Grid.Column="0"
-                        VerticalOptions="CenterAndExpand"
-                        Margin="10" />
-
-                <Label Text="Fee + VAT Rate"
-                       FontSize="Title"
-                       Grid.Row="2"
-                       Grid.Column="1"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="20" />
-
-                <StackLayout Grid.Column="1"
-                             Grid.Row="3"
-                             Orientation="Horizontal"
-                             Margin="10"
-                             HorizontalOptions="StartAndExpand">
-
-                    <Entry Text="{Binding Fee}"
-                           Placeholder="Enter Fee"
-                           Grid.Column="0"
-                           WidthRequest="85"
-                           Margin="0,0,20,0"
-                           VerticalOptions="CenterAndExpand" />
-
-
-                    <CheckBox IsChecked="{Binding IsVatIncluded}"
-                              VerticalOptions="CenterAndExpand"
-                              HorizontalOptions="StartAndExpand" />
-
-                    <Label Text="VAT Included"
-                           FontSize="12"
-                           VerticalOptions="CenterAndExpand"
-                           HorizontalOptions="StartAndExpand"
-                           Margin="0,0,10,0" />
-
-                    <Entry Placeholder="Rate %"
-                           Text="{Binding VatRatePercent}"
-                           Grid.Column="2"
-                           VerticalOptions="CenterAndExpand"
-                           HorizontalOptions="StartAndExpand" />
-                </StackLayout>
-
-
-                <Label Text="Agent + Fee"
-                       FontSize="Title"
-                       Grid.Row="2"
-                       Grid.Column="2"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="20" />
-
+            <Label Text="Agent + Fee"
+                   FontSize="Title"
+                   Grid.Row="6"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
+            <StackLayout Grid.Row="6"
+                         Grid.Column="1"
+                         Orientation="Horizontal">
 
                 <Picker ItemsSource="{Binding AgentList}"
                         ItemDisplayBinding="{Binding Agent, Converter={StaticResource AgentToString}}"
                         SelectedItem="{Binding AgentWrapper}"
-                        Grid.Row="3"
-                        Grid.Column="2"
+                        Grid.Row="6"
+                        Grid.Column="1"
                         VerticalOptions="CenterAndExpand"
-                        HorizontalOptions="StartAndExpand"
                         Margin="10" />
 
                 <StackLayout Orientation="Horizontal"
-                             Grid.Row="4"
-                             Grid.Column="2"
-                             Margin="10,-10,0,0"
-                             Opacity="{Binding AgentIsSelectedToOpacity}" >
+                             Opacity="{Binding AgentIsSelectedToOpacity}">
 
                     <CheckBox IsChecked="{Binding HasCustomAgencyFee}" />
 
@@ -199,259 +195,238 @@
                            Margin="-5,0,10,0"
                            FontSize="12" />
 
-
                     <Entry Placeholder="Fee"
-                           Margin="10"
+                           Margin="20,10,5,10"
                            Text="{Binding CustomAgencyFeePercent}"
                            VerticalTextAlignment="Center"
-                           IsEnabled="{Binding HasCustomAgencyFee}" />
+                           IsEnabled="{Binding HasCustomAgencyFee}"
+                           VerticalOptions="CenterAndExpand"/>
+
+                    <Label Text="%"
+                           VerticalOptions="CenterAndExpand" />
                 </StackLayout>
+            </StackLayout>
 
 
-                <Label Text="Project Status"
-                       FontSize="Title"
-                       Grid.Row="2"
-                       Grid.Column="3"
-                       VerticalOptions="CenterAndExpand"
-                       Margin="20" />
+            <Label Text="Project Status"
+                   FontSize="Title"
+                   Grid.Row="8"
+                   Grid.Column="0"
+                   VerticalOptions="CenterAndExpand"
+                   Margin="20" />
 
-                <Picker ItemsSource="{Binding StatusList}"
-                        SelectedItem="{Binding Status}"
-                        Grid.Row="3"
-                        Grid.Column="3"
-                        VerticalOptions="CenterAndExpand"
-                        Margin="10" />
-            </Grid>
+            <Picker ItemsSource="{Binding StatusList}"
+                    SelectedItem="{Binding Status}"
+                    Grid.Row="8"
+                    Grid.Column="1"
+                    VerticalOptions="CenterAndExpand"
+                    Margin="10" />
 
-            <Grid Grid.Row="1"
-                  Margin="35,0,100,10">
+            <Label Text="Expenses"
+                   FontSize="Title"
+                   Grid.Row="9"
+                   Grid.Column="0"
+                   VerticalOptions="StartAndExpand"
+                   Margin="20" />
+
+            <Grid Grid.Row="9"
+                  Grid.Column="1">
+
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Entry Grid.Column="0"
+                       Placeholder="Amount"
+                       Text="{Binding NewExpenseValue}"
+                       Margin="10" />
+
+                <Entry Grid.Column="1"
+                       Placeholder="Description"
+                       Text="{Binding NewExpenseName}"
+                       Margin="10" />
+
+                <DatePicker Grid.Column="2"
+                            Date="{Binding NewExpenseDate}"
+                            Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
+                            MaximumDate="{x:Static sys:DateTime.Now}"
+                            Margin="10" />
+
+                <Label Text="Profit Sharing Percentage"
+                       FontSize="12"
+                       Margin="50,0,0,0"
+                       Grid.Column="3"
+                       VerticalTextAlignment="Center"/>
+
+                <CheckBox IsChecked="{Binding NewExpenseIsRelative}"
+                          Grid.Column="3" />
+
+                <Button Grid.Column="4"
+                        Text="Add Expense"
+                        Command="{Binding AddExpenseCommand}"
+                        Margin="10"
+                        HorizontalOptions="EndAndExpand"
+                        MaximumWidthRequest="150" />
+            </Grid>
+
+            <CollectionView x:Name="expenseCollection"
+                            Grid.Column="1"
+                            Grid.Row="10"
+                            ItemsSource="{Binding Expenses}"
+                            Margin="0,0,0,20">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+
+                            </Grid.ColumnDefinitions>
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Delete"
+                                                    Command="{Binding BindingContext.DeleteExpenseCommand, Source={x:Reference ProjectDetails}}"
+                                                    CommandParameter="{Binding .}" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+
+                            <Label Grid.Column="0"
+                                   IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}"
+                                   VerticalTextAlignment="Center"
+                                   Margin="20,5,20,5">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding BindingContext.SelectedProjectVM.Currency, Source={x:Reference ProjectDetails}}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <Label Grid.Column="0"
+                                   IsVisible="{Binding IsRelative}"
+                                   VerticalTextAlignment="Center"
+                                   Margin="20,5,20,5" >
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P2}'}" />
+                                        <Span Text=" = " />
+                                        <Span Text="{Binding BindingContext.SelectedProjectVM.Currency, Source={x:Reference ProjectDetails}}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <Label Text="{Binding Name}"
+                                   Grid.Column="1"
+                                   VerticalTextAlignment="Center"
+                                   Margin="20,5,20,5" />
+
+                            <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
+                                   Grid.Column="2"
+                                   VerticalTextAlignment="Center"
+                                   Margin="20,5,20,5" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="Payments Received"
+                   FontSize="Title"
+                   Grid.Row="11"
+                   Grid.Column="0"
+                   VerticalOptions="StartAndExpand"
+                   Margin="20" />
+
+            <Grid Grid.Row="11"
+                  Grid.Column="1">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Label Text="Expenses"
-                       FontSize="Title"
-                       Grid.Row="0"
-                       Grid.Column="0"
-                       VerticalOptions="StartAndExpand"
-                       Margin="20" />
+                <Entry Grid.Column="0"
+                       Placeholder="Amount"
+                       Text="{Binding NewPaymentAmount}"
+                       Margin="10" />
 
-                <CollectionView x:Name="expenseCollection"
-                                Grid.Column="0"
-                                Grid.Row="1"
-                                ItemsSource="{Binding Expenses}"
-                                MinimumHeightRequest="140"
-                                MaximumHeightRequest="140">
-
-                    <CollectionView.EmptyView>
-                        <Label Text="None"
-                               FontAttributes="Italic"
-                               HorizontalTextAlignment="Center"
-                               VerticalTextAlignment="Center" />
-                    </CollectionView.EmptyView>
-
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,0,50,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-
-                                </Grid.ColumnDefinitions>
-
-                                <Label Text="{Binding Name}"
-                                       Grid.Column="0"
-                                       Margin="15,0,15,0"
-                                       VerticalTextAlignment="Center" />
-
-                                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}}"
-                                       Grid.Column="1"
-                                       IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}"
-                                       Margin="15,0,15,0"
-                                       VerticalTextAlignment="Center" />
-
-                                <Label Grid.Column="1"
-                                       IsVisible="{Binding IsRelative}"
-                                       Margin="15,0,15,0"
-                                       VerticalTextAlignment="Center">
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P2}'}" />
-                                            <Span Text=" = " />
-                                            <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
-
-                                <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
-                                       Grid.Column="2"
-                                       Margin="10,0,10,0"
-                                       VerticalTextAlignment="Center" />
-
-                                <Button Text="X"
-                                        Grid.Column="3"
-                                        BackgroundColor="Red"
-                                        TextColor="White"
-                                        Command="{Binding BindingContext.DeleteExpenseCommand, Source={x:Reference expenseCollection}}"
-                                        CommandParameter="{Binding .}"
-                                        HorizontalOptions="EndAndExpand"
-                                        Margin="0,0,10,3" />
-
-
-                            </Grid>
-
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-
-                <Grid Grid.Row="2"
-                      Margin="0,0,50,0">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-
-                    <Entry Grid.Column="0"
-                           Placeholder="Description"
-                           Text="{Binding NewExpenseName}"
-                           Margin="10" />
-
-                    <Entry Grid.Column="1"
-                           Placeholder="Amount"
-                           Text="{Binding NewExpenseValue}"
-                           Margin="10" />
-
-                    <DatePicker Grid.Column="2"
-                                Date="{Binding NewExpenseDate}"
-                                Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
-                                MaximumDate="{x:Static sys:DateTime.Now}"
-                                Margin="10" />
-
-                    <Button Grid.Column="3"
-                            Text="Add Expense"
-                            Command="{Binding AddExpenseCommand}"
+                <DatePicker Grid.Column="2"
+                            Date="{Binding NewPaymentDate}"
+                            Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
+                            MaximumDate="{x:Static sys:DateTime.Now}"
                             Margin="10" />
 
+                <Button Grid.Column="4"
+                        Text="Add Payment"
+                        Command="{Binding AddPaymentCommand}"
+                        Margin="10"
+                        MaximumWidthRequest="150"
+                        HorizontalOptions="EndAndExpand" />
 
-                    <Label Text="Profit Sharing Percentage"
-                           FontSize="12"
-                           Margin="50,20,10,10"
-                           Grid.Row="1"
-                           Grid.Column="1" />
-
-                    <CheckBox IsChecked="{Binding NewExpenseIsRelative}"
-                              Grid.Row="1"
-                              Grid.Column="1"
-                              Margin="10" />
-                </Grid>
-
-                <Label Text="Payments Received"
-                       FontSize="Title"
-                       Grid.Row="0"
-                       Grid.Column="1"
-                       VerticalOptions="StartAndExpand"
-                       Margin="20" />
-
-                <CollectionView x:Name="paymentCollection"
-                                Grid.Column="1"
-                                Grid.Row="1"
-                                ItemsSource="{Binding Payments}"
-                                MinimumHeightRequest="140"
-                                MaximumHeightRequest="140"
-                                ItemSizingStrategy="MeasureAllItems">
-
-                    <CollectionView.EmptyView>
-                        <Label Text="None"
-                               FontAttributes="Italic"
-                               HorizontalTextAlignment="Center"
-                               VerticalTextAlignment="Center" />
-                    </CollectionView.EmptyView>
-
-
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <Label Text="{Binding Amount, Converter={StaticResource DecimalFormat}}"
-                                       Grid.Column="0"
-                                       Margin="15,0,15,0"
-                                       VerticalTextAlignment="Center" />
-
-                                <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
-                                       Grid.Column="1"
-                                       Margin="15,0,15,0"
-                                       VerticalTextAlignment="Center" />
-
-
-                                <Button Text="X"
-                                        Margin="0,0,10,3"
-                                        Grid.Column="2"
-                                        BackgroundColor="Red"
-                                        TextColor="White"
-                                        Command="{Binding BindingContext.DeletePaymentCommand, Source={x:Reference paymentCollection}}"
-                                        CommandParameter="{Binding .}"
-                                        HorizontalOptions="EndAndExpand">
-                                </Button>
-                            </Grid>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-
-                <Grid Grid.Row="2"
-                      Grid.Column="1">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <Entry Grid.Column="0"
-                           Placeholder="Amount"
-                           Text="{Binding NewPaymentAmount}"
-                           Margin="10" />
-
-                    <DatePicker Grid.Column="1"
-                                Date="{Binding NewPaymentDate}"
-                                Format="{Binding CurrentCulture.DateTimeFormat.ShortDatePattern}"
-                                MaximumDate="{x:Static sys:DateTime.Now}"
-                                Margin="10" />
-
-                    <Button Grid.Column="2"
-                            Text="Add Payment"
-                            Command="{Binding AddPaymentCommand}"
-                            Margin="10" />
-
-                </Grid>
             </Grid>
+
+            <CollectionView x:Name="paymentCollection"
+                            Grid.Column="1"
+                            Grid.Row="12"
+                            ItemsSource="{Binding Payments}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Delete"
+                                                    Command="{Binding BindingContext.DeletePaymentCommand, Source={x:Reference ProjectDetails}}"
+                                                    CommandParameter="{Binding .}" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+
+                            <Label Grid.Column="0"
+                                   Margin="20,5,20,5"
+                                   VerticalTextAlignment="Center">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding BindingContext.SelectedProjectVM.Currency, Source={x:Reference ProjectDetails}}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <Label Text="{Binding Date, Converter={StaticResource DateFormat}}"
+                                   Grid.Column="2"
+                                   Margin="20,5,20,5"
+                                   VerticalTextAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </Grid>
     </ScrollView>
 
