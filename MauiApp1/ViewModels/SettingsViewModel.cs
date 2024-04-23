@@ -93,6 +93,17 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
+    public void OnAppearing()
+    {
+
+        TypeEntry = null;
+        CurrencyEntry = null;
+        AgentNameEntry = null;
+        AgentFeeEntry = null;
+
+        WelcomeTextVisible = SettingsManager.FileExists ? false : true;
+    }
+
     [RelayCommand]
     public void DeleteType(string type)
     {

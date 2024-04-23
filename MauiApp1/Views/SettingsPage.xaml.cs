@@ -1,7 +1,4 @@
 using MauiApp1.ViewModels;
-using CommunityToolkit.Maui.Markup;
-using System.Diagnostics;
-using MauiApp1.StaticHelpers;
 
 namespace MauiApp1.Views;
 
@@ -19,13 +16,7 @@ public partial class SettingsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
-        viewModel.TypeEntry = null;
-        viewModel.CurrencyEntry = null;
-        viewModel.AgentNameEntry = null;
-        viewModel.AgentFeeEntry = null;
-
-        viewModel.WelcomeTextVisible = SettingsManager.FileExists ? false : true;
+        viewModel.OnAppearing();
     }
 
     protected override void OnDisappearing()
