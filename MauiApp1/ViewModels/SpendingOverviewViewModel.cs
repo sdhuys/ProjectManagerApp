@@ -134,7 +134,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public SpendingOverviewViewModel(SettingsViewModel settings, ProjectsViewModel projectsViewModel)
     {
         _settings = settings;
-        _projects = projectsViewModel.Projects.Select(x => x.Project);
+        _projects = projectsViewModel.ProjectsToInject;
 
         var (spendings, savings, dict) = SpendingOverviewDataManager.LoadFromJson();
         SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x, _projects)).ToList();

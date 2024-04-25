@@ -17,6 +17,8 @@ public partial class ProjectsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(AwaitedPaymentsTotal))]
     ObservableCollection<ProjectViewModel> projects;
 
+    public IEnumerable<Project> ProjectsToInject { get; private set; }
+
     [ObservableProperty]
     ObservableCollection<ProjectViewModel> queriedProjects;
 
@@ -49,8 +51,8 @@ public partial class ProjectsViewModel : ObservableObject
     private string _sortProperty;
     public ProjectsViewModel()
     {
-        var pr = ProjectManager.LoadProjects();
-        Projects = new(pr.Select(x => new ProjectViewModel(x)).OrderBy(p => p.Date));
+        ProjectsToInject = ProjectManager.LoadProjects();
+        Projects = new(ProjectsToInject.Select(x => new ProjectViewModel(x)).OrderBy(p => p.Date));
         QueriedProjects = new();
         IsQueryStringEmpty = true;
         _sortAscending = true;

@@ -55,7 +55,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
     public PaymentsOverviewViewModel(SettingsViewModel settings, ProjectsViewModel projectsViewModel)
     {
-        _projects = projectsViewModel.Projects.Select(x => x.Project);
+        _projects = projectsViewModel.ProjectsToInject;
         _settingsViewModel = settings;
         QueryStartDate =  _projects.Count() > 1 ? _projects.SelectMany(p => p.Payments).Min(x => x.Date) : DateTime.Today;
         GetFilterOptions();
