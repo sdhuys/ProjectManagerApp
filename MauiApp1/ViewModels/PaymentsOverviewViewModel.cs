@@ -104,7 +104,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
                 var startDateToQuery = FilterDates ? QueryStartDate : DateTime.MinValue;
                 var endDateToQuery = FilterDates ? QueryEndDate : DateTime.MaxValue;
 
-                IEnumerable<PaymentViewModel> payments = ProjectsQuery.GetProjectPaymentsWithinDates(group, QueryStartDate, QueryEndDate);
+                IEnumerable<PaymentWrapper> payments = ProjectsQuery.GetProjectPaymentsWithinDates(group, QueryStartDate, QueryEndDate);
                 IEnumerable<ProjectExpense> expenses = ProjectsQuery.GetProjectExpensesWithinDates(group, QueryStartDate, QueryEndDate);
 
                 decimal totalIncome = payments.Sum(payment => payment.Amount);

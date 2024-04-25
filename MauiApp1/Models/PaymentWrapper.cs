@@ -1,10 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using MauiApp1.Models;
-using MauiApp1.StaticHelpers;
+﻿using MauiApp1.StaticHelpers;
 
-namespace MauiApp1.ViewModels;
+namespace MauiApp1.Models;
 
-public partial class PaymentViewModel : ObservableObject
+public partial class PaymentWrapper
 {
     public Payment Payment { get; }
     public Project Project { get; }
@@ -16,7 +14,7 @@ public partial class PaymentViewModel : ObservableObject
     public string Currency => Project.Currency;
     public Agent Agent => Project.Agent;
 
-    public PaymentViewModel(Payment payment)
+    public PaymentWrapper(Payment payment)
     {
         Project = ProjectManager.AllProjects.FirstOrDefault(p => p.Id == payment.AssociatedProjectID);
         Payment = payment;
