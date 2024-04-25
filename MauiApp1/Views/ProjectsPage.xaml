@@ -253,14 +253,19 @@
             </CollectionView.Triggers>
 
             <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" />
+                <LinearItemsLayout Orientation="Vertical"/>
             </CollectionView.ItemsLayout>
-
+            
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <VerticalStackLayout>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Grid Padding="15"
-                              Margin="0,5,0,0">
+                              Margin="0,5,0,0"
+                              Grid.Row="0">
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Delete"
@@ -374,8 +379,8 @@
                         <BoxView HeightRequest="1"
                                  Color="DodgerBlue"
                                  Grid.Row="1"
-                                 Margin="0,5,0,0" />
-                    </VerticalStackLayout>
+                                 VerticalOptions="EndAndExpand"/>
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
