@@ -421,7 +421,7 @@
                                    VerticalTextAlignment="Center">
                                 <Label.FormattedText>
                                     <FormattedString>
-                                        <Span Text="{Binding BindingContext.SelectedProjectVM.Currency, Source={x:Reference ProjectDetails}}" />
+                                        <Span Text="{Binding BindingContext.Currency, Source={x:Reference ProjectDetails}}" />
                                         <Span Text=" " />
                                         <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
                                     </FormattedString>
