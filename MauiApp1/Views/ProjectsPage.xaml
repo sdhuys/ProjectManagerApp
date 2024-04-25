@@ -233,7 +233,8 @@
                         ItemsSource="{Binding Projects}"
                         SelectionMode="Single"
                         SelectedItem="{Binding SelectedProjectVM}"
-                        Grid.Row="1">
+                        Grid.Row="1"
+                        ItemSizingStrategy="MeasureFirstItem">
             <CollectionView.Triggers>
                 <DataTrigger TargetType="CollectionView"
                              Binding="{Binding IsQueryStringEmpty}"

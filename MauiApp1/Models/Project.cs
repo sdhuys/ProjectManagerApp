@@ -40,7 +40,6 @@ public class Project
             payment.AssociatedProjectID = Id;
         }
         Status = status;
-        ProjectManager.AllProjects.Add(this);
     }
 
     [JsonConstructor]
@@ -64,8 +63,8 @@ public class Project
             payment.AssociatedProjectID = Id;
         }
         Status = status;
-        ProjectManager.AllProjects.Add(this);
     }
+
     public enum ProjectStatus
     {
         Active,

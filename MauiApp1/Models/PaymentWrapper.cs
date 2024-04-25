@@ -14,9 +14,9 @@ public partial class PaymentWrapper
     public string Currency => Project.Currency;
     public Agent Agent => Project.Agent;
 
-    public PaymentWrapper(Payment payment)
+    public PaymentWrapper(Payment payment, IEnumerable<Project> projects)
     {
-        Project = ProjectManager.AllProjects.FirstOrDefault(p => p.Id == payment.AssociatedProjectID);
+        Project = projects.FirstOrDefault(p => p.Id == payment.AssociatedProjectID);
         Payment = payment;
     }
 }

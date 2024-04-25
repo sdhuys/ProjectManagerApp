@@ -13,8 +13,10 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 {
     private SettingsViewModel _settingsViewModel;
 
+    private IEnumerable<Project> _projects;
+
     [ObservableProperty]
-    DateTime queryStartDate = ProjectManager.AllProjects.Count > 1 ? ProjectManager.AllProjects.SelectMany(p => p.Payments).Min(x => x.Date) : DateTime.Today;
+    DateTime queryStartDate;
 
     [ObservableProperty]
     DateTime queryEndDate = DateTime.Today;
@@ -51,9 +53,11 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     bool filterDates;
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
 
-    public PaymentsOverviewViewModel(SettingsViewModel settings)
+    public PaymentsOverviewViewModel(SettingsViewModel settings, ProjectsViewModel projectsViewModel)
     {
+        _projects = projectsViewModel.Projects.Select(x => x.Project);
         _settingsViewModel = settings;
+        QueryStartDate =  _projects.Count() > 1 ? _projects.SelectMany(p => p.Payments).Min(x => x.Date) : DateTime.Today;
         GetFilterOptions();
         QueryCurrencies = new();
         QueryTypes = new();
@@ -78,9 +82,9 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         TypeList = _settingsViewModel.ProjectTypes;
         AgentList = _settingsViewModel.AgentsIncludingNull;
 
-        var currenciesFromProjects = ProjectManager.AllProjects.Select(x => x.Currency);
-        var typesFromProjects = ProjectManager.AllProjects.Select(x => x.Type);
-        var agentsFromProjects = from project in ProjectManager.AllProjects
+        var currenciesFromProjects = _projects.Select(x => x.Currency);
+        var typesFromProjects = _projects.Select(x => x.Type);
+        var agentsFromProjects = from project in _projects
                                  where project.Agent != null
                                  select new AgentWrapper(project.Agent);
 
@@ -94,7 +98,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     {
         CurrencyIncomeDetailsCollection.Clear();
 
-        var queriedProjects = !EnableFilters ? ProjectManager.AllProjects : GetQueriedProjects();
+        var queriedProjects = !EnableFilters ? _projects : GetQueriedProjects();
 
         // Group of PaymentViewModels by associated Currency, ProjectType, Client and Agent
         var groupedData = queriedProjects
@@ -185,7 +189,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
         var types = FilterTypes ? QueryTypes.OfType<string>() : TypeList;
         var agents = FilterAgents ? QueryAgents.OfType<AgentWrapper>() : AgentList;
 
-        return ProjectsQuery.ByCurrencyTypeAndAgent(currencies, types, agents.Select(x => x.Agent));
+        return ProjectsQuery.ByCurrencyTypeAndAgent(currencies, types, agents.Select(x => x.Agent), _projects);
     }
 
     private List<ChartWithHeader> CreateCharts(Dictionary<string, Dictionary<string, decimal>> dataForCharts)
@@ -233,7 +237,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     {
         CurrencyExpectedIncome.Clear();
 
-        var projects = ProjectManager.AllProjects.Select(x => new ProjectViewModel(x));
+        var projects = _projects.Select(x => new ProjectViewModel(x));
 
         var activeAndInvoicedProjects = projects.Where(x => x.Status == Project.ProjectStatus.Active || x.Status == Project.ProjectStatus.Invoiced);
 
@@ -265,7 +269,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             QueryAgents.Clear();
             QueryCurrencies.Clear();
             QueryTypes.Clear();
-            QueryStartDate = ProjectManager.AllProjects.Count > 1 ? ProjectManager.AllProjects.Min(x => x.Date) : DateTime.Today;
+            QueryStartDate = _projects.Count() > 1 ? _projects.Min(x => x.Date) : DateTime.Today;
             QueryEndDate = DateTime.Today;
 
             GetIncomeDataAndCreateCharts();

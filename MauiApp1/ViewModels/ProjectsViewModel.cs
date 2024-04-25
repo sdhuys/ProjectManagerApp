@@ -88,7 +88,6 @@ public partial class ProjectsViewModel : ObservableObject
         bool confirmed = await DisplayConfirmationDialog("Confirm Deletion", $"Are you sure you want to delete this {SelectedProjectVM.Type} project for client {SelectedProjectVM.Client}?");
         if (confirmed)
         {
-            ProjectManager.AllProjects.Remove(SelectedProjectVM.Project);
             Projects.Remove(SelectedProjectVM);
             ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
         }
@@ -293,6 +292,8 @@ public partial class ProjectsViewModel : ObservableObject
         OnPropertyChanged(nameof(SortIndicatorText));
     }
 
+    // Splits the query string by whitespace and checks if each resulting string is a substring of either Client, Description, Type, Currency or Agent name
+    // If there is no Agent, "None" will be a match
     public void QueryProjects()
     {
         QueriedProjects.Clear();
