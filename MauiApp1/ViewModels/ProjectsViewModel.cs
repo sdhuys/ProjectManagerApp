@@ -55,7 +55,7 @@ public partial class ProjectsViewModel : ObservableObject
         IsQueryStringEmpty = true;
         _sortAscending = true;
         _sortProperty = "Date";
-        SortIndicatorColumn = 3;
+        SortIndicatorColumn = 4;
     }
 
     //Method called on page resize
@@ -277,7 +277,7 @@ public partial class ProjectsViewModel : ObservableObject
                 SortIndicatorColumn = 11;
                 break;
         }
-
+        SortIndicatorColumn *= 2;
         Projects.Clear();
         foreach (var p in temp)
         {
