@@ -274,7 +274,7 @@
         <HorizontalStackLayout Grid.Row="1"
                                HorizontalOptions="End"
                                Margin="10">
-            <Label Text="Active &amp; Invoiced Projects Expected Payments:"
+            <Label Text="Active &amp; Invoiced Projects' Expected Payments:"
                    Margin="0,0,10,0" />
 
             <CollectionView ItemsSource="{Binding CurrencyExpectedIncome}"

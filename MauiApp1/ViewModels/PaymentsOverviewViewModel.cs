@@ -144,26 +144,28 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
             if (totalIncome == 0 && totalExpenses == 0) return;
 
+            const int maxStringLength = 30;
+            const int truncateIndex = 27;
             // Prepare data for charts
             var typeData = groupedData
                 .Where(item => item.Currency == currency)
                 .GroupBy(item => item.Type)
                 .ToDictionary(
-                    group => group.Key,
+                    group => group.Key.Length < maxStringLength ? group.Key : group.Key.Substring(0, truncateIndex) + "...",
                     group => group.Sum(item => item.TotalProfit));
 
             var clientData = groupedData
                 .Where(item => item.Currency == currency)
                 .GroupBy(item => item.Client)
                 .ToDictionary(
-                    group => group.Key,
+                    group => group.Key.Length < maxStringLength ? group.Key : group.Key.Substring(0, 27) + "...",
                     group => group.Sum(item => item.TotalProfit));
 
             var agentData = groupedData
                 .Where(item => item.Currency == currency)
                 .GroupBy(item => item.AgentName)
                 .ToDictionary(
-                    group => group.Key != null ? group.Key : "None",
+                    group => group.Key != null ? (group.Key.Length < maxStringLength ? group.Key : group.Key.Substring(0, truncateIndex) + "...") : "None",
                     group => group.Sum(item => item.TotalProfit));
 
             dataForCharts.Add($"{currency} Profit Per Project Type", typeData);
