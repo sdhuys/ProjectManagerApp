@@ -187,6 +187,10 @@
                                VerticalTextAlignment="Center"
                                HorizontalTextAlignment="Center" />
                     </CollectionView.EmptyView>
+                    
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical" />
+                    </CollectionView.ItemsLayout>
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
@@ -245,8 +249,7 @@
                                 <CollectionView ItemsSource="{Binding Charts}"
                                                 SelectionMode="None">
                                     <CollectionView.ItemsLayout>
-                                        <GridItemsLayout Orientation="Vertical"
-                                                         Span="2" />
+                                        <GridItemsLayout Orientation="Vertical" />
                                     </CollectionView.ItemsLayout>
 
                                     <CollectionView.ItemTemplate>
@@ -254,12 +257,14 @@
                                             <VerticalStackLayout BackgroundColor="Transparent">
                                                 <Label Text="{Binding Header}"
                                                        FontSize="15"
-                                                       Margin="20, 20, 20, 20" />
+                                                       Margin="35, 20, 20, 20"
+                                                       HorizontalTextAlignment="Start"/>
 
                                                 <microcharts:ChartView Chart="{Binding Chart}"
-                                                                       WidthRequest="500"
+                                                                       WidthRequest="700"
                                                                        HeightRequest="300"
-                                                                       HorizontalOptions="StartAndExpand" />
+                                                                       HorizontalOptions="StartAndExpand" 
+                                                                       Margin="25,0,0,0"/>
                                             </VerticalStackLayout>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
