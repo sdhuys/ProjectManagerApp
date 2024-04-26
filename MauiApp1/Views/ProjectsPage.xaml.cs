@@ -4,9 +4,9 @@ namespace MauiApp1.Views;
 
 public partial class ProjectsPage : ContentPage
 {
-    private readonly ProjectsViewModel viewModel;
+    private readonly ProjectsOverviewViewModel viewModel;
 
-    public ProjectsPage(ProjectsViewModel vm)
+    public ProjectsPage(ProjectsOverviewViewModel vm)
     {
         viewModel = vm;
         BindingContext = vm;

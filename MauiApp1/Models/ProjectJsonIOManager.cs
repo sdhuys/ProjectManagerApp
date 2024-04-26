@@ -1,26 +1,23 @@
 ﻿using Newtonsoft.Json;
 using MauiApp1.Converters;
-using MauiApp1.Models;
 
-namespace MauiApp1.StaticHelpers;
+namespace MauiApp1.Models;
 
-internal static class ProjectManager
+public class ProjectJsonIOManager
 {
 #if DEBUG
-    private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "projects.json");
+    private readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "projects.json");
 #else
     private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "projects.json");
 #endif
 
-    public static List<Project> AllProjects = new List<Project>();
-
-    public static void SaveProjects(IEnumerable<Project> projects)
+    public void SaveProjects(IEnumerable<Project> projects)
     {
         string json = JsonConvert.SerializeObject(projects);
         File.WriteAllText(filePath, json);
     }
 
-    public static IEnumerable<Project> LoadProjects()
+    public IEnumerable<Project> LoadProjects()
     {
         if (!File.Exists(filePath))
             return Enumerable.Empty<Project>();

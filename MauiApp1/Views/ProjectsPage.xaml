@@ -230,7 +230,7 @@
 
 
         <CollectionView x:Name="projectsList"
-                        ItemsSource="{Binding Projects}"
+                        ItemsSource="{Binding ProjectsViewModels}"
                         SelectionMode="Single"
                         SelectedItem="{Binding SelectedProjectVM}"
                         Grid.Row="1">

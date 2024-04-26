@@ -3,11 +3,9 @@ using MauiApp1.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Views;
-using MauiApp1.StaticHelpers;
-using System.Diagnostics;
 
 namespace MauiApp1.ViewModels;
-public partial class ProjectsViewModel : ObservableObject
+public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttributable
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FinishedProjects))]
@@ -15,9 +13,9 @@ public partial class ProjectsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CancelledProjects))]
     [NotifyPropertyChangedFor(nameof(ActiveProjects))]
     [NotifyPropertyChangedFor(nameof(AwaitedPaymentsTotal))]
-    ObservableCollection<ProjectViewModel> projects;
+    ObservableCollection<ProjectViewModel> projectsViewModels;
 
-    public IEnumerable<Project> ProjectsToInject { get; private set; }
+    public IEnumerable<Project> Projects { get; private set; }
 
     [ObservableProperty]
     ObservableCollection<ProjectViewModel> queriedProjects;
@@ -33,30 +31,31 @@ public partial class ProjectsViewModel : ObservableObject
     [ObservableProperty]
     bool isQueryStringEmpty;
 
-
-    public List<ProjectViewModel> FinishedProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Completed).ToList();
-    public List<ProjectViewModel> InvoicedProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Invoiced).ToList();
-    public List<ProjectViewModel> CancelledProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Cancelled).ToList();
-    public List<ProjectViewModel> ActiveProjects => Projects.Where(x => x.Status == Project.ProjectStatus.Active).ToList();
+    public List<ProjectViewModel> FinishedProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Completed).ToList();
+    public List<ProjectViewModel> InvoicedProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Invoiced).ToList();
+    public List<ProjectViewModel> CancelledProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Cancelled).ToList();
+    public List<ProjectViewModel> ActiveProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Active).ToList();
     public decimal AwaitedPaymentsTotal => InvoicedProjects.Select(x => x.Fee).Sum() - (InvoicedProjects.Select(x => x.Payments.Select(x => x.Amount).Sum()).Sum());
 
     public string SortIndicatorText
     {
         get { return _sortAscending ? "▲" : "▼"; }
     }
-
     public int SortIndicatorColumn { get; set; }
 
     private bool _sortAscending;
     private string _sortProperty;
-    public ProjectsViewModel()
+
+    private ProjectJsonIOManager _projectsJsonIOManager;
+    public ProjectsOverviewViewModel(ProjectJsonIOManager projectsJsonManager)
     {
-        ProjectsToInject = ProjectManager.LoadProjects();
-        Projects = new(ProjectsToInject.Select(x => new ProjectViewModel(x)));
+        _projectsJsonIOManager = projectsJsonManager;
+        Projects = _projectsJsonIOManager.LoadProjects();
+        ProjectsViewModels = new(Projects.Select(x => new ProjectViewModel(x)));
         QueriedProjects = new();
         IsQueryStringEmpty = true;
-        _sortAscending = true;
         _sortProperty = "Date";
+        _sortAscending = false; // will be switched to true in SortProjects()
         SortProjects(_sortProperty);
     }
 
@@ -65,12 +64,12 @@ public partial class ProjectsViewModel : ObservableObject
     //Without this the grid only correctly scales when upsizing window (.NET MAUI bug?)
     public async Task ReloadProjects()
     {
-        var temp = Projects.ToList();
-        Projects.Clear();
+        var temp = ProjectsViewModels.ToList();
+        ProjectsViewModels.Clear();
         await Task.Delay(1);
         foreach (var project in temp)
         {
-            Projects.Add(project);
+            ProjectsViewModels.Add(project);
         }
     }
 
@@ -80,7 +79,7 @@ public partial class ProjectsViewModel : ObservableObject
         await Shell.Current.GoToAsync($"{nameof(ProjectDetailsPage)}?",
             new Dictionary<string, object>
             {
-                ["projects"] = Projects
+                ["projects"] = ProjectsViewModels
             });
     }
 
@@ -90,8 +89,8 @@ public partial class ProjectsViewModel : ObservableObject
         bool confirmed = await DisplayConfirmationDialog("Confirm Deletion", $"Are you sure you want to delete this {SelectedProjectVM.Type} project for client {SelectedProjectVM.Client}?");
         if (confirmed)
         {
-            Projects.Remove(SelectedProjectVM);
-            ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
+            ProjectsViewModels.Remove(SelectedProjectVM);
+            SaveProjects();
         }
     }
 
@@ -109,7 +108,6 @@ public partial class ProjectsViewModel : ObservableObject
             new Dictionary<string, object>
             {
                 ["selectedProjectVM"] = SelectedProjectVM,
-                ["projects"] = Projects
             });
     }
 
@@ -136,11 +134,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Client":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Client).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Client).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Client).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Client).ToList();
                 }
                 SortIndicatorColumn = 0;
                 break;
@@ -148,11 +146,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Type":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Type).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Type).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Type).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Type).ToList();
                 }
                 SortIndicatorColumn = 2;
                 break;
@@ -160,11 +158,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Description":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Description).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Description).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Description).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Description).ToList();
                 }
                 SortIndicatorColumn = 4;
                 break;
@@ -172,11 +170,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Date":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Date).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Date).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Date).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Date).ToList();
                 }
                 SortIndicatorColumn = 6;
                 break;
@@ -184,11 +182,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Currency":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Currency).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Currency).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Currency).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Currency).ToList();
                 }
                 SortIndicatorColumn = 8;
                 break;
@@ -196,11 +194,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Fee":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Currency).ThenBy(p => p.Fee).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Currency).ThenBy(p => p.Fee).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.Fee).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Currency).ThenByDescending(p => p.Fee).ToList();
                 }
                 SortIndicatorColumn = 10;
                 break;
@@ -208,11 +206,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "VatRate":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.VatRateDecimal).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.VatRateDecimal).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.VatRateDecimal).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.VatRateDecimal).ToList();
                 }
                 SortIndicatorColumn = 12;
                 break;
@@ -220,11 +218,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "TotalExpenses":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Currency).ThenBy(p => p.TotalExpenses).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Currency).ThenBy(p => p.TotalExpenses).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.TotalExpenses).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Currency).ThenByDescending(p => p.TotalExpenses).ToList();
                 }
                 SortIndicatorColumn = 14;
                 break;
@@ -232,11 +230,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Agent":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Agent).ThenBy(p => p.AgencyFeeDecimal).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Agent).ThenBy(p => p.AgencyFeeDecimal).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Agent).ThenByDescending(p => p.AgencyFeeDecimal).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Agent).ThenByDescending(p => p.AgencyFeeDecimal).ToList();
                 }
                 SortIndicatorColumn = 16;
                 break;
@@ -244,11 +242,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "PaidPercentage":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.PaidPercentage).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.PaidPercentage).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.PaidPercentage).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.PaidPercentage).ToList();
                 }
                 SortIndicatorColumn = 18;
                 break;
@@ -256,11 +254,11 @@ public partial class ProjectsViewModel : ObservableObject
             case "Profit":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Currency).ThenBy(p => p.ExpectedProfit).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Currency).ThenBy(p => p.ExpectedProfit).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.ExpectedProfit).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Currency).ThenByDescending(p => p.ExpectedProfit).ToList();
                 }
                 SortIndicatorColumn = 20;
                 break;
@@ -269,20 +267,20 @@ public partial class ProjectsViewModel : ObservableObject
             case "Status":
                 if (_sortAscending)
                 {
-                    temp = Projects.OrderBy(p => p.Status).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Status).ToList();
                 }
                 else
                 {
-                    temp = Projects.OrderByDescending(p => p.Status).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Status).ToList();
                 }
                 SortIndicatorColumn = 22;
                 break;
         }
 
-        Projects.Clear();
+        ProjectsViewModels.Clear();
         foreach (var p in temp)
         {
-            Projects.Add(p);
+            ProjectsViewModels.Add(p);
         }
 
         if (!SetAndGetQueryStringIsEmpty())
@@ -301,7 +299,7 @@ public partial class ProjectsViewModel : ObservableObject
         QueriedProjects.Clear();
         var queryWords = QueryString?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        foreach (var p in Projects)
+        foreach (var p in ProjectsViewModels)
         {
             bool match = true;
             foreach (var w in queryWords)
@@ -352,5 +350,22 @@ public partial class ProjectsViewModel : ObservableObject
     private bool CanDeleteOrEditProject()
     {
         return SelectedProjectVM != null;
+    }
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.ContainsKey("projectVM"))
+        {
+            SelectedProjectVM = query["projectVM"] as ProjectViewModel;
+            ProjectsViewModels.Add(SelectedProjectVM);
+            _sortAscending = !_sortAscending; // will be switched back to original state in SortProjects()
+            SortProjects(_sortProperty);
+            SaveProjects();
+        }
+    }
+
+    private void SaveProjects()
+    {
+        _projectsJsonIOManager.SaveProjects(ProjectsViewModels.Select(x => x.Project).ToList());
     }
 }

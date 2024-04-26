@@ -53,9 +53,9 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     bool filterDates;
     public CultureInfo CurrentCulture => CultureInfo.CurrentCulture;
 
-    public PaymentsOverviewViewModel(SettingsViewModel settings, ProjectsViewModel projectsViewModel)
+    public PaymentsOverviewViewModel(SettingsViewModel settings, ProjectsOverviewViewModel projectsViewModel)
     {
-        _projects = projectsViewModel.ProjectsToInject;
+        _projects = projectsViewModel.Projects;
         _settingsViewModel = settings;
         QueryStartDate =  _projects.Count() > 1 ? _projects.SelectMany(p => p.Payments).Min(x => x.Date) : DateTime.Today;
         GetFilterOptions();

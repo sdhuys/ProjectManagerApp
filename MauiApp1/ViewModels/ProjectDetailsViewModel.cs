@@ -9,7 +9,6 @@ namespace MauiApp1.ViewModels;
 public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributable
 {
     private SettingsViewModel settingsViewModel;
-    private ObservableCollection<ProjectViewModel> Projects { get; set; }
 
     public ProjectViewModel SelectedProjectVM { get; private set; }
 
@@ -417,7 +416,10 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         {
             Project newProject = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), IsVatIncluded, vatRateDecimal, Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
             ProjectViewModel projectVM = new(newProject);
-            Projects.Add(projectVM);
+            await Shell.Current.GoToAsync("..", new Dictionary<string, object>
+            {
+                ["projectVM"] = projectVM,
+            });
         }
 
         //Save edits
@@ -442,9 +444,9 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             SelectedProjectVM.Expenses = Expenses.ToList();
             SelectedProjectVM.Payments = Payments.ToList();
             SelectedProjectVM.Status = Status;
+
+            await Shell.Current.GoToAsync("..");
         }
-        ProjectManager.SaveProjects(Projects.Select(x => x.Project).ToList());
-        await Shell.Current.GoToAsync("..");
     }
 
     private bool CanAddExpense()
@@ -461,11 +463,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     }
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        if (query.ContainsKey("projects"))
-        {
-            Projects = query["projects"] as ObservableCollection<ProjectViewModel>;
-        }
-
         if (query.ContainsKey("selectedProjectVM"))
         {
             SelectedProjectVM = query["selectedProjectVM"] as ProjectViewModel;
