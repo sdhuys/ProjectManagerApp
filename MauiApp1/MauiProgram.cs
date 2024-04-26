@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui.Markup;
 using CommunityToolkit.Maui;
 using Microcharts.Maui;
+using MauiApp1.Models;
 
 namespace MauiApp1
 {
@@ -24,13 +25,14 @@ namespace MauiApp1
                 });
 
             builder.Services.AddSingleton<ProjectsPage>();
-            builder.Services.AddSingleton<ProjectsViewModel>();
+            builder.Services.AddSingleton<ProjectsOverviewViewModel>();
             builder.Services.AddSingleton<SettingsPage>();
             builder.Services.AddSingleton<SettingsViewModel>();
             builder.Services.AddSingleton<PaymentsOverviewViewModel>();
             builder.Services.AddSingleton<PaymentsOverviewPage>();
             builder.Services.AddSingleton<SpendingOverviewViewModel>();
             builder.Services.AddSingleton<SpendingOverviewPage>();
+            builder.Services.AddSingleton<ProjectJsonIOManager>();
 
             builder.Services.AddTransient<ProjectDetailsPage>();
             builder.Services.AddTransient<ProjectDetailsViewModel>();

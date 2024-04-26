@@ -120,8 +120,9 @@ public partial class SavingsCategoryViewModel : ObservableObject
     public decimal CumulativeSavingsGoal => SavingsGoal + LastMonthSavingsGoalDeficit;
     public bool IsLastMonthSavingsGoalReached => SavingsGoal == CumulativeSavingsGoal;
     private DateTime _selectedDate;
+    private IEnumerable<Project> _projects;
 
-    public SavingsCategoryViewModel(SpendingCategory category)
+    public SavingsCategoryViewModel(SpendingCategory category, IEnumerable<Project> projects)
     {
         Category = category;
         AllTransactions = new(Expenses.Cast<Transaction>().Union(Transfers.Cast<Transaction>()));
@@ -133,6 +134,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
 
         // Set in case name has somehow been changed in JSON file
         if (Name != "Name") Name = "Savings";
+        _projects = projects;
     }
 
     public void UpdateSavingsGoalUI()
@@ -322,7 +324,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
     private decimal GetMonthSavingsGoal(DateTime date)
     {
         var percentage = GetDatePercentage(date);
-        var spendingBudget = ProjectsQuery.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        var spendingBudget = ProjectsQuery.CalculateMonthProfitForCurrency(date, Currency, _projects) + GetNetCurrencyConversionsAmount(date);
         spendingBudget = Math.Max(spendingBudget, 0);
 
         return (spendingBudget * percentage / 100m);

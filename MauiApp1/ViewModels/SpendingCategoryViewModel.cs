@@ -91,10 +91,12 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
     private decimal _budget;
     private DateTime _selectedDate;
+    private IEnumerable<Project> _projects;
 
     [JsonConstructor]
-    public SpendingCategoryViewModel(SpendingCategory category)
+    public SpendingCategoryViewModel(SpendingCategory category, IEnumerable<Project> projects)
     {
+        _projects = projects;
         Category = category;
         AllTransactions = new(Category.Expenses.Cast<Transaction>().Union(Category.Transfers.Cast<Transaction>()));
         SelectedMonthTransactions = new();
@@ -103,8 +105,9 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
     // Constructor to be called when manually creating new Category on UI
     // Sets date as starting point for PercentageHistory
-    public SpendingCategoryViewModel(SpendingCategory category, DateTime date)
+    public SpendingCategoryViewModel(SpendingCategory category, DateTime date, IEnumerable<Project> projects)
     {
+        _projects = projects;
         Category = category;
         PercentageHistory[date] = 0;
         AllTransactions = new();
@@ -260,7 +263,7 @@ public partial class SpendingCategoryViewModel : ObservableObject
     private decimal GetRemainingBudget(DateTime date)
     {
         var percentage = GetDatePercentage(date);
-        var spendingBudget = ProjectsQuery.CalculateMonthProfitForCurrency(date, Currency) + GetNetCurrencyConversionsAmount(date);
+        var spendingBudget = ProjectsQuery.CalculateMonthProfitForCurrency(date, Currency, _projects) + GetNetCurrencyConversionsAmount(date);
         spendingBudget = Math.Max(spendingBudget, 0);
 
         var monthTransactionsAmount = AllTransactions.Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(x => x.Amount);
