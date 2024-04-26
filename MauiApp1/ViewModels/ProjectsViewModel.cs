@@ -52,12 +52,12 @@ public partial class ProjectsViewModel : ObservableObject
     public ProjectsViewModel()
     {
         ProjectsToInject = ProjectManager.LoadProjects();
-        Projects = new(ProjectsToInject.Select(x => new ProjectViewModel(x)).OrderBy(p => p.Date));
+        Projects = new(ProjectsToInject.Select(x => new ProjectViewModel(x)));
         QueriedProjects = new();
         IsQueryStringEmpty = true;
         _sortAscending = true;
         _sortProperty = "Date";
-        SortIndicatorColumn = 4;
+        SortProjects(_sortProperty);
     }
 
     //Method called on page resize
@@ -154,7 +154,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Type).ToList();
                 }
-                SortIndicatorColumn = 1;
+                SortIndicatorColumn = 2;
                 break;
 
             case "Description":
@@ -166,7 +166,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Description).ToList();
                 }
-                SortIndicatorColumn = 2;
+                SortIndicatorColumn = 4;
                 break;
 
             case "Date":
@@ -178,7 +178,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Date).ToList();
                 }
-                SortIndicatorColumn = 3;
+                SortIndicatorColumn = 6;
                 break;
 
             case "Currency":
@@ -190,7 +190,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Currency).ToList();
                 }
-                SortIndicatorColumn = 4;
+                SortIndicatorColumn = 8;
                 break;
 
             case "Fee":
@@ -202,7 +202,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.Fee).ToList();
                 }
-                SortIndicatorColumn = 5;
+                SortIndicatorColumn = 10;
                 break;
 
             case "VatRate":
@@ -214,7 +214,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.VatRateDecimal).ToList();
                 }
-                SortIndicatorColumn = 6;
+                SortIndicatorColumn = 12;
                 break;
 
             case "TotalExpenses":
@@ -226,7 +226,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.TotalExpenses).ToList();
                 }
-                SortIndicatorColumn = 7;
+                SortIndicatorColumn = 14;
                 break;
 
             case "Agent":
@@ -238,7 +238,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Agent).ThenByDescending(p => p.AgencyFeeDecimal).ToList();
                 }
-                SortIndicatorColumn = 8;
+                SortIndicatorColumn = 16;
                 break;
 
             case "PaidPercentage":
@@ -250,7 +250,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.PaidPercentage).ToList();
                 }
-                SortIndicatorColumn = 9;
+                SortIndicatorColumn = 18;
                 break;
 
             case "Profit":
@@ -262,7 +262,7 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Currency).ThenByDescending(p => p.ExpectedProfit).ToList();
                 }
-                SortIndicatorColumn = 10;
+                SortIndicatorColumn = 20;
                 break;
 
 
@@ -275,10 +275,10 @@ public partial class ProjectsViewModel : ObservableObject
                 {
                     temp = Projects.OrderByDescending(p => p.Status).ToList();
                 }
-                SortIndicatorColumn = 11;
+                SortIndicatorColumn = 22;
                 break;
         }
-        SortIndicatorColumn *= 2;
+
         Projects.Clear();
         foreach (var p in temp)
         {
@@ -287,7 +287,7 @@ public partial class ProjectsViewModel : ObservableObject
 
         if (!SetAndGetQueryStringIsEmpty())
         {
-            QueryProjects();         // call to make sure sorting is up consistent between Projects and QueriedProjects
+            QueryProjects();
         }
 
         OnPropertyChanged(nameof(SortIndicatorColumn));

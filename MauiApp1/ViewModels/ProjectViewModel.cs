@@ -91,7 +91,7 @@ public class ProjectViewModel : ObservableObject
         get
         {
             if (VatRateDecimal == 0m) return null;
-            return IsVatIncluded ? "Incl." : "Excl.";
+            return IsVatIncluded ? "Incl. " : "Excl. ";
         }
     }
     public List<ProjectExpense> Expenses
