@@ -129,14 +129,16 @@ public partial class SpendingOverviewViewModel : ObservableObject
     decimal newFromAmountEntry;
 
     private SettingsViewModel _settings;
-
+    private SpendingOverviewDataJsonIOManager _spendingDataManager;
     private IEnumerable<Project> _projects;
-    public SpendingOverviewViewModel(SettingsViewModel settings, ProjectsOverviewViewModel projectsViewModel)
+
+    public SpendingOverviewViewModel(SettingsViewModel settings, ProjectsOverviewViewModel projectsViewModel, SpendingOverviewDataJsonIOManager spendingDataManager)
     {
         _settings = settings;
         _projects = projectsViewModel.Projects;
+        _spendingDataManager = spendingDataManager;
 
-        var (spendings, savings, dict) = SpendingOverviewDataManager.LoadFromJson();
+        var (spendings, savings, dict) = _spendingDataManager.LoadFromJson();
         SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x, _projects)).ToList();
         SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x, _projects)).ToList();
         _finalisedMonthsDictionary = dict;
@@ -151,7 +153,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         CheckForAndCreateMissingSavingsViewModels();
         AddSavingsConversionsToSavingsViewModels();
- 
+        _spendingDataManager = spendingDataManager;
     }
     private void AddSavingsConversionsToSavingsViewModels()
     {
@@ -885,13 +887,13 @@ public partial class SpendingOverviewViewModel : ObservableObject
     private async Task SaveSpendingCategoriesAndCurrencyConversions()
     {
         CurrencyConversionManager.WriteToJson();
-        await SpendingOverviewDataManager.WriteToJsonAsync(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalisedMonthsDictionary);
+        await _spendingDataManager.WriteToJsonAsync(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalisedMonthsDictionary);
     }
 
     [RelayCommand]
     private void ReloadFromJson()
     {
-        var (spendings, savings, dict) = SpendingOverviewDataManager.LoadFromJson();
+        var (spendings, savings, dict) = _spendingDataManager.LoadFromJson();
         SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x, _projects)).ToList();
         SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x, _projects)).ToList();
         _finalisedMonthsDictionary = dict;

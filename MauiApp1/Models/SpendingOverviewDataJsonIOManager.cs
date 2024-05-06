@@ -1,22 +1,21 @@
 ﻿using MauiApp1.Converters;
-using MauiApp1.Models;
 using Newtonsoft.Json;
 
-namespace MauiApp1.StaticHelpers;
+namespace MauiApp1.Models;
 
 // Class that handles (de)serialization of data for SpendingOverviewViewModel
-public static class SpendingOverviewDataManager
+public class SpendingOverviewDataJsonIOManager
 {
 #if DEBUG
-    private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "spending.json");
+    private readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "spending.json");
 #else
-    private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "spending.json");
+    private readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "spending.json");
 #endif
 
     // Writes SpendingCategories on the first line
     // SpendingCategories on the second line
     // Dictionary for FinalizedMonthsDictionary on the third line
-    public static async Task WriteToJsonAsync(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict)
+    public async Task WriteToJsonAsync(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict)
     {
         string spendingsJson = JsonConvert.SerializeObject(spendings);
         string savingsJson = JsonConvert.SerializeObject(savings);
@@ -28,7 +27,7 @@ public static class SpendingOverviewDataManager
         await File.WriteAllTextAsync(filePath, combinedJson);
     }
 
-    public static (IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict) LoadFromJson()
+    public (IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict) LoadFromJson()
     {
         if (!File.Exists(filePath))
             return (Enumerable.Empty<SpendingCategory>(), Enumerable.Empty<SpendingCategory>(), new());
@@ -56,7 +55,7 @@ public static class SpendingOverviewDataManager
             return string.IsNullOrWhiteSpace(json) ? new Dictionary<string, (bool, decimal)>() : JsonConvert.DeserializeObject<Dictionary<string, (bool, decimal)>>(json);
         }
     }
-    public static async Task<(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict)> LoadFromJsonAsync()
+    public async Task<(IEnumerable<SpendingCategory> spendings, IEnumerable<SpendingCategory> savings, Dictionary<string, (bool, decimal)> dict)> LoadFromJsonAsync()
     {
         if (!File.Exists(filePath))
             return (Enumerable.Empty<SpendingCategory>(), Enumerable.Empty<SpendingCategory>(), new());
