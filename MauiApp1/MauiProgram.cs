@@ -33,6 +33,7 @@ namespace MauiApp1
             builder.Services.AddSingleton<SpendingOverviewViewModel>();
             builder.Services.AddSingleton<SpendingOverviewPage>();
             builder.Services.AddSingleton<ProjectJsonIOManager>();
+            builder.Services.AddSingleton<SettingsJsonIOManager>();
 
             builder.Services.AddTransient<ProjectDetailsPage>();
             builder.Services.AddTransient<ProjectDetailsViewModel>();

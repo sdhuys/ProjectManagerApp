@@ -67,11 +67,14 @@ public partial class SettingsViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(AddAgentCommand))]
     string agentFeeEntry;
 
-    public SettingsViewModel()
+    private SettingsJsonIOManager settingsIOManager;
+
+    public SettingsViewModel(SettingsJsonIOManager settingsManager)
     {
-        if (SettingsManager.FileExists)
+        settingsIOManager = settingsManager;
+        if (settingsIOManager.FileExists)
         {
-            var settings = SettingsManager.LoadFromJson();
+            var settings = settingsIOManager.LoadFromJson();
             ProjectTypes = new(settings.Item1);
             Currencies = new(settings.Item2);
             Agents = new(settings.Item3);
@@ -101,7 +104,7 @@ public partial class SettingsViewModel : ObservableObject
         AgentNameEntry = null;
         AgentFeeEntry = null;
 
-        WelcomeTextVisible = SettingsManager.FileExists ? false : true;
+        WelcomeTextVisible = settingsIOManager.FileExists ? false : true;
     }
 
     [RelayCommand]
@@ -232,7 +235,7 @@ public partial class SettingsViewModel : ObservableObject
     // Called on "get started" button press during setup, and inside OnDisappearing
     public void SaveSettings()
     {
-        SettingsManager.Save(new(ProjectTypes), new(Currencies), new(Agents));
+        settingsIOManager.Save(new(ProjectTypes), new(Currencies), new(Agents));
     }
 
     [RelayCommand(CanExecute = nameof(CanSave))]

@@ -1,23 +1,22 @@
 ﻿using MauiApp1.Converters;
-using MauiApp1.Models;
 using Newtonsoft.Json;
 
-namespace MauiApp1.StaticHelpers;
-public static class SettingsManager
+namespace MauiApp1.Models;
+public class SettingsJsonIOManager
 {
 #if DEBUG
-    private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
+        private static readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "settings.json");
 #else
         private static readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "settings.json");
 #endif
 
-    public static bool FileExists => File.Exists(filePath);
+    public bool FileExists => File.Exists(filePath);
 
-    static SettingsManager()
+    public SettingsJsonIOManager()
     {
         LoadFromJson();
     }
-    public static (IEnumerable<string>, IEnumerable<string>, IEnumerable<Agent>) LoadFromJson()
+    public (IEnumerable<string>, IEnumerable<string>, IEnumerable<Agent>) LoadFromJson()
     {
         if (File.Exists(filePath))
         {
@@ -35,7 +34,7 @@ public static class SettingsManager
         return (null, null, null);
     }
 
-    public static void Save(List<string> projectTypes, List<string> currencies, List<Agent> agents)
+    public void Save(List<string> projectTypes, List<string> currencies, List<Agent> agents)
     {
         string json = JsonConvert.SerializeObject((projectTypes, currencies, agents));
         File.WriteAllText(filePath, json);

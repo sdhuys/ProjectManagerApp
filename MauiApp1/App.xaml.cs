@@ -1,16 +1,14 @@
-﻿using MauiApp1.StaticHelpers;
-using MauiApp1.ViewModels;
-using MauiApp1.Views;
+﻿using MauiApp1.Models;
 
 namespace MauiApp1
 {
     public partial class App : Application
     {
-        public App()
+        public App(SettingsJsonIOManager settings)
         {
             InitializeComponent();
             MainPage = new AppShell();
-            if (!SettingsManager.FileExists)
+            if (!settings.FileExists)
             {
                 Shell.Current.CurrentItem = Shell.Current.Items.ElementAt(3);
             }
