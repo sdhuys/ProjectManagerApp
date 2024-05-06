@@ -257,11 +257,11 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
             case "Profit":
                 if (_sortAscending)
                 {
-                    temp = ProjectsViewModels.OrderBy(p => p.Currency).ThenBy(p => p.ExpectedProfit).ToList();
+                    temp = ProjectsViewModels.OrderBy(p => p.Currency).ThenBy(p => p.ActualProfit).ToList();
                 }
                 else
                 {
-                    temp = ProjectsViewModels.OrderByDescending(p => p.Currency).ThenByDescending(p => p.ExpectedProfit).ToList();
+                    temp = ProjectsViewModels.OrderByDescending(p => p.Currency).ThenByDescending(p => p.ActualProfit).ToList();
                 }
                 SortIndicatorColumn = 20;
                 break;
