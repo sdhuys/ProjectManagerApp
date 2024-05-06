@@ -93,7 +93,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
         {
             var incomingTransfers = Transfers.Where(x => x.Destination == Category.Name && x.Date <= _selectedDate).Sum(x => x.Amount);
             var outgoingTransfers = Transfers.Where(x => x.Destination != Category.Name && x.Date <= _selectedDate).Sum(x => x.Amount);
-            var incomingConversions = Conversions.Where(x => x.ToCurrency == Currency && x.Date <= _selectedDate).Sum(x => x.Amount);
+            var incomingConversions = Conversions.Where(x => x.ToCurrency == Currency && x.Date <= _selectedDate).Sum(x => x.ToAmount);
             var outgoingConversions = Conversions.Where(x => x.FromCurrency == Currency && x.Date <= _selectedDate).Sum(x => x.Amount);
             var expenses = Expenses.Sum(x => x.Amount);
 
@@ -107,7 +107,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
         {
             var incomingTransfers = SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Destination == Category.Name).Sum(x => x.Amount);
             var outgoingTransfers = SelectedMonthTransactions.Where(x => x is TransferTransaction t && t.Destination != Category.Name).Sum(x => x.Amount);
-            var incomingConversions = SelectedMonthTransactions.Where(x => x is CurrencyConversion c && c.ToCurrency == Currency).Sum(x => x.Amount);
+            var incomingConversions = SelectedMonthTransactions.OfType<CurrencyConversion>().Where(c => c.ToCurrency == Currency).Sum(x => x.ToAmount);
             var outgoingConversions = SelectedMonthTransactions.Where(x => x is CurrencyConversion c && c.FromCurrency == Currency).Sum(x => x.Amount);
             var expenses = SelectedMonthTransactions.Where(x => x is ExpenseTransaction).Sum(x => x.Amount);
 
