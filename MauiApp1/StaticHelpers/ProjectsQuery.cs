@@ -20,32 +20,23 @@ static class ProjectsQuery
 
     public static IEnumerable<ProjectExpense> GetProjectExpensesWithinDates(IEnumerable<Project> projects, DateTime startDate, DateTime endDate)
     {
-        var absoluteExpenses = projects.SelectMany(p => p.Expenses).Where(x => !x.IsRelative && x.Date >= startDate && x.Date <= endDate);
-        var finishedProjects = GetFinishedProjects(projects);
-        var paidRelativeExpenses = finishedProjects.SelectMany(p => p.Expenses).Where(x => x.IsRelative && x.Date >= startDate && x.Date <= endDate);
+        var absoluteExpenses = projects.SelectMany(p => p.Expenses).Where(x => x is not ProfitSharingExpense && x.Date >= startDate && x.Date <= endDate);
+        var paidRelativeExpenses = projects.SelectMany(p => p.Expenses).OfType<ProfitSharingExpense>().Where(x => x.IsPaid && x.Date >= startDate && x.Date <= endDate);
 
         return absoluteExpenses.Union(paidRelativeExpenses);
-    }
-
-    public static IEnumerable<Project> GetFinishedProjects(IEnumerable<Project> projects)
-    {
-        return projects.Where(p => p.Status == Project.ProjectStatus.Completed || p.Status == Project.ProjectStatus.Cancelled);
     }
 
     public static decimal CalculateMonthProfitForCurrency(DateTime date, string currency, IEnumerable<Project> projects)
     {
         var currencyProjects = projects.Where(p => p.Currency == currency);
-        var finishedProjects = GetFinishedProjects(currencyProjects);
 
         var paymentVMs = currencyProjects.SelectMany(p => p.Payments).Where(x => x.Date.Month == date.Month && x.Date.Year == date.Year).Select(p => new PaymentWrapper(p, currencyProjects));
-
-        var absoluteExpenses = currencyProjects.SelectMany(p => p.Expenses).Where(x => !x.IsRelative && x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(e => e.Amount);
-        var relativeExpenses = finishedProjects.SelectMany(p => p.Expenses).Where(x => x.IsRelative && x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(e => e.Amount);
-
         var totalPaymentsAmount = paymentVMs.Sum(p => p.Amount);
         var totalPaymentsVatAmount = paymentVMs.Sum(p => p.VatAmount);
 
-        var totalExpenses = absoluteExpenses + relativeExpenses;
+        var absoluteExpensesAmount = currencyProjects.SelectMany(p => p.Expenses).Where(x => x is not ProfitSharingExpense && x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(e => e.Amount);
+        var paidRelativeExpensesAmount = currencyProjects.SelectMany(p => p.Expenses).OfType<ProfitSharingExpense>().Where(x => x.IsPaid && x.Date.Month == date.Month && x.Date.Year == date.Year).Sum(e => e.Amount);
+        var totalExpenses = absoluteExpensesAmount + paidRelativeExpensesAmount;
 
 
         return totalPaymentsAmount - (totalExpenses + totalPaymentsVatAmount);

@@ -3,22 +3,23 @@ using MauiApp1.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MauiApp1.Views;
+using System.Diagnostics;
 
 namespace MauiApp1.ViewModels;
 public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttributable
 {
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FinishedProjects))]
+    [NotifyPropertyChangedFor(nameof(CompletedProjects))]
     [NotifyPropertyChangedFor(nameof(InvoicedProjects))]
     [NotifyPropertyChangedFor(nameof(CancelledProjects))]
     [NotifyPropertyChangedFor(nameof(ActiveProjects))]
     [NotifyPropertyChangedFor(nameof(AwaitedPaymentsTotal))]
     ObservableCollection<ProjectViewModel> projectsViewModels;
 
-    public IEnumerable<Project> Projects { get; private set; }
+    public IEnumerable<Project> Projects => ProjectsViewModels.Select(x => x.Project);
 
     [ObservableProperty]
-    ObservableCollection<ProjectViewModel> queriedProjects;
+    ObservableCollection<ProjectViewModel> queriedProjectsViewModels;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteProjectCommand))]
@@ -31,10 +32,12 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
     [ObservableProperty]
     bool isQueryStringEmpty;
 
-    public List<ProjectViewModel> FinishedProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Completed).ToList();
-    public List<ProjectViewModel> InvoicedProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Invoiced).ToList();
-    public List<ProjectViewModel> CancelledProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Cancelled).ToList();
-    public List<ProjectViewModel> ActiveProjects => ProjectsViewModels.Where(x => x.Status == Project.ProjectStatus.Active).ToList();
+    public List<ProjectViewModel> ActiveProjects => GetProjectsByStatus(Project.ProjectStatus.Active);
+    public List<ProjectViewModel> InvoicedProjects => GetProjectsByStatus(Project.ProjectStatus.Invoiced);
+
+    public List<ProjectViewModel> CompletedProjects => GetProjectsByStatus(Project.ProjectStatus.Completed);
+    public List<ProjectViewModel> CancelledProjects => GetProjectsByStatus(Project.ProjectStatus.Cancelled);
+
     public decimal AwaitedPaymentsTotal => InvoicedProjects.Select(x => x.Fee).Sum() - (InvoicedProjects.Select(x => x.Payments.Select(x => x.Amount).Sum()).Sum());
 
     public string SortIndicatorText
@@ -50,9 +53,9 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
     public ProjectsOverviewViewModel(ProjectJsonIOManager projectsJsonManager)
     {
         _projectsJsonIOManager = projectsJsonManager;
-        Projects = _projectsJsonIOManager.LoadProjects();
-        ProjectsViewModels = new(Projects.Select(x => new ProjectViewModel(x)));
-        QueriedProjects = new();
+        var projects = _projectsJsonIOManager.LoadProjects();
+        ProjectsViewModels = new(projects.Select(x => new ProjectViewModel(x)));
+        QueriedProjectsViewModels = new();
         IsQueryStringEmpty = true;
         _sortProperty = "Date";
         _sortAscending = false; // will be switched to true in SortProjects()
@@ -296,7 +299,7 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
     // If there is no Agent, "None" will be a match
     public void QueryProjects()
     {
-        QueriedProjects.Clear();
+        QueriedProjectsViewModels.Clear();
         var queryWords = QueryString?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var p in ProjectsViewModels)
@@ -316,7 +319,7 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
             }
             if (match)
             {
-                QueriedProjects.Add(p);
+                QueriedProjectsViewModels.Add(p);
             }
         }
     }
@@ -325,7 +328,13 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
     {
         if (!SetAndGetQueryStringIsEmpty())
         {
+            Debug.WriteLine(value[value.Length -1]);
             QueryProjects();
+
+            OnPropertyChanged(nameof(ActiveProjects));
+            OnPropertyChanged(nameof(InvoicedProjects));
+            OnPropertyChanged(nameof(CompletedProjects));
+            OnPropertyChanged(nameof(CancelledProjects));
         }
     }
 
@@ -340,7 +349,7 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
     {
         QueryString = null;
         IsQueryStringEmpty = true;
-        QueriedProjects.Clear();
+        QueriedProjectsViewModels.Clear();
     }
     private async Task<bool> DisplayConfirmationDialog(string title, string message)
     {
@@ -357,7 +366,10 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
         if (query.ContainsKey("projectVM"))
         {
             SelectedProjectVM = query["projectVM"] as ProjectViewModel;
-            ProjectsViewModels.Add(SelectedProjectVM);
+            if (!ProjectsViewModels.Any(p => p.Id == SelectedProjectVM.Id))
+            {
+                ProjectsViewModels.Add(SelectedProjectVM);
+            }
             _sortAscending = !_sortAscending; // will be switched back to original state in SortProjects()
             SortProjects(_sortProperty);
             SaveProjects();
@@ -367,5 +379,11 @@ public partial class ProjectsOverviewViewModel : ObservableObject, IQueryAttribu
     private void SaveProjects()
     {
         _projectsJsonIOManager.SaveProjects(ProjectsViewModels.Select(x => x.Project).ToList());
+    }
+
+    private List<ProjectViewModel> GetProjectsByStatus(Project.ProjectStatus status)
+    {
+        var collection = IsQueryStringEmpty ? ProjectsViewModels : QueriedProjectsViewModels;
+        return collection.Where(x => x.Status == status).ToList();
     }
 }

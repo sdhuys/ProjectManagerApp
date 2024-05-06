@@ -179,8 +179,26 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         HasCustomAgencyFee = AgentWrapper != null && Agent != null && SelectedProjectVM.AgencyFeeDecimal != Agent.FeeDecimal;
         CustomAgencyFeePercent = HasCustomAgencyFee ? (SelectedProjectVM.AgencyFeeDecimal * 100m).ToString() : "0";
         Status = SelectedProjectVM.Status;
-        Expenses = new(SelectedProjectVM.Expenses);
+
+        Expenses = new ObservableCollection<ProjectExpense>();
+        foreach (var expense in SelectedProjectVM.Expenses)
+        {
+            if (!expense.IsRelative)
+            {
+                Expenses.Add(expense);
+            }
+
+            else
+            {
+                // Create deep copies of ProfitSharingExpenses, necessary due to direct editing of Date and IsPaid properties on page
+                ProfitSharingExpense profitSharingExpense = expense as ProfitSharingExpense;
+                Expenses.Add(new ProfitSharingExpense(profitSharingExpense.Name, profitSharingExpense.RelativeFeeDecimal, profitSharingExpense.Date, profitSharingExpense.Amount, profitSharingExpense.ExpectedAmount));
+            }
+
+        }
+
         Payments = new(SelectedProjectVM.Payments);
+
     }
 
     partial void OnIsVatIncludedChanged(bool value)
@@ -301,16 +319,14 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     // Called on agency/fee/expense/payment changes to update UI
     private void CalculateRelativeExpenseAmounts()
     {
-        if (!Expenses.Any(x => x.IsRelative))
+        if (!Expenses.Any(x => x is ProfitSharingExpense))
             return;
-        bool isOnGoing = (int)Status < 2 ? true : false;
 
-        // If the project is concluded, base earnings based on payments received instead of fee
-        var projectEarnings = isOnGoing ? (decimal.TryParse(Fee, out decimal result) ? result : 0) : Payments.Sum(x => x.Amount);
+        var expectedFee = decimal.TryParse(Fee, out decimal result) ? result : 0;
+        var actualFee = Payments.Sum(x => x.Amount);
 
-        // If earnings are based on payments received, agency fee is irrelevant
         decimal agencyFeeDecimal;
-        if (!isOnGoing || AgentWrapper.Agent == null || HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent))
+        if (AgentWrapper.Agent == null || (HasCustomAgencyFee && String.IsNullOrEmpty(CustomAgencyFeePercent)))
             agencyFeeDecimal = 0;
 
         else if (HasCustomAgencyFee && !String.IsNullOrEmpty(CustomAgencyFeePercent))
@@ -319,22 +335,23 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         else
             agencyFeeDecimal = Agent.FeeDecimal;
 
-        var earningsExcludingVat = (IsVatIncluded && !String.IsNullOrEmpty(VatRatePercent)) ? projectEarnings / (1 + decimal.Parse(VatRatePercent) / 100m) : projectEarnings;
-        RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, earningsExcludingVat, agencyFeeDecimal);
-    }
-
-    private void SetRelativeExpensesDateToToday()
-    {
-        foreach (var expense in Expenses.Where(e => e.IsRelative))
-        {
-            expense.Date = DateTime.Today;
-        }
+        var expectedEarningsExcludingVat = (IsVatIncluded && !String.IsNullOrEmpty(VatRatePercent)) ? expectedFee / (1 + decimal.Parse(VatRatePercent) / 100m) : expectedFee;
+        var actualEarningsExcludingVat = !String.IsNullOrEmpty(VatRatePercent) ? actualFee / (1 + decimal.Parse(VatRatePercent) / 100m) : actualFee;
+        RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, expectedEarningsExcludingVat, agencyFeeDecimal, actualEarningsExcludingVat);
     }
 
     [RelayCommand(CanExecute = nameof(CanAddExpense))]
     void AddExpense()
     {
-        ProjectExpense newExpense = new(NewExpenseName, NewExpenseIsRelative, Convert.ToDecimal(NewExpenseValue), NewExpenseDate);
+        ProjectExpense newExpense;
+        if (NewExpenseIsRelative)
+        {
+            newExpense = new ProfitSharingExpense(NewExpenseName, Convert.ToDecimal(NewExpenseValue) / 100m, NewExpenseDate);
+        }
+        else
+        {
+            newExpense = new(NewExpenseName, Convert.ToDecimal(NewExpenseValue), NewExpenseDate);
+        }
 
         if (Expenses.Any(x => x.Date > newExpense.Date))
         {
@@ -378,12 +395,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             Payments.Add(newPayment);
         }
 
-        // Calculate rel expenses if project is not ongoing (=> calculation based on actual payments)
-        if ((int)Status > 1)
-        {
-            CalculateRelativeExpenseAmounts();
-        }
-
+        CalculateRelativeExpenseAmounts();
         NewPaymentAmount = null;
         NewPaymentDate = DateTime.Today;
     }
@@ -392,11 +404,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     void DeletePayment(Payment payment)
     {
         Payments.Remove(payment);
-
-        if ((int)Status > 1)
-        {
-            CalculateRelativeExpenseAmounts();
-        }
+        CalculateRelativeExpenseAmounts();
     }
 
     [RelayCommand]
@@ -425,12 +433,6 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         //Save edits
         else
         {
-            // If project is being set to Finished/Cancelled
-            if ((int)SelectedProjectVM.Status < 2 && (int)Status >= 2)
-            {
-                SetRelativeExpensesDateToToday();
-            }
-
             SelectedProjectVM.Client = Client;
             SelectedProjectVM.Type = Type;
             SelectedProjectVM.Description = Description;
@@ -445,7 +447,10 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             SelectedProjectVM.Payments = Payments.ToList();
             SelectedProjectVM.Status = Status;
 
-            await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync("..", new Dictionary<string, object>
+            {
+                ["projectVM"] = SelectedProjectVM,
+            });
         }
     }
 

@@ -239,7 +239,7 @@
                              Binding="{Binding IsQueryStringEmpty}"
                              Value="false">
                     <Setter Property="ItemsSource"
-                            Value="{Binding QueriedProjects}" />
+                            Value="{Binding QueriedProjectsViewModels}" />
                 </DataTrigger>
             </CollectionView.Triggers>
 
@@ -390,51 +390,28 @@
                                HorizontalOptions="EndAndExpand"
                                Margin="10">
 
-            <Label Margin="10">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="Active Projects: " />
-                        <Span Text="{Binding ActiveProjects.Count}" />
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+            <Label Margin="10"
+                   Text="{Binding ActiveProjects.Count, StringFormat='Active Projects: {0}'}" />
 
+            <Label Margin="10"
+                   Text="{Binding InvoicedProjects.Count, StringFormat='Projects Awaiting Payment: {0}'}" />
 
-            <Label Margin="10">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="Projects Awaiting Payment: " />
-                        <Span Text="{Binding InvoicedProjects.Count}" />
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+            <Label Margin="10"
+                   Text="{Binding CompletedProjects.Count, StringFormat='Completed Projects: {0}'}" />
 
-            <Label Margin="10">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="Completed Projects: " />
-                        <Span Text="{Binding FinishedProjects.Count}" />
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+            <Label Margin="10"
+                   Text="{Binding CancelledProjects.Count, StringFormat='Cancelled Projects: {0}'}" />
 
-            <Label Margin="10">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="Cancelled Projects: " />
-                        <Span Text="{Binding CancelledProjects.Count}" />
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
-
-
-            <Label Margin="10">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="Total Projects: " />
-                        <Span Text="{Binding Projects.Count}" />
-                    </FormattedString>
-                </Label.FormattedText>
+            <Label Margin="10"
+                   Text="{Binding ProjectsViewModels.Count, StringFormat='Total Projects: {0}'}" >
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label"
+                                 Binding="{Binding IsQueryStringEmpty}"
+                                 Value="false">
+                        <Setter Property="Text"
+                                Value="{Binding QueriedProjectsViewModels.Count, StringFormat='Total Projects: {0}'}" />
+                    </DataTrigger>
+                </Label.Triggers>
             </Label>
 
         </HorizontalStackLayout>

@@ -4,15 +4,18 @@ namespace MauiApp1.StaticHelpers;
 
 public static class RelativeExpenseCalculator
 {
-    public static void SetRelativeExpensesAmounts(IEnumerable<ProjectExpense> expenses, decimal projectEarnings, decimal agencyFeeDecimal)
+    public static void SetRelativeExpensesAmounts(IEnumerable<ProjectExpense> expenses, decimal expectedProjectEarnings, decimal agencyFeeDecimal, decimal actualProjectEarnings)
     {
         var totalAbsoluteExpenses = expenses.Where(x => !x.IsRelative).Select(x => x.Amount).Sum();
-        var absoluteAgencyFee = projectEarnings * agencyFeeDecimal;
-        var profitLeft = projectEarnings - (totalAbsoluteExpenses + absoluteAgencyFee);
+        var expectedAbsoluteAgencyFee = expectedProjectEarnings * agencyFeeDecimal;
+        var expectedProfitLeft = expectedProjectEarnings - (totalAbsoluteExpenses + expectedAbsoluteAgencyFee);
 
-        foreach (var relExpense in expenses.Where(x => x.IsRelative))
+        var actualProfitLeft = actualProjectEarnings - totalAbsoluteExpenses;
+
+        foreach (var relExpense in expenses.OfType<ProfitSharingExpense>())
         {
-            relExpense.Amount = profitLeft > 0 ? profitLeft * relExpense.RelativeFeeDecimal : 0;
+            relExpense.ExpectedAmount = expectedProfitLeft > 0 ? expectedProfitLeft * relExpense.RelativeFeeDecimal : 0;
+            relExpense.Amount = actualProfitLeft > 0 ? actualProfitLeft * relExpense.RelativeFeeDecimal : 0;
         }
     }
 }

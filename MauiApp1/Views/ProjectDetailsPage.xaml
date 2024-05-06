@@ -53,6 +53,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
@@ -161,8 +162,8 @@
                 <Entry Placeholder="Rate"
                        Text="{Binding VatRatePercent}"
                        VerticalOptions="CenterAndExpand"
-                       Margin="0,0,5,0"/>
-                
+                       Margin="0,0,5,0" />
+
                 <Label Text="%"
                        VerticalOptions="CenterAndExpand"
                        Margin="0,0,10,0" />
@@ -201,7 +202,7 @@
                            Text="{Binding CustomAgencyFeePercent}"
                            VerticalTextAlignment="Center"
                            IsEnabled="{Binding HasCustomAgencyFee}"
-                           VerticalOptions="CenterAndExpand"/>
+                           VerticalOptions="CenterAndExpand" />
 
                     <Label Text="%"
                            VerticalOptions="CenterAndExpand" />
@@ -236,7 +237,7 @@
                      Margin="200,25,200,25"
                      Grid.Row="9"
                      Grid.ColumnSpan="2"
-                     Opacity="50"/>
+                     Opacity="50" />
 
             <Grid Grid.Row="10"
                   Grid.Column="1">
@@ -256,7 +257,16 @@
                 <Entry Grid.Column="0"
                        Placeholder="Amount"
                        Text="{Binding NewExpenseValue}"
-                       Margin="10" />
+                       Margin="10">
+                    <Entry.Triggers>
+                        <DataTrigger TargetType="Entry"
+                                     Binding="{Binding NewExpenseIsRelative}"
+                                     Value="true">
+                            <Setter Property="Placeholder"
+                                    Value="Percentage" />
+                        </DataTrigger>
+                    </Entry.Triggers>
+                </Entry>
 
                 <Entry Grid.Column="1"
                        Placeholder="Description"
@@ -273,7 +283,7 @@
                        FontSize="12"
                        Margin="50,0,0,0"
                        Grid.Column="3"
-                       VerticalTextAlignment="Center"/>
+                       VerticalTextAlignment="Center" />
 
                 <CheckBox IsChecked="{Binding NewExpenseIsRelative}"
                           Grid.Column="3" />
@@ -293,7 +303,7 @@
                             Margin="0,0,0,20">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid>
+                        <Grid IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -311,26 +321,10 @@
                             </FlyoutBase.ContextFlyout>
 
                             <Label Grid.Column="0"
-                                   IsVisible="{Binding IsRelative, Converter={StaticResource InvertedBoolConverter}}"
                                    VerticalTextAlignment="Center"
                                    Margin="20,5,20,5">
                                 <Label.FormattedText>
                                     <FormattedString>
-                                        <Span Text="{Binding BindingContext.SelectedProjectVM.Currency, Source={x:Reference ProjectDetails}}" />
-                                        <Span Text=" " />
-                                        <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
-                                    </FormattedString>
-                                </Label.FormattedText>
-                            </Label>
-
-                            <Label Grid.Column="0"
-                                   IsVisible="{Binding IsRelative}"
-                                   VerticalTextAlignment="Center"
-                                   Margin="20,5,20,5" >
-                                <Label.FormattedText>
-                                    <FormattedString>
-                                        <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P2}'}" />
-                                        <Span Text=" = " />
                                         <Span Text="{Binding BindingContext.SelectedProjectVM.Currency, Source={x:Reference ProjectDetails}}" />
                                         <Span Text=" " />
                                         <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
@@ -352,14 +346,74 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
+            <CollectionView x:Name="profitSharingExpenses"
+                            Grid.Column="1"
+                            Grid.Row="12"
+                            ItemsSource="{Binding Expenses}"
+                            Margin="0,0,0,20">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid IsVisible="{Binding IsRelative}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+
+                            </Grid.ColumnDefinitions>
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Delete"
+                                                    Command="{Binding BindingContext.DeleteExpenseCommand, Source={x:Reference ProjectDetails}}"
+                                                    CommandParameter="{Binding .}" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+
+                            <Label Grid.Column="0"
+                                   VerticalTextAlignment="Center"
+                                   Margin="20,5,20,5">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding RelativeFeeDecimal, StringFormat='{0:P2}'}" />
+                                        <Span Text=" = " />
+                                        <Span Text="{Binding BindingContext.SelectedProjectVM.Currency, Source={x:Reference ProjectDetails}}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Amount, Converter={StaticResource DecimalFormat}}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <Label Text="{Binding Name}"
+                                   Grid.Column="1"
+                                   VerticalTextAlignment="Center"
+                                   Margin="20,5,20,5" />
+
+                            <DatePicker Date="{Binding Date}"
+                                        Grid.Column="2"
+                                        Format="{Binding BindingContext.CurrentCulture.DateTimeFormat.ShortDatePattern, Source={x:Reference ProjectDetails}}"
+                                        Margin="10"
+                                        MaximumDate="{x:Static sys:DateTime.Now}" />
+
+                            <HorizontalStackLayout Grid.Column="3">
+                                <CheckBox IsChecked="{Binding IsPaid}" />
+                                <Label Text="Paid Out"
+                                       VerticalTextAlignment="Center"
+                                       FontSize="12" />
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
             <Label Text="Payments Received"
                    FontSize="Title"
-                   Grid.Row="12"
+                   Grid.Row="13"
                    Grid.Column="0"
                    VerticalOptions="StartAndExpand"
                    Margin="20" />
 
-            <Grid Grid.Row="12"
+            <Grid Grid.Row="13"
                   Grid.Column="1">
 
                 <Grid.ColumnDefinitions>
@@ -396,7 +450,7 @@
 
             <CollectionView x:Name="paymentCollection"
                             Grid.Column="1"
-                            Grid.Row="13"
+                            Grid.Row="14"
                             ItemsSource="{Binding Payments}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>

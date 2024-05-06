@@ -31,7 +31,7 @@ public class ProjectJsonIOManager
         // Prevents mismatch between Agent property of Project and List<Agent> of Settings
         var settings = new JsonSerializerSettings
         {
-            Converters = new List<JsonConverter> { new AgentJsonConverter() }
+            Converters = new List<JsonConverter> { new AgentJsonConverter(), new ProjectExpenseJsonConverter() }
         };
 
         return JsonConvert.DeserializeObject<List<Project>>(json, settings);
