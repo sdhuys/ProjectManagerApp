@@ -35,23 +35,23 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public List<SavingsCategoryViewModel> SavingsCategoryViewModels { get; set; }
     public SavingsCategoryViewModel SelectedSavingsCategoryViewModel => SavingsCategoryViewModels.FirstOrDefault(cat => cat.Currency == SelectedCurrency);
 
-    public List<CurrencyConversion> CurrencyConversions { get; set; }
+    public List<CurrencyConversion> AllCurrencyConversions { get; set; }
     private IEnumerable<CurrencyConversion> ToSelectedCurrencySavingsConversions => !ShowAllTransactions ?
-                                                                                    CurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && c.IsToSavings
+                                                                                    AllCurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && c.IsToSavings
                                                                                     && c.Date.Month == SelectedDate.Month && c.Date.Year == SelectedDate.Year)
-                                                                                    : CurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && c.IsToSavings);
+                                                                                    : AllCurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && c.IsToSavings);
     private IEnumerable<CurrencyConversion> ToSelectedCurrencyNonSavingsConversions => !ShowAllTransactions ?
-                                                                                       CurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && !c.IsToSavings
+                                                                                       AllCurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && !c.IsToSavings
                                                                                        && c.Date.Month == SelectedDate.Month && c.Date.Year == SelectedDate.Year)
-                                                                                       : CurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && !c.IsToSavings);
+                                                                                       : AllCurrencyConversions.Where(c => c.ToCurrency == SelectedCurrency && !c.IsToSavings);
     private IEnumerable<CurrencyConversion> FromSelectedCurrencySavingsConversions => !ShowAllTransactions ?
-                                                                                      CurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && c.IsFromSavings
+                                                                                      AllCurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && c.IsFromSavings
                                                                                       && c.Date.Month == SelectedDate.Month && c.Date.Year == SelectedDate.Year)
-                                                                                      : CurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && c.IsFromSavings);
+                                                                                      : AllCurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && c.IsFromSavings);
     private IEnumerable<CurrencyConversion> FromSelectedCurrencyNonSavingsConversions => !ShowAllTransactions ?
-                                                                                         CurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && !c.IsFromSavings
+                                                                                         AllCurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && !c.IsFromSavings
                                                                                          && c.Date.Month == SelectedDate.Month && c.Date.Year == SelectedDate.Year)
-                                                                                         : CurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && !c.IsFromSavings);
+                                                                                         : AllCurrencyConversions.Where(c => c.FromCurrency == SelectedCurrency && !c.IsFromSavings);
 
     [ObservableProperty]
     ObservableCollection<CurrencyConversion> selectedCurrencyConversions;
@@ -130,20 +130,24 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     private SettingsViewModel _settings;
     private SpendingDataJsonIOManager _spendingDataManager;
+    private CurrencyConversionsJsonIOManager _conversionsManager;
     private IEnumerable<Project> _projects;
 
-    public SpendingOverviewViewModel(SettingsViewModel settings, ProjectsOverviewViewModel projectsViewModel, SpendingDataJsonIOManager spendingDataManager)
+    public SpendingOverviewViewModel(SettingsViewModel settings, ProjectsOverviewViewModel projectsViewModel, SpendingDataJsonIOManager spendingDataManager, CurrencyConversionsJsonIOManager conversionsManager)
     {
         _settings = settings;
         _projects = projectsViewModel.Projects;
         _spendingDataManager = spendingDataManager;
+        _conversionsManager = conversionsManager;
+
+        AllCurrencyConversions = _conversionsManager.LoadFromJson();
 
         var (spendings, savings, dict) = _spendingDataManager.LoadFromJson();
-        SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x, _projects)).ToList();
-        SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x, _projects)).ToList();
+        SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x, _projects, AllCurrencyConversions)).ToList();
+        SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x, _projects, AllCurrencyConversions)).ToList();
         _finalisedMonthsDictionary = dict;
 
-        CurrencyConversions = CurrencyConversionManager.LoadFromJson();
+        
         SelectedCurrencyConversions = new();
         SelectedCurrencySpendingCategoryViewModels = new();
 
@@ -154,10 +158,11 @@ public partial class SpendingOverviewViewModel : ObservableObject
         CheckForAndCreateMissingSavingsViewModels();
         AddSavingsConversionsToSavingsViewModels();
         _spendingDataManager = spendingDataManager;
+        _conversionsManager = conversionsManager;
     }
     private void AddSavingsConversionsToSavingsViewModels()
     {
-        foreach (var conv in CurrencyConversions)
+        foreach (var conv in AllCurrencyConversions)
         {
             if (conv.IsFromSavings)
             {
@@ -603,7 +608,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     {
         if (transaction is CurrencyConversion conv)
         {
-            CurrencyConversions.Remove(conv);
+            AllCurrencyConversions.Remove(conv);
             SelectedCurrencyConversions.Remove(conv);
 
             // If spending budget affected
@@ -639,7 +644,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     public void AddNewCategory()
     {
         SpendingCategory selectedCurrencyCategory = new(string.Empty, SelectedCurrency);
-        SpendingCategoryViewModel vm = new(selectedCurrencyCategory, SelectedDate, _projects);
+        SpendingCategoryViewModel vm = new(selectedCurrencyCategory, SelectedDate, _projects, AllCurrencyConversions);
         vm.SetBudgetAndDate(TotalSpendingBudget, SelectedDate);
         SpendingCategoryViewModels.Add(vm);
         SelectedCurrencySpendingCategoryViewModels.Add(vm);
@@ -720,14 +725,14 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
         var newConversion = new CurrencyConversion(SelectedCurrency, IsFromSavingsConversion, NewToCurrencyEntry, IsToSavingsConversion, NewFromAmountEntry, NewToAmountEntry, SelectedDate);
 
-        if (CurrencyConversions.Any(x => x.Date > SelectedDate))
+        if (AllCurrencyConversions.Any(x => x.Date > SelectedDate))
         {
-            var index = CurrencyConversions.Where(x => x.Date < SelectedDate).Count();
-            CurrencyConversions.Insert(index, newConversion);
+            var index = AllCurrencyConversions.Where(x => x.Date < SelectedDate).Count();
+            AllCurrencyConversions.Insert(index, newConversion);
         }
         else
         {
-            CurrencyConversions.Add(newConversion);
+            AllCurrencyConversions.Add(newConversion);
         }
 
         // Add conversions to relevant SavingsViewModels if conversions are to/from savings
@@ -794,8 +799,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
 
     private decimal GetNetNonSavingsConversionsAmount(DateTime date)
     {
-        var outgoing = CurrencyConversions.Where(c => c.Date == date && c.FromCurrency == SelectedCurrency && !c.IsFromSavings).Sum(c => c.Amount);
-        var incoming = CurrencyConversions.Where(c => c.Date == date && c.ToCurrency == SelectedCurrency && !c.IsToSavings).Sum(c => c.ToAmount);
+        var outgoing = AllCurrencyConversions.Where(c => c.Date == date && c.FromCurrency == SelectedCurrency && !c.IsFromSavings).Sum(c => c.Amount);
+        var incoming = AllCurrencyConversions.Where(c => c.Date == date && c.ToCurrency == SelectedCurrency && !c.IsToSavings).Sum(c => c.ToAmount);
 
         return incoming - outgoing;
     }
@@ -835,7 +840,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
         foreach (var cur in CurrencyList.Where(c => !SavingsCategoryViewModels.Any(cat => cat.Currency == c)))
         {
             SpendingCategory newSavings = new("Savings", cur);
-            SavingsCategoryViewModel newSavingsVM = new(newSavings, _projects);
+            SavingsCategoryViewModel newSavingsVM = new(newSavings, _projects, AllCurrencyConversions);
             SavingsCategoryViewModels.Add(newSavingsVM);
         }
     }
@@ -865,7 +870,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
             ?.Min()
             ?? today;
 
-        DateTime minCurrencyConversionDate = CurrencyConversions
+        DateTime minCurrencyConversionDate = AllCurrencyConversions
             ?.Where(c => c.ToCurrency == currency || c.FromCurrency == currency)
             ?.Select(x => x.Date)
             ?.DefaultIfEmpty(today)
@@ -886,7 +891,7 @@ public partial class SpendingOverviewViewModel : ObservableObject
     [RelayCommand(CanExecute = (nameof(CanSave)))]
     private async Task SaveSpendingCategoriesAndCurrencyConversions()
     {
-        CurrencyConversionManager.WriteToJson();
+        _conversionsManager.WriteToJson();
         await _spendingDataManager.WriteToJsonAsync(SpendingCategoryViewModels.Select(x => x.Category), SavingsCategoryViewModels.Select(x => x.Category), _finalisedMonthsDictionary);
     }
 
@@ -894,8 +899,8 @@ public partial class SpendingOverviewViewModel : ObservableObject
     private void ReloadFromJson()
     {
         var (spendings, savings, dict) = _spendingDataManager.LoadFromJson();
-        SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x, _projects)).ToList();
-        SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x, _projects)).ToList();
+        SpendingCategoryViewModels = spendings.Select(x => new SpendingCategoryViewModel(x, _projects, AllCurrencyConversions)).ToList();
+        SavingsCategoryViewModels = savings.Select(x => new SavingsCategoryViewModel(x, _projects, AllCurrencyConversions)).ToList();
         _finalisedMonthsDictionary = dict;
 
         CheckForAndCreateMissingSavingsViewModels();

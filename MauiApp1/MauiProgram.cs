@@ -35,6 +35,7 @@ namespace MauiApp1
             builder.Services.AddSingleton<ProjectJsonIOManager>();
             builder.Services.AddSingleton<SettingsJsonIOManager>();
             builder.Services.AddSingleton<SpendingDataJsonIOManager>();
+            builder.Services.AddSingleton<CurrencyConversionsJsonIOManager>();
 
             builder.Services.AddTransient<ProjectDetailsPage>();
             builder.Services.AddTransient<ProjectDetailsViewModel>();

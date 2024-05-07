@@ -72,7 +72,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
         }
     }
 
-    public List<CurrencyConversion> Conversions { get; set; }
+    public List<CurrencyConversion> SavingsConversions { get; set; }
 
     public ObservableCollection<Transaction> AllTransactions { get; set; }
     public ObservableCollection<Transaction> SelectedMonthTransactions { get; set; }
@@ -93,8 +93,8 @@ public partial class SavingsCategoryViewModel : ObservableObject
         {
             var incomingTransfers = Transfers.Where(x => x.Destination == Category.Name && x.Date <= _selectedDate).Sum(x => x.Amount);
             var outgoingTransfers = Transfers.Where(x => x.Destination != Category.Name && x.Date <= _selectedDate).Sum(x => x.Amount);
-            var incomingConversions = Conversions.Where(x => x.ToCurrency == Currency && x.Date <= _selectedDate).Sum(x => x.ToAmount);
-            var outgoingConversions = Conversions.Where(x => x.FromCurrency == Currency && x.Date <= _selectedDate).Sum(x => x.Amount);
+            var incomingConversions = SavingsConversions.Where(x => x.ToCurrency == Currency && x.Date <= _selectedDate).Sum(x => x.ToAmount);
+            var outgoingConversions = SavingsConversions.Where(x => x.FromCurrency == Currency && x.Date <= _selectedDate).Sum(x => x.Amount);
             var expenses = Expenses.Sum(x => x.Amount);
 
             return (incomingTransfers + incomingConversions) - (outgoingTransfers + outgoingConversions + expenses);
@@ -121,14 +121,16 @@ public partial class SavingsCategoryViewModel : ObservableObject
     public bool IsLastMonthSavingsGoalReached => SavingsGoal == CumulativeSavingsGoal;
     private DateTime _selectedDate;
     private IEnumerable<Project> _projects;
+    private IEnumerable<CurrencyConversion> _allConversions;
 
-    public SavingsCategoryViewModel(SpendingCategory category, IEnumerable<Project> projects)
+    public SavingsCategoryViewModel(SpendingCategory category, IEnumerable<Project> projects, IEnumerable<CurrencyConversion> conversions)
     {
+        _allConversions = conversions;
         Category = category;
         AllTransactions = new(Expenses.Cast<Transaction>().Union(Transfers.Cast<Transaction>()));
         SelectedMonthTransactions = new();
         TransactionsToDisplay = SelectedMonthTransactions;
-        Conversions = new();
+        SavingsConversions = new();
 
         selectedTransactionType = TransactionTypes[0];
 
@@ -209,7 +211,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
 
     public void AddIncomingSavingsConversion(CurrencyConversion newConversion)
     {
-        AddOrInsertTransaction(Conversions, newConversion);
+        AddOrInsertTransaction(SavingsConversions, newConversion);
     }
 
     public void AddNewTransaction()
@@ -270,7 +272,7 @@ public partial class SavingsCategoryViewModel : ObservableObject
         }
         else if (transaction is CurrencyConversion conversion)
         {
-            Conversions.Remove(conversion);
+            SavingsConversions.Remove(conversion);
         }
 
         UpdateAllAndMonthTransactions(transaction, false);
@@ -332,8 +334,8 @@ public partial class SavingsCategoryViewModel : ObservableObject
 
     private decimal GetNetCurrencyConversionsAmount(DateTime date)
     {
-        var outgoing = CurrencyConversionManager.AllConversions.Where(c => c.Date == date && c.FromCurrency == Currency && !c.IsFromSavings).Sum(c => c.Amount);
-        var incoming = CurrencyConversionManager.AllConversions.Where(c => c.Date == date && c.ToCurrency == Currency && !c.IsToSavings).Sum(c => c.ToAmount);
+        var outgoing = _allConversions.Where(c => c.Date == date && c.FromCurrency == Currency && !c.IsFromSavings).Sum(c => c.Amount);
+        var incoming = _allConversions.Where(c => c.Date == date && c.ToCurrency == Currency && !c.IsToSavings).Sum(c => c.ToAmount);
 
         return incoming - outgoing;
     }

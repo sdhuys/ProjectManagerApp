@@ -92,10 +92,12 @@ public partial class SpendingCategoryViewModel : ObservableObject
     private decimal _budget;
     private DateTime _selectedDate;
     private IEnumerable<Project> _projects;
+    private IEnumerable<CurrencyConversion> _allConversions;
 
     [JsonConstructor]
-    public SpendingCategoryViewModel(SpendingCategory category, IEnumerable<Project> projects)
+    public SpendingCategoryViewModel(SpendingCategory category, IEnumerable<Project> projects, IEnumerable<CurrencyConversion> allConversions)
     {
+        _allConversions = allConversions;
         _projects = projects;
         Category = category;
         AllTransactions = new(Category.Expenses.Cast<Transaction>().Union(Category.Transfers.Cast<Transaction>()));
@@ -105,8 +107,9 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
     // Constructor to be called when manually creating new Category on UI
     // Sets date as starting point for PercentageHistory
-    public SpendingCategoryViewModel(SpendingCategory category, DateTime date, IEnumerable<Project> projects)
+    public SpendingCategoryViewModel(SpendingCategory category, DateTime date, IEnumerable<Project> projects, IEnumerable<CurrencyConversion> allConversions)
     {
+        _allConversions = allConversions;
         _projects = projects;
         Category = category;
         PercentageHistory[date] = 0;
@@ -273,8 +276,8 @@ public partial class SpendingCategoryViewModel : ObservableObject
 
     private decimal GetNetCurrencyConversionsAmount(DateTime date)
     {
-        var outgoing = CurrencyConversionManager.AllConversions.Where(c => c.Date == date && c.FromCurrency == Currency && !c.IsFromSavings).Sum(c => c.Amount);
-        var incoming = CurrencyConversionManager.AllConversions.Where(c => c.Date == date && c.ToCurrency == Currency && !c.IsToSavings).Sum(c => c.ToAmount);
+        var outgoing = _allConversions.Where(c => c.Date == date && c.FromCurrency == Currency && !c.IsFromSavings).Sum(c => c.Amount);
+        var incoming = _allConversions.Where(c => c.Date == date && c.ToCurrency == Currency && !c.IsToSavings).Sum(c => c.ToAmount);
 
         return incoming - outgoing;
     }
