@@ -129,10 +129,10 @@ public partial class SpendingOverviewViewModel : ObservableObject
     decimal newFromAmountEntry;
 
     private SettingsViewModel _settings;
-    private SpendingOverviewDataJsonIOManager _spendingDataManager;
+    private SpendingDataJsonIOManager _spendingDataManager;
     private IEnumerable<Project> _projects;
 
-    public SpendingOverviewViewModel(SettingsViewModel settings, ProjectsOverviewViewModel projectsViewModel, SpendingOverviewDataJsonIOManager spendingDataManager)
+    public SpendingOverviewViewModel(SettingsViewModel settings, ProjectsOverviewViewModel projectsViewModel, SpendingDataJsonIOManager spendingDataManager)
     {
         _settings = settings;
         _projects = projectsViewModel.Projects;

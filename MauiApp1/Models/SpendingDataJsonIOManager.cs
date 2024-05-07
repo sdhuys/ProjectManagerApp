@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace MauiApp1.Models;
 
 // Class that handles (de)serialization of data for SpendingOverviewViewModel
-public class SpendingOverviewDataJsonIOManager
+public class SpendingDataJsonIOManager
 {
 #if DEBUG
     private readonly string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "spending.json");
