@@ -61,6 +61,9 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     ObservableCollection<ProjectExpense> expenses;
 
     [ObservableProperty]
+    ObservableCollection<ProfitSharingExpense> profitSharingExpenses;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddExpenseCommand))]
     string newExpenseName;
 
@@ -112,11 +115,10 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         }
     }
     public double AgentIsSelectedToOpacity => AgentIsSelected ? 1 : 0;
+    public bool HasProfitSharingExpense => ProfitSharingExpenses.Any();
     public ProjectDetailsViewModel(SettingsViewModel settings)
     {
-        Expenses = new();
-        Payments = new();
-
+        ProfitSharingExpenses = new();
         settingsViewModel = settings;
         AgentWrapper = settingsViewModel.AgentsIncludingNull.First(x => x.Agent == null);
         AgentList = settingsViewModel.AgentsIncludingNull;
@@ -180,25 +182,16 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
         CustomAgencyFeePercent = HasCustomAgencyFee ? (SelectedProjectVM.AgencyFeeDecimal * 100m).ToString() : "0";
         Status = SelectedProjectVM.Status;
 
-        Expenses = new ObservableCollection<ProjectExpense>();
-        foreach (var expense in SelectedProjectVM.Expenses)
+        Expenses = new(SelectedProjectVM.Expenses.Where(x => !x.IsRelative));
+        ProfitSharingExpenses = new();
+        foreach (var expense in SelectedProjectVM.Expenses.OfType<ProfitSharingExpense>())
         {
-            if (!expense.IsRelative)
-            {
-                Expenses.Add(expense);
-            }
-
-            else
-            {
-                // Create deep copies of ProfitSharingExpenses, necessary due to direct editing of Date and IsPaid properties on page
-                ProfitSharingExpense profitSharingExpense = expense as ProfitSharingExpense;
-                Expenses.Add(new ProfitSharingExpense(profitSharingExpense.Name, profitSharingExpense.RelativeFeeDecimal, profitSharingExpense.Date, profitSharingExpense.Amount, profitSharingExpense.ExpectedAmount));
-            }
-
+            // Create deep copies of ProfitSharingExpenses, necessary due to direct editing of Date and IsPaid properties on page
+            ProfitSharingExpenses.Add(new ProfitSharingExpense(expense as ProfitSharingExpense));
         }
 
         Payments = new(SelectedProjectVM.Payments);
-
+        OnPropertyChanged(nameof(HasProfitSharingExpense));
     }
 
     partial void OnIsVatIncludedChanged(bool value)
@@ -319,7 +312,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     // Called on agency/fee/expense/payment changes to update UI
     private void CalculateRelativeExpenseAmounts()
     {
-        if (!Expenses.Any(x => x is ProfitSharingExpense))
+        if (ProfitSharingExpenses == null || ProfitSharingExpenses.Count == 0)
             return;
 
         var expectedFee = decimal.TryParse(Fee, out decimal result) ? result : 0;
@@ -337,31 +330,42 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
 
         var expectedEarningsExcludingVat = (IsVatIncluded && !String.IsNullOrEmpty(VatRatePercent)) ? expectedFee / (1 + decimal.Parse(VatRatePercent) / 100m) : expectedFee;
         var actualEarningsExcludingVat = !String.IsNullOrEmpty(VatRatePercent) ? actualFee / (1 + decimal.Parse(VatRatePercent) / 100m) : actualFee;
-        RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, expectedEarningsExcludingVat, agencyFeeDecimal, actualEarningsExcludingVat);
+        RelativeExpenseCalculator.SetRelativeExpensesAmounts(Expenses, ProfitSharingExpenses, expectedEarningsExcludingVat, agencyFeeDecimal, actualEarningsExcludingVat);
     }
 
     [RelayCommand(CanExecute = nameof(CanAddExpense))]
     void AddExpense()
     {
-        ProjectExpense newExpense;
         if (NewExpenseIsRelative)
         {
-            newExpense = new ProfitSharingExpense(NewExpenseName, Convert.ToDecimal(NewExpenseValue) / 100m, NewExpenseDate);
+            var newExpense = new ProfitSharingExpense(NewExpenseName, Convert.ToDecimal(NewExpenseValue) / 100m, NewExpenseDate);
+
+            if (ProfitSharingExpenses.Any(x => x.Date > newExpense.Date))
+            {
+                var index = ProfitSharingExpenses.Where(x => x.Date < newExpense.Date).Count();
+                ProfitSharingExpenses.Insert(index, newExpense);
+            }
+            else
+            {
+                ProfitSharingExpenses.Add(newExpense);
+            }
+            OnPropertyChanged(nameof(HasProfitSharingExpense));
         }
         else
         {
-            newExpense = new(NewExpenseName, Convert.ToDecimal(NewExpenseValue), NewExpenseDate);
+            ProjectExpense newExpense = new(NewExpenseName, Convert.ToDecimal(NewExpenseValue), NewExpenseDate);
+
+            if (Expenses.Any(x => x.Date > newExpense.Date))
+            {
+                var index = Expenses.Where(x => x.Date < newExpense.Date).Count();
+                Expenses.Insert(index, newExpense);
+            }
+            else
+            {
+                Expenses.Add(newExpense);
+            }
         }
 
-        if (Expenses.Any(x => x.Date > newExpense.Date))
-        {
-            var index = Expenses.Where(x => x.Date < newExpense.Date).Count();
-            Expenses.Insert(index, newExpense);
-        }
-        else
-        {
-            Expenses.Add(newExpense);
-        }
 
         CalculateRelativeExpenseAmounts();
 
@@ -373,7 +377,15 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     [RelayCommand]
     void DeleteExpense(ProjectExpense expense)
     {
-        Expenses.Remove(expense);
+        if (expense is ProfitSharingExpense)
+        {
+            ProfitSharingExpenses.Remove(expense as ProfitSharingExpense);
+            OnPropertyChanged(nameof(HasProfitSharingExpense));
+        }
+        else
+        {
+            Expenses.Remove(expense);
+        }
         CalculateRelativeExpenseAmounts();
     }
 
@@ -418,11 +430,12 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
     {
         var vatRateDecimal = VatRatePercent == null ? 0 : decimal.Parse(VatRatePercent) / 100m;
         var agencyFeeDecimal = Agent == null ? 0 : HasCustomAgencyFee ? decimal.Parse(CustomAgencyFeePercent) / 100m : Agent.FeeDecimal;
+        List<ProjectExpense> allExpenses = Expenses.Union(ProfitSharingExpenses).OrderBy(x => x.Date).ToList();
 
         //Create new projectviewmodel and add to the collection
         if (!EditMode)
         {
-            Project newProject = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), IsVatIncluded, vatRateDecimal, Agent, agencyFeeDecimal, Expenses.ToList(), Payments.ToList(), Status);
+            Project newProject = new(Client, Type, Description, Date, Currency, decimal.Parse(Fee), IsVatIncluded, vatRateDecimal, Agent, agencyFeeDecimal, allExpenses, Payments.ToList(), Status);
             ProjectViewModel projectVM = new(newProject);
             await Shell.Current.GoToAsync("..", new Dictionary<string, object>
             {
@@ -443,7 +456,7 @@ public partial class ProjectDetailsViewModel : ObservableObject, IQueryAttributa
             SelectedProjectVM.VatRateDecimal = vatRateDecimal;
             SelectedProjectVM.Agent = Agent;
             SelectedProjectVM.AgencyFeeDecimal = agencyFeeDecimal;
-            SelectedProjectVM.Expenses = Expenses.ToList();
+            SelectedProjectVM.Expenses = allExpenses;
             SelectedProjectVM.Payments = Payments.ToList();
             SelectedProjectVM.Status = Status;
 
