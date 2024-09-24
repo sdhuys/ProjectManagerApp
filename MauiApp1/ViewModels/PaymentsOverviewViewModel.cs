@@ -57,7 +57,7 @@ public partial class PaymentsOverviewViewModel : ObservableObject
     {
         _projects = projectsViewModel.Projects;
         _settingsViewModel = settings;
-        QueryStartDate =  _projects.Count() > 1 ? _projects.SelectMany(p => p.Payments).Min(x => x.Date) : DateTime.Today;
+        QueryStartDate = GetMinDate();
         GetFilterOptions();
         QueryCurrencies = new();
         QueryTypes = new();
@@ -70,6 +70,8 @@ public partial class PaymentsOverviewViewModel : ObservableObject
 
     public void OnPageAppearing()
     {
+        EnableFilters = false;
+        QueryStartDate = GetMinDate();
         GetFilterOptions();
         GetIncomeDataAndCreateCharts();
         CreateCurrencyExpectedEarningsViewModels();
@@ -271,11 +273,22 @@ public partial class PaymentsOverviewViewModel : ObservableObject
             QueryAgents.Clear();
             QueryCurrencies.Clear();
             QueryTypes.Clear();
-            QueryStartDate = _projects.Count() > 1 ? _projects.Min(x => x.Date) : DateTime.Today;
+            QueryStartDate = GetMinDate();
             QueryEndDate = DateTime.Today;
 
             GetIncomeDataAndCreateCharts();
         }
+    }
+
+    private DateTime GetMinDate()
+    {
+        if (!_projects.Any()) return DateTime.Today.Date;
+        DateTime minProjectDate = _projects.Min(x => x.Date);
+        DateTime minExpenseDate = _projects.SelectMany(x => x.Expenses).Any() ? _projects.SelectMany(x => x.Expenses).Min(x => x.Date) : DateTime.MaxValue;
+        DateTime minPaymentDate = _projects.SelectMany(x => x.Payments).Any() ? _projects.SelectMany(x => x.Payments).Min(x => x.Date) : DateTime.MaxValue;
+
+        DateTime minDate = new[] { minProjectDate, minExpenseDate, minPaymentDate }.Min();
+        return minDate;
     }
     public class ChartWithHeader
     {
