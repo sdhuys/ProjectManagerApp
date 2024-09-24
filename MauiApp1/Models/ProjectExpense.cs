@@ -39,4 +39,13 @@ public class ProfitSharingExpense : ProjectExpense
         IsRelative = true;
         ExpectedAmount = expectedAmount;
     }
+
+    // Constructor to create deep copies on ProjectDetailsViewModel
+    public ProfitSharingExpense(ProfitSharingExpense copy) : base(copy.Name, copy.Amount, copy.Date)
+    {
+        this.IsPaid = copy.IsPaid;
+        this.RelativeFeeDecimal = copy.RelativeFeeDecimal;
+        this.ExpectedAmount = copy.ExpectedAmount;
+        this.IsRelative = copy.IsRelative;
+    }
 }
